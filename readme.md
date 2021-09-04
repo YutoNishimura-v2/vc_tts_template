@@ -27,6 +27,7 @@
     - ほかのモデルも見て考える.
 
 ## 部品に関する感想メモ
+### dnnのみ
 - recipes: 実行系. confとか出力とかtrainとかも.
     - common: 共通
         - yaml_parser.sh
@@ -56,6 +57,8 @@
             - 単なる前処理. 使いまわしは困難 @ stage 1
         - preprocess_acoustic.py
             - 同様 @ stage 2
+        - synthesis.py @ stage 6
+            - これも思いっきりまさにdnntts用. 使えるところはなさそう.
         - data @ stage 0
             - utt_list.txt
                 - 使う順にファイル名を書いておいたもの. これはあらかじめ用意するのはそれはそう.
@@ -72,3 +75,11 @@
         - collate_fn_dnntts: これも専用関数.
         - setup: configに最高に依存している. 少しでも形式変えるとout(それは上の関数も).
     - dnntts
+        - model.py: まぁ普通のmodel. 正確にはmoduleしか入ってない.
+        - tts.py: inferenceといったほうが近そう. ほぼすべて特徴量の名前とかハードコード. とても使いまわせない.
+        - gen.py: これも完全オリジナル.
+        - multistream.py: 同様.
+
+#### 感想
+- いや, 依存しすぎ. dnnttsという結構deepのようでdeepじゃない手法なので, 複雑なのも仕方ないが...。
+- 次のwavenet次第.

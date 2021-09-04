@@ -13,8 +13,8 @@ from omegaconf import OmegaConf
 from torch.utils import data as data_utils
 from torch.utils.tensorboard import SummaryWriter
 
-from logger import getLogger
-from utils import init_seed, load_utt_list, pad_2d
+from vc_tts_template.logger import getLogger
+from vc_tts_template.utils import init_seed, load_utt_list, pad_2d
 
 
 def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int) -> Iterable:

@@ -1,3 +1,9 @@
+-f https://download.pytorch.org/whl/torch_stable.html
+torch==1.9.0+cu111
+-f https://download.pytorch.org/whl/torch_stable.html
+torchvision==0.10.0+cu111
+-f https://download.pytorch.org/whl/torch_stable.html
+torchaudio==0.9.0
 ttslearn
 jupyterlab
 flake8
@@ -7,4 +13,4 @@ jupyter
 ipywidgets 
 widgetsnbextension 
 pandas-profiling
-
+tensorboard

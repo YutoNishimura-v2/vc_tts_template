@@ -51,7 +51,7 @@ acoustic_model: acoustic_dnn_sr16k
 dnntts_train_nepochs: 30
 # バッチサイズを小さくすると、GPUメモリ使用量が小さく済みます。
 # run.sh, stage 4 で利用
-dnntts_data_batch_size: 32
+dnntts_data_batch_size: 16
 
 ###########################################################
 #                SYNTHESIS SETTING                        #

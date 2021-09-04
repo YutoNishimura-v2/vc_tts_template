@@ -5,6 +5,9 @@ defaults:
 verbose: 100
 seed: 773
 
+# 1) none 2) tqdm
+tqdm: tqdm
+
 cudnn:
   benchmark: true  # Trueなら高速化
   deterministic: false  # 計算の決定性を担保するか

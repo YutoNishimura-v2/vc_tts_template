@@ -1,2 +1,6 @@
 **/dump
 **/downloads
+**/outputs
+**/exp
+**/tensorboard
+**/__pycache__

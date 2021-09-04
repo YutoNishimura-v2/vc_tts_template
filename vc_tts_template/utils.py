@@ -2,6 +2,29 @@ from typing import List, Optional
 import torch
 import random
 import numpy as np
+from functools import partial  # 部分的に引数を適用できる.
+
+
+def optional_tqdm(tqdm_mode: str, **kwargs):
+    """Get a tqdm object.
+
+    Args:
+        tqdm_mode: tqdm mode
+        **kwargs: keyword arguments for tqdm
+
+    Returns:
+        callable: tqdm object or an identity function
+    """
+    if tqdm_mode == "tqdm":
+        from tqdm import tqdm
+
+        return partial(tqdm, **kwargs)
+    elif tqdm_mode == "tqdm-notebook":
+        from tqdm.notebook import tqdm
+
+        return partial(tqdm, **kwargs)
+
+    return lambda x: x
 
 
 def make_pad_mask(lengths: List, maxlen: Optional[int] = None) -> torch.Tensor:

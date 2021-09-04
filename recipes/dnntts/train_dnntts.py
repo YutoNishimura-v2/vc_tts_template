@@ -1,10 +1,13 @@
 from pathlib import Path
+import sys
 
 import hydra
 import torch
 from hydra.utils import to_absolute_path
 from omegaconf import DictConfig
 from torch import nn
+
+sys.path.append("../..")
 from vc_tts_template.train_utils import (
     collate_fn_dnntts,
     get_epochs_with_optional_tqdm,
