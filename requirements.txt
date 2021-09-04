@@ -1,0 +1,10 @@
+ttslearn
+jupyterlab
+flake8
+autopep8
+mypy
+jupyter
+ipywidgets 
+widgetsnbextension 
+pandas-profiling
+
