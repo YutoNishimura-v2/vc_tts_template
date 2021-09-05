@@ -83,3 +83,44 @@
 #### 感想
 - いや, 依存しすぎ. dnnttsという結構deepのようでdeepじゃない手法なので, 複雑なのも仕方ないが...。
 - 次のwavenet次第.
+
+### wavenet
+dnnttsとの違いに注目して見ていく. 実行に絡んだもののみ記載していく。
+
+- recipes
+    - common
+        - fit_scaler.py: dnnttsから引き続き. @ stage 4
+        今回, wavenetのoutには利用しないが, それはrun.sh内で書く. かしこい.
+        フォーマットを統一するからこそ可能な正規化の使いまわし.
+        - preprocess_normalize.py: 上に同様.
+    - wavenet
+        - run.sh: やはり最初らへんは共通. テンプレとして使えそう.
+        stage -1, 0 までは完全一致.
+        - config.yaml: run.shに必要. 相違点は?
+        そもそもwavenetをシステムとしてみた場合, dnnttsとほぼ同じなので, 構成も確かに同じだった. 基準はまだよくわかっていない...少なくとも、「ハイパーパラメータはない」というのは確実。
+        実験で頻繁に変えるとしたら↑これだしね。
+
+        - conf: @ stage 5, 6, 7, 8
+        おそらく? ここに含まれるconfはすべてtrain/model関係のハイパラ入りconfing+./run.shから渡したいものは渡せるように空白として配置という感じ. そして特にmodelは切り替えられるようにしてある. 分離.
+        fastspeech2の実装でいう, preprocess.yaml+その他実行環境については./run.sh管轄のconfig.yamlにいるという感じかもしれない.
+
+        - preprocess_duration.py: dnnttsと同一. @ stage 1
+        - preprocess_logf0.py: これも固有 @ stage 2
+            思ったのが, ファイル名は全て「ファイル名-feats.npy」で統一していて, こういったpreprocessed_dataを溜めるのは,  dump以下固定, みたいな感じ. この考え方は使えそう.
+        - preprocess_wavenet.py: これも同様. @ stage 3
+            モデル構造にかかわるような依存も書いている(割り切れるようにしておく, とか). なのでここら辺はフォーマット(preprocessはここに配置)みたいなことだけ統一して後は毎回書く感じがいいかもね.
+        - train_dnntts.py: 前回同様. @ stage 5, 6
+
+- vc_tts_template
+    - dsp.py: degital signale processorの意味. f0抽出など, 良さげな信号処理関数盛沢山. 汎用的.
+    - wavenet
+        - conv.py: autoregressive計算用の, buffer機能付きconv1dの実装. 普通にほかでも利用できるし使っていきたい.
+            - 簡単に言えば, inference時は確かに同じ部分を計算しまくるので, 少しでも速くするために入力を覚えておく感じ.
+            - weight_normはこれにはついていないことに注意.
+            - forwardは, nn.Conv1dを引き継いでいるので適用可能.
+        - upsample.py: upsampleしたいときに流用出来そう.　一応一般的.
+            - module.pyのconvを利用している.
+            - ↑このconvはconv.pyに置いたほうがよくないか?
+        - modules.py: wavenetのlayerなのでほぼ使いまわせない.
+            - mainの繰り返すlayerのとこだけ.
+        - wavenet.py: そのまま.
