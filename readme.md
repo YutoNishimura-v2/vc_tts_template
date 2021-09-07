@@ -133,3 +133,31 @@ dnnttsとの違いに注目して見ていく. 実行に絡んだもののみ記
         - modules.py: wavenetのlayerなのでほぼ使いまわせない.
             - mainの繰り返すlayerのとこだけ.
         - wavenet.py: そのまま.
+        - gen.py: これは, synthesize.pyに用いられているもの.
+        - tts.py: これはデモ用? 簡単にttsできるようにしている感じ. model_dirのみ指定すればok
+        
+#### 感想
+- 依存する部分自体は変わらずだが, どういうお気持ちで作っているかが分かってきた気がする.
+- というのも, 配置の問題とか. 
+    - dumpにpreprocessedは置いたり, confはrun.sh, ハイパラ系はその下, とか.
+
+### Tacotron
+- recipes
+    - preprocess.py: ついに1つにまとまった. きれい.
+    中で利用されているのはlogmelspectrogram.
+    今回, frame_shiftは0.0125を利用. それが埋め込まれているのが気になる.
+- vc_tts_template
+    - tacotron
+        - decoderがとにかく特殊. decoder以外はいつものフツーのやつ.
+        - frontend
+            - openjtalk.py: 有能関数ばかり. 汎用性大
+                - pp_symbols: フルコンテキストラベルから韻律記号付きシンボル列に変えてくれる. 有能すぎ.
+                JSUTの猿渡研のフルコンでは無声音を区別しないが, その調整もできる.
+                - text_to_sequence: ↑ここで出てくる記号列とかも含めてid化してくれる.
+            - text.py: 英語用のtext_to_sequence関数のたまり場.
+    - train_utils.py
+        - collate_fn_tacotron: ここでreduction factorのお世話をする.
+        Datasetもdataloaderも使いまわし可能. なのでcollate_fnだけ書けば勝ち.
+
+#### 感想
+- dataset周りも一般化できるのは発見. collate_fnだけ書けば勝ち.

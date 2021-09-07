@@ -12,9 +12,10 @@ from hydra.utils import to_absolute_path
 from omegaconf import OmegaConf
 from torch.utils import data as data_utils
 from torch.utils.tensorboard import SummaryWriter
+import matplotlib.pyplot as plt
 
 from vc_tts_template.logger import getLogger
-from vc_tts_template.utils import init_seed, load_utt_list, pad_2d
+from vc_tts_template.utils import init_seed, load_utt_list, pad_1d, pad_2d
 
 
 def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int) -> Iterable:
@@ -120,6 +121,46 @@ def save_checkpoint(
         shutil.copyfile(path, out_dir / f"latest{postfix}.pth")
 
 
+def ensure_divisible_by(feats, N):
+    """Ensure that the number of frames is divisible by N.
+    Args:
+        feats (np.ndarray): Input features.
+        N (int): Target number of frames.
+    Returns:
+        np.ndarray: Input features with number of frames divisible by N.
+    """
+    if N == 1:
+        return feats
+    mod = len(feats) % N
+    if mod != 0:
+        feats = feats[: len(feats) - mod]
+    return feats
+
+
+def collate_fn_tacotron(batch, reduction_factor=1):
+    """Collate function for Tacotron.
+    Args:
+        batch (list): List of tuples of the form (inputs, targets).
+        reduction_factor (int, optional): Reduction factor. Defaults to 1.
+    Returns:
+        tuple: Batch of inputs, input lengths, targets, target lengths and stop flags.
+    """
+    xs = [x[0] for x in batch]
+    ys = [ensure_divisible_by(x[1], reduction_factor) for x in batch]
+    in_lens = [len(x) for x in xs]
+    out_lens = [len(y) for y in ys]
+    in_max_len = max(in_lens)
+    out_max_len = max(out_lens)
+    x_batch = torch.stack([torch.from_numpy(pad_1d(x, in_max_len)) for x in xs])
+    y_batch = torch.stack([torch.from_numpy(pad_2d(y, out_max_len)) for y in ys])
+    il_batch = torch.tensor(in_lens, dtype=torch.long)
+    ol_batch = torch.tensor(out_lens, dtype=torch.long)
+    stop_flags = torch.zeros(y_batch.shape[0], y_batch.shape[1])
+    for idx, out_len in enumerate(out_lens):
+        stop_flags[idx, out_len - 1:] = 1.0
+    return x_batch, il_batch, y_batch, ol_batch, stop_flags
+
+
 def collate_fn_dnntts(batch: List) -> Tuple:
     """Collate function for DNN-TTS.
 
@@ -195,6 +236,37 @@ def collate_fn_wavenet(batch, max_time_frames=100, hop_size=80, aux_context_wind
     c_batch = torch.tensor(c_cut, dtype=torch.float).transpose(2, 1)  # (B, C, T')
 
     return x_batch, c_batch
+
+
+def plot_attention(alignment):
+    """Plot attention.
+    Args:
+        alignment (np.ndarray): Attention.
+    """
+    fig, ax = plt.subplots()
+    alignment = alignment.cpu().data.numpy().T
+    im = ax.imshow(alignment, aspect="auto", origin="lower", interpolation="none")
+    fig.colorbar(im, ax=ax)
+    plt.xlabel("Decoder time step")
+    plt.ylabel("Encoder time step")
+    return fig
+
+
+def plot_2d_feats(feats, title=None):
+    """Plot 2D features.
+    Args:
+        feats (np.ndarray): Input features.
+        title (str, optional): Title. Defaults to None.
+    """
+    feats = feats.cpu().data.numpy().T
+    fig, ax = plt.subplots()
+    im = ax.imshow(
+        feats, aspect="auto", origin="lower", interpolation="none", cmap="viridis"
+    )
+    fig.colorbar(im, ax=ax)
+    if title is not None:
+        ax.set_title(title)
+    return fig
 
 
 class Dataset(data_utils.Dataset):  # type: ignore
