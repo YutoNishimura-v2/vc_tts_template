@@ -103,6 +103,9 @@ dnnttsとの違いに注目して見ていく. 実行に絡んだもののみ記
         - conf: @ stage 5, 6, 7, 8
         おそらく? ここに含まれるconfはすべてtrain/model関係のハイパラ入りconfing+./run.shから渡したいものは渡せるように空白として配置という感じ. そして特にmodelは切り替えられるようにしてある. 分離.
         fastspeech2の実装でいう, preprocess.yaml+その他実行環境については./run.sh管轄のconfig.yamlにいるという感じかもしれない.
+            - train_wavenet
+                - config.yaml: ほとんどdnnttsのものと同じ. わかりやすさのために, 上位configで上書きする予定のものは全て何も書かないで統一したほうがいいかもしれない.
+                - epoch -1 問題は, setupからの関数で行われていた.
 
         - preprocess_duration.py: dnnttsと同一. @ stage 1
         - preprocess_logf0.py: これも固有 @ stage 2
@@ -110,9 +113,15 @@ dnnttsとの違いに注目して見ていく. 実行に絡んだもののみ記
         - preprocess_wavenet.py: これも同様. @ stage 3
             モデル構造にかかわるような依存も書いている(割り切れるようにしておく, とか). なのでここら辺はフォーマット(preprocessはここに配置)みたいなことだけ統一して後は毎回書く感じがいいかもね.
         - train_dnntts.py: 前回同様. @ stage 5, 6
+        - train_wavenet.py: @ stage 7
+            引数の名前からして違うのは意外. 確かに, criterionに渡す引数とかは毎回固定は無理だから, 仕方ないかもしれぬ...(**kwagsとかで行けるのでは?感はあるけど)
+            - train_loop: ループのほうすら一般化は難しいのか? 確かに, こちらでは移動平均のパラメタを計算してそれを追加で保存したりもしていて, 一筋縄ではいかない感じ.
 
 - vc_tts_template
     - dsp.py: degital signale processorの意味. f0抽出など, 良さげな信号処理関数盛沢山. 汎用的.
+    - train_utils.py
+        - collate_fn_wavenet: ここに書かなくてよくない? まったく汎用的でない.
+        - moving_average_: パラメータの移動平均をとるもの. wavenetでは利用されるらしい. これは一応汎用的ではある.
     - wavenet
         - conv.py: autoregressive計算用の, buffer機能付きconv1dの実装. 普通にほかでも利用できるし使っていきたい.
             - 簡単に言えば, inference時は確かに同じ部分を計算しまくるので, 少しでも速くするために入力を覚えておく感じ.

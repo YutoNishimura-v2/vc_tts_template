@@ -24,6 +24,7 @@ def train_step(model, model_ema, optimizer, lr_scheduler, train, criterion, x, c
     # 損失 (負の対数尤度) の計算
     # y_hat: (B, C, T)
     # x: (B, T)
+    # あくまで次の時刻からの予測なので, そこをずらす.
     loss = criterion(y_hat[:, :, :-1], x[:, 1:]).mean()
 
     # 逆伝播 & モデルパラメータの更新
