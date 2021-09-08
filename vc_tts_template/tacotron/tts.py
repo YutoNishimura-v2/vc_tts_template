@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import sys
 
 import numpy as np
 import pyopenjtalk
@@ -7,10 +8,12 @@ import torch
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 from tqdm import tqdm
-from ttslearn.dsp import inv_mulaw_quantize, logmelspectrogram_to_audio
-from ttslearn.pretrained import retrieve_pretrained_model
-from ttslearn.tacotron.frontend.openjtalk import pp_symbols, text_to_sequence
-from ttslearn.util import StandardScaler
+
+sys.path.append('..')
+from vc_tts_template.dsp import inv_mulaw_quantize, logmelspectrogram_to_audio
+from vc_tts_template.pretrained import retrieve_pretrained_model
+from vc_tts_template.tacotron.frontend.openjtalk import pp_symbols, text_to_sequence
+from vc_tts_template.utils import StandardScaler
 
 
 class Tacotron2TTS(object):

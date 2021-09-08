@@ -9,9 +9,9 @@ from nnmnkwii.io import hts
 from nnmnkwii.preprocessing import mulaw_quantize
 from scipy.io import wavfile
 from tqdm import tqdm
-from ttslearn.dsp import logmelspectrogram
-from ttslearn.tacotron.frontend.openjtalk import pp_symbols, text_to_sequence
-from ttslearn.util import pad_1d
+from vc_tts_template.dsp import logmelspectrogram
+from vc_tts_template.tacotron.frontend.openjtalk import pp_symbols, text_to_sequence
+from vc_tts_template.utils import pad_1d
 
 
 def get_parser():

@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import sys
 
 import numpy as np
 import pyopenjtalk
@@ -8,10 +9,12 @@ from hydra.utils import instantiate
 from nnmnkwii.io import hts
 from omegaconf import OmegaConf
 from tqdm import tqdm
-from ttslearn.dnntts.gen import predict_acoustic, predict_duration
-from ttslearn.pretrained import retrieve_pretrained_model
-from ttslearn.util import StandardScaler
-from ttslearn.wavenet.gen import gen_waveform
+
+sys.path.append('..')
+from vc_tts_template.dnntts.gen import predict_acoustic, predict_duration
+from vc_tts_template.pretrained import retrieve_pretrained_model
+from vc_tts_template.utils import StandardScaler
+from vc_tts_template.wavenet.gen import gen_waveform
 
 
 class WaveNetTTS(object):

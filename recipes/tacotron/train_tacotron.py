@@ -18,7 +18,7 @@ from vc_tts_template.train_utils import (
     save_checkpoint,
     setup,
 )
-from ttslearn.util import make_non_pad_mask
+from vc_tts_template.utils import make_non_pad_mask
 
 logger: Logger = None  # type: ignore
 

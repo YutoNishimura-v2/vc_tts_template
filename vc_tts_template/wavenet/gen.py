@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from nnmnkwii.frontend import merlin as fe
 from tqdm import tqdm
-from ttslearn.dsp import inv_mulaw_quantize
+from vc_tts_template.dsp import inv_mulaw_quantize
 
 
 @torch.no_grad()

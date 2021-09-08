@@ -10,9 +10,9 @@ from nnmnkwii.io import hts
 from omegaconf import DictConfig, OmegaConf
 from scipy.io import wavfile
 from tqdm import tqdm
-from ttslearn.dnntts.gen import predict_acoustic, predict_duration
-from ttslearn.util import load_utt_list, optional_tqdm
-from ttslearn.wavenet.gen import gen_waveform
+from vc_tts_template.dnntts.gen import predict_acoustic, predict_duration
+from vc_tts_template.utils import load_utt_list, optional_tqdm
+from vc_tts_template.wavenet.gen import gen_waveform
 
 
 def synthesis(
@@ -133,7 +133,7 @@ def my_app(config: DictConfig) -> None:
     if config.tqdm == "tqdm":
         _tqdm = partial(tqdm, desc="wavenet generation", leave=False)
     else:
-        _tqdm = None
+        _tqdm = None  # type: ignore
     for lab_file in optional_tqdm(config.tqdm, desc="Utterance")(lab_files):
         labels = hts.load(lab_file).round_()
 

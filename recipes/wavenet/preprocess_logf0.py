@@ -9,7 +9,7 @@ from nnmnkwii.frontend import merlin as fe
 from nnmnkwii.io import hts
 from scipy.io import wavfile
 from tqdm import tqdm
-from ttslearn.dsp import world_log_f0_vuv
+from vc_tts_template.dsp import world_log_f0_vuv
 
 
 def get_parser():

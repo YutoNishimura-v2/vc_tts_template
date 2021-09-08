@@ -10,8 +10,8 @@ from nnmnkwii.io import hts
 from nnmnkwii.preprocessing import mulaw_quantize
 from scipy.io import wavfile
 from tqdm import tqdm
-from ttslearn.dsp import world_log_f0_vuv
-from ttslearn.util import pad_1d
+from vc_tts_template.dsp import world_log_f0_vuv
+from vc_tts_template.utils import pad_1d
 
 
 def get_parser():

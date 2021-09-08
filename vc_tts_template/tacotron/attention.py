@@ -5,7 +5,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from ttslearn.util import make_pad_mask
+from vc_tts_template.utils import make_pad_mask
 
 
 class BahdanauAttention(nn.Module):

@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import sys
 
 import numpy as np
 import pyopenjtalk
@@ -7,9 +8,11 @@ import torch
 from hydra.utils import instantiate
 from nnmnkwii.io import hts
 from omegaconf import OmegaConf
-from ttslearn.dnntts.gen import gen_waveform, predict_acoustic, predict_duration
-from ttslearn.pretrained import retrieve_pretrained_model
-from ttslearn.util import StandardScaler
+
+sys.path.append('..')
+from vc_tts_template.dnntts.gen import gen_waveform, predict_acoustic, predict_duration
+from vc_tts_template.pretrained import retrieve_pretrained_model
+from vc_tts_template.utils import StandardScaler
 
 
 class DNNTTS(object):

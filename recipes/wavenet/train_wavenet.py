@@ -6,7 +6,7 @@ import torch
 from hydra.utils import to_absolute_path
 from omegaconf import DictConfig
 from torch import nn
-from ttslearn.train_util import (
+from vc_tts_template.train_utils import (
     collate_fn_wavenet,
     get_epochs_with_optional_tqdm,
     moving_average_,

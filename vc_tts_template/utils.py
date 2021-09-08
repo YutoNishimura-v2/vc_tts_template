@@ -1,4 +1,5 @@
-from typing import List, Optional
+import importlib
+from typing import List, Optional, Any
 import torch
 import random
 import numpy as np
@@ -97,6 +98,20 @@ def init_seed(seed: int) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
+def dynamic_import(name: str) -> Any:
+    """Dynamic import
+
+    Args:
+        name (str): module_name + ":" + class_name
+
+    Returns:
+        Any: class object
+    """
+    mod_name, class_name = name.split(":")
+    mod = importlib.import_module(mod_name)
+    return getattr(mod, class_name)
+
+
 def pad_1d(x: torch.Tensor, max_len: int, constant_values: Optional[int] = 0) -> torch.Tensor:
     """Pad a 1d-tensor.
 
@@ -135,3 +150,24 @@ def pad_2d(x: torch.Tensor, max_len: int, constant_values: Optional[int] = 0) ->
         constant_values=constant_values,
     )
     return x
+
+
+class StandardScaler:
+    """sklearn.preprocess.StandardScaler like class with only
+    transform functionality
+    Args:
+        mean (np.ndarray): mean
+        std (np.ndarray): standard deviation
+    """
+
+    def __init__(self, mean, var, scale):
+        self.mean_ = mean
+        self.var_ = var
+        # NOTE: scale may not exactly same as np.sqrt(var)
+        self.scale_ = scale
+
+    def transform(self, x):
+        return (x - self.mean_) / self.scale_
+
+    def inverse_transform(self, x):
+        return x * self.scale_ + self.mean_

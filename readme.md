@@ -157,6 +157,10 @@ dnnttsとの違いに注目して見ていく. 実行に絡んだもののみ記
                 JSUTの猿渡研のフルコンでは無声音を区別しないが, その調整もできる.
                 - text_to_sequence: ↑ここで出てくる記号列とかも含めてid化してくれる.
             - text.py: 英語用のtext_to_sequence関数のたまり場.
+    - pretrained: tts.py用. 訓練済みのモデルを保存したら, ここにある関数を使ってdownloadできる.
+        配布向け. なぜかモジュールダウンロードできないし, ttsとともにいったんなしでいいかもしれない?
+            - tts.pyはでも手軽に実行できるから便利なんだよな, 使いたい.
+        - __init__.py: ここで関数をdefしてる. ダウンロード用やね.
     - train_utils.py
         - collate_fn_tacotron: ここでreduction factorのお世話をする.
         Datasetもdataloaderも使いまわし可能. なのでcollate_fnだけ書けば勝ち.
