@@ -7,12 +7,12 @@ from hydra.utils import to_absolute_path
 from omegaconf import DictConfig
 from torch import nn
 from vc_tts_template.train_utils import (
-    collate_fn_wavenet,
     get_epochs_with_optional_tqdm,
     moving_average_,
     save_checkpoint,
     setup,
 )
+from vc_tts_template.wavenet.collate_fn import collate_fn_wavenet
 
 
 def train_step(model, model_ema, optimizer, lr_scheduler, train, criterion, x, c):
@@ -119,7 +119,7 @@ def my_app(config: DictConfig) -> None:
         aux_context_window=config.data.aux_context_window,
     )
     model, optimizer, lr_scheduler, data_loaders, writer, logger = setup(
-        config, device, collate_fn
+        config, device, collate_fn  # type: ignore
     )
     # exponential moving average
     model_ema = hydra.utils.instantiate(config.model.netG).to(device)

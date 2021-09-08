@@ -26,7 +26,7 @@ class Encoder(nn.Module):
 
     def __init__(
         self,
-        num_vocab=51,  # 語彙数
+        num_vocab=52,  # 語彙数
         embed_dim=512,  # 文字埋め込みの次元数
         hidden_dim=512,  # 隠れ層の次元数
         conv_layers=3,  # 畳み込み層数

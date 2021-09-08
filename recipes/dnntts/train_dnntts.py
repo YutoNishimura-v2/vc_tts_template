@@ -9,11 +9,11 @@ from torch import nn
 
 sys.path.append("../..")
 from vc_tts_template.train_utils import (
-    collate_fn_dnntts,
     get_epochs_with_optional_tqdm,
     save_checkpoint,
     setup,
 )
+from vc_tts_template.dnntts.collate_fn import collate_fn_dnntts
 from vc_tts_template.utils import make_non_pad_mask
 
 

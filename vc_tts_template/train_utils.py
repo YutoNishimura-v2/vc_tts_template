@@ -15,7 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
 
 from vc_tts_template.logger import getLogger
-from vc_tts_template.utils import init_seed, load_utt_list, pad_1d, pad_2d
+from vc_tts_template.utils import init_seed, load_utt_list
 
 
 def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int) -> Iterable:
@@ -121,7 +121,7 @@ def save_checkpoint(
         shutil.copyfile(path, out_dir / f"latest{postfix}.pth")
 
 
-def ensure_divisible_by(feats, N):
+def ensure_divisible_by(feats: np.ndarray, N: int) -> np.ndarray:
     """Ensure that the number of frames is divisible by N.
     Args:
         feats (np.ndarray): Input features.
@@ -137,47 +137,6 @@ def ensure_divisible_by(feats, N):
     return feats
 
 
-def collate_fn_tacotron(batch, reduction_factor=1):
-    """Collate function for Tacotron.
-    Args:
-        batch (list): List of tuples of the form (inputs, targets).
-        reduction_factor (int, optional): Reduction factor. Defaults to 1.
-    Returns:
-        tuple: Batch of inputs, input lengths, targets, target lengths and stop flags.
-    """
-    xs = [x[0] for x in batch]
-    ys = [ensure_divisible_by(x[1], reduction_factor) for x in batch]
-    in_lens = [len(x) for x in xs]
-    out_lens = [len(y) for y in ys]
-    in_max_len = max(in_lens)
-    out_max_len = max(out_lens)
-    x_batch = torch.stack([torch.from_numpy(pad_1d(x, in_max_len)) for x in xs])
-    y_batch = torch.stack([torch.from_numpy(pad_2d(y, out_max_len)) for y in ys])
-    il_batch = torch.tensor(in_lens, dtype=torch.long)
-    ol_batch = torch.tensor(out_lens, dtype=torch.long)
-    stop_flags = torch.zeros(y_batch.shape[0], y_batch.shape[1])
-    for idx, out_len in enumerate(out_lens):
-        stop_flags[idx, out_len - 1:] = 1.0
-    return x_batch, il_batch, y_batch, ol_batch, stop_flags
-
-
-def collate_fn_dnntts(batch: List) -> Tuple:
-    """Collate function for DNN-TTS.
-
-    Args:
-        batch: List of tuples of the form (inputs, targets).
-
-    Returns:
-        tuple: Batch of inputs, targets, and lengths.
-    """
-    lengths = [len(x[0]) for x in batch]
-    max_len = max(lengths)
-    x_batch = torch.stack([torch.from_numpy(pad_2d(x[0], max_len)) for x in batch])
-    y_batch = torch.stack([torch.from_numpy(pad_2d(x[1], max_len)) for x in batch])
-    l_batch = torch.tensor(lengths, dtype=torch.long)
-    return x_batch, y_batch, l_batch
-
-
 def moving_average_(model, model_test, beta=0.9999):
     """Exponential moving average (EMA) of model parameters.
 
@@ -190,55 +149,7 @@ def moving_average_(model, model_test, beta=0.9999):
         param_test.data = torch.lerp(param.data, param_test.data, beta)
 
 
-def collate_fn_wavenet(batch, max_time_frames=100, hop_size=80, aux_context_window=2):
-    """Collate function for WaveNet.
-
-    Args:
-        batch (list): List of tuples of the form (inputs, targets).
-        max_time_frames (int, optional): Number of time frames. Defaults to 100.
-        hop_size (int, optional): Hop size. Defaults to 80.
-        aux_context_window (int, optional): Auxiliary context window. Defaults to 2.
-
-    Returns:
-        tuple: Batch of waveforms and conditional features.
-    """
-    # (注意: 単位をframeで考えるべし. つまり, 最初から全て*srされているものと考える.
-    # 全てにかけられているので, ms単位で考えても論理は同じ)
-    # hop_sizeはフレームシフト. 要するに, サンプル→フレームに圧縮する時の比になっている.
-    # なので, 逆にフレームをサンプル単位に変えたければ, ↓のように, hop_sizeをかければよい
-    max_time_steps = max_time_frames * hop_size  # sample単位のtime step.
-
-    xs, cs = [b[1] for b in batch], [b[0] for b in batch]
-
-    # 条件付け特徴量の開始位置をランダム抽出した後、それに相当する短い音声波形を切り出します
-    # windowを考慮して選ばないとout of index
-    # あと, これだと滅茶苦茶短い音声を入れてしまうとout of indexになる.
-    c_lengths = [len(c) for c in cs]
-    start_frames = np.array(
-        [
-            np.random.randint(
-                aux_context_window, cl - aux_context_window - max_time_frames
-            )
-            for cl in c_lengths
-        ]
-    )
-    # サンプル単位に変換
-    x_starts = start_frames * hop_size
-    x_ends = x_starts + max_time_steps
-    # cはフレーム単位なのでそのまま.
-    c_starts = start_frames - aux_context_window
-    c_ends = start_frames + max_time_frames + aux_context_window
-    x_cut = [x[s:e] for x, s, e in zip(xs, x_starts, x_ends)]
-    c_cut = [c[s:e] for c, s, e in zip(cs, c_starts, c_ends)]
-
-    # numpy.ndarray のリスト型から torch.Tensor 型に変換します
-    x_batch = torch.tensor(x_cut, dtype=torch.long)  # (B, T)
-    c_batch = torch.tensor(c_cut, dtype=torch.float).transpose(2, 1)  # (B, C, T')
-
-    return x_batch, c_batch
-
-
-def plot_attention(alignment):
+def plot_attention(alignment: torch.Tensor) -> plt.figure:
     """Plot attention.
     Args:
         alignment (np.ndarray): Attention.
@@ -252,7 +163,7 @@ def plot_attention(alignment):
     return fig
 
 
-def plot_2d_feats(feats, title=None):
+def plot_2d_feats(feats: torch.Tensor, title=None) -> plt.figure:
     """Plot 2D features.
     Args:
         feats (np.ndarray): Input features.
@@ -269,7 +180,7 @@ def plot_2d_feats(feats, title=None):
     return fig
 
 
-class Dataset(data_utils.Dataset):  # type: ignore
+class _Dataset(data_utils.Dataset):  # type: ignore
     """Dataset for numpy files
 
     Args:
@@ -301,7 +212,7 @@ class Dataset(data_utils.Dataset):  # type: ignore
         return len(self.in_paths)
 
 
-def get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data_utils.DataLoader]:
+def _get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data_utils.DataLoader]:
     """Get data loaders for training and validation.
 
     Args:
@@ -321,7 +232,7 @@ def get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data_
         in_feats_paths = [in_dir / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_feats_paths = [out_dir / f"{utt_id}-feats.npy" for utt_id in utt_ids]
 
-        dataset = Dataset(in_feats_paths, out_feats_paths)
+        dataset = _Dataset(in_feats_paths, out_feats_paths)
         data_loaders[phase] = data_utils.DataLoader(
             dataset,
             batch_size=data_config.batch_size,  # type: ignore
@@ -410,7 +321,7 @@ def setup(config: Dict, device: torch.device, collate_fn: Callable) -> Tuple:
     )
 
     # DataLoader
-    data_loaders = get_data_loaders(config.data, collate_fn)  # type: ignore
+    data_loaders = _get_data_loaders(config.data, collate_fn)  # type: ignore
 
     set_epochs_based_on_max_steps_(config.train, len(data_loaders["train"]), logger)  # type: ignore
 

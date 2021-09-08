@@ -1,9 +1,9 @@
-import importlib
-from typing import List, Optional, Any
+from typing import List, Optional
 import torch
 import random
 import numpy as np
 from functools import partial  # 部分的に引数を適用できる.
+import torch.nn.functional as F
 
 
 def optional_tqdm(tqdm_mode: str, **kwargs):
@@ -98,20 +98,6 @@ def init_seed(seed: int) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
-def dynamic_import(name: str) -> Any:
-    """Dynamic import
-
-    Args:
-        name (str): module_name + ":" + class_name
-
-    Returns:
-        Any: class object
-    """
-    mod_name, class_name = name.split(":")
-    mod = importlib.import_module(mod_name)
-    return getattr(mod, class_name)
-
-
 def pad_1d(x: torch.Tensor, max_len: int, constant_values: Optional[int] = 0) -> torch.Tensor:
     """Pad a 1d-tensor.
 
@@ -136,7 +122,7 @@ def pad_2d(x: torch.Tensor, max_len: int, constant_values: Optional[int] = 0) ->
     """Pad a 2d-tensor.
 
     Args:
-        x: tensor to pad
+        x: tensor to pad. shape=(T, dim)
         max_len: maximum length of the tensor
         constant_values: value to pad with. Default: 0
 
@@ -150,6 +136,29 @@ def pad_2d(x: torch.Tensor, max_len: int, constant_values: Optional[int] = 0) ->
         constant_values=constant_values,
     )
     return x
+
+
+def pad(x: torch.Tensor, max_length: Optional[int] = None) -> torch.Tensor:
+    """padding. batch入力を想定した, ネットワーク内で利用できるpad.
+    """
+    if max_length:
+        max_len = max_length
+    else:
+        max_len = max([x[i].size(0) for i in range(len(x))])
+
+    out_list = list()
+    for i, batch in enumerate(x):
+        if len(batch.shape) == 1:
+            one_batch_padded = F.pad(
+                batch, (0, max_len - batch.size(0)), "constant", 0.0
+            )
+        elif len(batch.shape) == 2:
+            one_batch_padded = F.pad(
+                batch, (0, 0, 0, max_len - batch.size(0)), "constant", 0.0
+            )
+        out_list.append(one_batch_padded)
+    out_padded = torch.stack(out_list)
+    return out_padded
 
 
 class StandardScaler:

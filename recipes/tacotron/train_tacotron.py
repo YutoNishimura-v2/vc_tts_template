@@ -11,13 +11,13 @@ from torch import nn
 from tqdm import tqdm
 from vc_tts_template.tacotron.frontend.openjtalk import sequence_to_text
 from vc_tts_template.train_utils import (
-    collate_fn_tacotron,
     get_epochs_with_optional_tqdm,
     plot_2d_feats,
     plot_attention,
     save_checkpoint,
     setup,
 )
+from vc_tts_template.tacotron.collate_fn import collate_fn_tacotron
 from vc_tts_template.utils import make_non_pad_mask
 
 logger: Logger = None  # type: ignore

@@ -1,3 +1,5 @@
+from typing import Optional
+
 import librosa
 import numpy as np
 import pysptk
@@ -6,7 +8,7 @@ from nnmnkwii.preprocessing import delta_features
 from nnmnkwii.preprocessing.f0 import interp1d
 
 
-def f0_to_lf0(f0):
+def f0_to_lf0(f0: np.ndarray) -> np.ndarray:
     """Convert F0 to log-F0
 
     Args:
@@ -21,7 +23,7 @@ def f0_to_lf0(f0):
     return lf0
 
 
-def lf0_to_f0(lf0, vuv):
+def lf0_to_f0(lf0: np.ndarray, vuv: np.ndarray) -> np.ndarray:
     """Convert log-F0 (and V/UV) to F0
 
     Args:
@@ -36,8 +38,11 @@ def lf0_to_f0(lf0, vuv):
     return f0
 
 
-def compute_delta(x, coef):
+def compute_delta(x: np.ndarray, coef: np.ndarray) -> np.ndarray:
     """Compute delta features
+    例: coef = [-0.5, 0, 0.5]なら1次
+        coef = [1.0, -2.0, 1.0]なら2次.
+    詳細は, 音声合成本(p104)
 
     Args:
         x (ndarray): Feature vector.
@@ -53,7 +58,7 @@ def compute_delta(x, coef):
     return y
 
 
-def world_log_f0_vuv(x, sr):
+def world_log_f0_vuv(x: np.ndarray, sr: int) -> np.ndarray:
     """WORLD-based log-F0 and V/UV extraction
 
     Args:
@@ -90,7 +95,7 @@ def world_log_f0_vuv(x, sr):
     return feats
 
 
-def world_spss_params(x, sr, mgc_order=None):
+def world_spss_params(x: np.ndarray, sr: int, mgc_order: Optional[int] = None) -> np.ndarray:
     """WORLD-based acoustic feature extraction
 
     Args:
@@ -145,7 +150,7 @@ def world_spss_params(x, sr, mgc_order=None):
     return feats
 
 
-def mulaw(x, mu=255):
+def _mulaw(x: np.ndarray, mu: int = 255) -> np.ndarray:
     """Mu-Law companding.
 
     Args:
@@ -158,7 +163,7 @@ def mulaw(x, mu=255):
     return np.sign(x) * np.log1p(mu * np.abs(x)) / np.log1p(mu)
 
 
-def quantize(y, mu=255, offset=1):
+def _quantize(y: np.ndarray, mu: int = 255, offset: int = 1) -> np.ndarray:
     """Quantize the signal
 
     Args:
@@ -173,7 +178,7 @@ def quantize(y, mu=255, offset=1):
     return ((y + offset) / 2 * mu).astype(np.int64)
 
 
-def mulaw_quantize(x, mu=255):
+def mulaw_quantize(x: np.ndarray, mu: int = 255) -> np.ndarray:
     """Mu-law-quantize signal.
 
     Args:
@@ -183,10 +188,10 @@ def mulaw_quantize(x, mu=255):
     Returns:
         ndarray: Quantized signal.
     """
-    return quantize(mulaw(x, mu), mu)
+    return _quantize(_mulaw(x, mu), mu)
 
 
-def inv_mulaw(y, mu=255):
+def _inv_mulaw(y: np.ndarray, mu: int = 255) -> np.ndarray:
     """Inverse transformation of mu-law companding
 
     Args:
@@ -199,7 +204,7 @@ def inv_mulaw(y, mu=255):
     return np.sign(y) * (1.0 / mu) * ((1.0 + mu) ** np.abs(y) - 1.0)
 
 
-def inv_quantize(y, mu):
+def _inv_quantize(y: np.ndarray, mu: int) -> np.ndarray:
     """De-quantization.
 
     Args:
@@ -213,7 +218,7 @@ def inv_quantize(y, mu):
     return 2 * y.astype(np.float32) / mu - 1
 
 
-def inv_mulaw_quantize(y, mu=255):
+def inv_mulaw_quantize(y: np.ndarray, mu: int = 255) -> np.ndarray:
     """Inverse transformation of mu-law quantization.
 
     Args:
@@ -223,17 +228,17 @@ def inv_mulaw_quantize(y, mu=255):
     Returns:
         ndarray: Unquantized signal.
     """
-    return inv_mulaw(inv_quantize(y, mu), mu)
+    return _inv_mulaw(_inv_quantize(y, mu), mu)
 
 
 def logspectrogram(
-    y,
-    sr,
-    n_fft=None,
-    hop_length=None,
-    win_length=None,
-    clip=0.001,
-):
+    y: np.ndarray,
+    sr: int,
+    n_fft: Optional[int] = None,
+    hop_length: Optional[int] = None,
+    win_length: Optional[int] = None,
+    clip: float = 0.001,
+) -> np.ndarray:
     """Compute log-spectrogram.
 
     Args:
@@ -252,7 +257,7 @@ def logspectrogram(
     if win_length is None:
         win_length = int(sr * 0.050)
     if n_fft is None:
-        n_fft = next_power_of_2(win_length)
+        n_fft = _next_power_of_2(win_length)
 
     S = librosa.stft(
         y, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window="hanning"
@@ -269,21 +274,22 @@ def logspectrogram(
     return S.T
 
 
-def next_power_of_2(x):
+def _next_power_of_2(x):
+    # xを超える最大の2^を返す.
     return 1 if x == 0 else 2 ** (x - 1).bit_length()
 
 
 def logmelspectrogram(
-    y,
-    sr,
-    n_fft=None,
-    hop_length=None,
-    win_length=None,
-    n_mels=80,
-    fmin=None,
-    fmax=None,
-    clip=0.001,
-):
+    y: np.ndarray,
+    sr: int,
+    n_fft: Optional[int] = None,
+    hop_length: Optional[int] = None,
+    win_length: Optional[int] = None,
+    n_mels: int = 80,
+    fmin: Optional[int] = None,
+    fmax: Optional[int] = None,
+    clip: float = 0.001,
+) -> np.ndarray:
     """Compute log-melspectrogram.
 
     Args:
@@ -305,7 +311,7 @@ def logmelspectrogram(
     if win_length is None:
         win_length = int(sr * 0.050)
     if n_fft is None:
-        n_fft = next_power_of_2(win_length)
+        n_fft = _next_power_of_2(win_length)
 
     S = librosa.stft(
         y, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window="hanning"
@@ -330,15 +336,15 @@ def logmelspectrogram(
 
 
 def logmelspectrogram_to_audio(
-    logmel,
-    sr,
-    n_fft=None,
-    hop_length=None,
-    win_length=None,
-    fmin=None,
-    fmax=None,
-    n_iter=4,
-):
+    logmel: np.ndarray,
+    sr: int,
+    n_fft: Optional[int] = None,
+    hop_length: Optional[int] = None,
+    win_length: Optional[int] = None,
+    fmin: Optional[int] = None,
+    fmax: Optional[int] = None,
+    n_iter: int = 4,
+) -> np.ndarray:
     """Log-melspectrogram to audio.
 
     Args:
@@ -359,7 +365,7 @@ def logmelspectrogram_to_audio(
     if win_length is None:
         win_length = int(sr * 0.050)
     if n_fft is None:
-        n_fft = next_power_of_2(win_length)
+        n_fft = _next_power_of_2(win_length)
 
     fmin = 0 if fmin is None else fmin
     fmax = sr // 2 if fmax is None else fmax

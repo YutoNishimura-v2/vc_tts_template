@@ -1,3 +1,5 @@
+import importlib
+from typing import Any
 import os
 import shutil
 import tarfile
@@ -5,7 +7,6 @@ from os.path import join
 from pathlib import Path
 from urllib.request import urlretrieve
 from tqdm.auto import tqdm
-from vc_tts_template.utils import dynamic_import
 
 _urls = {
     "v0.2.0": "https://github.com/r9y9/ttslearn/releases/download/v0.2.0",
@@ -64,6 +65,20 @@ model_registry = {
         "_target_": "ttslearn.contrib:Tacotron2PWGTTS",
     },
 }
+
+
+def dynamic_import(name: str) -> Any:
+    """Dynamic import
+
+    Args:
+        name (str): module_name + ":" + class_name
+
+    Returns:
+        Any: class object
+    """
+    mod_name, class_name = name.split(":")
+    mod = importlib.import_module(mod_name)
+    return getattr(mod, class_name)
 
 
 def create_tts_engine(name, *args, **kwargs):
