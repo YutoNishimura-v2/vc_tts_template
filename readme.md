@@ -143,9 +143,11 @@ dnnttsとの違いに注目して見ていく. 実行に絡んだもののみ記
 
 ### Tacotron
 - recipes
-    - preprocess.py: ついに1つにまとまった. きれい.
-    中で利用されているのはlogmelspectrogram.
-    今回, frame_shiftは0.0125を利用. それが埋め込まれているのが気になる.
+    - tacotron
+        - preprocess.py: ついに1つにまとまった. きれい.
+        中で利用されているのはlogmelspectrogram.
+        今回, frame_shiftは0.0125を利用. それが埋め込まれているのが気になる.
+        - train_tacotron.py: 完成形. 美しい. これをttsのベースにしたい(一般性はないけど, 参考にするテンプレートとして完璧).
 - vc_tts_template
     - tacotron
         - decoderがとにかく特殊. decoder以外はいつものフツーのやつ.
@@ -161,3 +163,5 @@ dnnttsとの違いに注目して見ていく. 実行に絡んだもののみ記
 
 #### 感想
 - dataset周りも一般化できるのは発見. collate_fnだけ書けば勝ち.
+- genの中でsynthesisをやるけど, synthesis.pyとは違い, モデル周りだけみたいな感じ? 入力とモデルを受け取って出力を出すだけ.
+synthesis.pyがデータをロードしたり, モデルを用意したりするところ.

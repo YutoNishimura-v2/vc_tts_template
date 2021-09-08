@@ -32,7 +32,7 @@ def eval_model(
 
     if is_inference:
         outs, outs_fine, att_ws, out_lens = [], [], [], []
-        for idx in range(N):
+        for idx in range(N):  # 1個ずつ処理するのがinference.
             out, out_fine, _, att_w = model.inference(in_feats[idx][: in_lens[idx]])
             outs.append(out)
             outs_fine.append(out_fine)
@@ -41,7 +41,7 @@ def eval_model(
     else:
         outs, outs_fine, _, att_ws = model(in_feats, in_lens, out_feats)
 
-    for idx in range(N):
+    for idx in range(N):  # 一個ずつsummary writerしていく.
         text = "".join(
             sequence_to_text(in_feats[idx][: in_lens[idx]].cpu().data.numpy())
         )
@@ -52,8 +52,8 @@ def eval_model(
 
         out = outs[idx][: out_lens[idx]]
         out_fine = outs_fine[idx][: out_lens[idx]]
-        rf = model.decoder.reduction_factor
-        att_w = att_ws[idx][: out_lens[idx] // rf, : in_lens[idx]]
+        rf = model.decoder.reduction_factor  # selfに保存しているので.
+        att_w = att_ws[idx][: out_lens[idx] // rf, : in_lens[idx]]  # reduction factor分しかattnはないのであった.
         fig = plot_attention(att_w)
         writer.add_figure(f"{group}/attention", fig, step)
         plt.close()
@@ -113,6 +113,7 @@ def train_step(
         loss.backward()
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         if not torch.isfinite(grad_norm):
+            # こんなことあるんだ.
             logger.info("grad norm is NaN. Skip updating")
         else:
             optimizer.step()
@@ -144,11 +145,12 @@ def train_loop(config, device, model, optimizer, lr_scheduler, data_loaders, wri
         for phase in data_loaders.keys():
             train = phase.startswith("train")
             model.train() if train else model.eval()
-            running_losses = {}
+            running_losses = {}  # epoch毎のloss. ここでresetしてるし.
             for idx, (in_feats, in_lens, out_feats, out_lens, stop_flags) in tqdm(
                 enumerate(data_loaders[phase]), desc=f"{phase} iter", leave=False
             ):
                 # ミニバッチのソート
+                # ソートしないといけないのが, LSTMのpackのお話だった.
                 in_lens, indices = torch.sort(in_lens, dim=0, descending=True)
                 in_feats, out_feats, out_lens = (
                     in_feats[indices].to(device),
@@ -176,15 +178,16 @@ def train_loop(config, device, model, optimizer, lr_scheduler, data_loaders, wri
                         "LearningRate", lr_scheduler.get_last_lr()[0], train_iter
                     )
                     train_iter += 1
+                # lossを一気に足してためておく. 賢い.
                 _update_running_losses_(running_losses, loss_values)
 
                 # 最初の検証用データに対して、中間結果の可視化
                 if (
                     not train
-                    and idx == 0
+                    and idx == 0  # 最初
                     and epoch % config.train.eval_epoch_interval == 0
                 ):
-                    for is_inference in [False, True]:
+                    for is_inference in [False, True]:  # 非推論モードでやるの偉い.
                         eval_model(
                             train_iter,
                             model,

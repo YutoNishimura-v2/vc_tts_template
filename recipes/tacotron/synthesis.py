@@ -10,8 +10,8 @@ from nnmnkwii.io import hts
 from omegaconf import DictConfig, OmegaConf
 from scipy.io import wavfile
 from tqdm import tqdm
-from ttslearn.tacotron.gen import synthesis, synthesis_griffin_lim
-from ttslearn.util import load_utt_list, optional_tqdm
+from vc_tts_template.tacotron.gen import synthesis, synthesis_griffin_lim
+from vc_tts_template.utils import load_utt_list, optional_tqdm
 
 
 @hydra.main(config_path="conf/synthesis", config_name="config")
@@ -60,7 +60,7 @@ def my_app(config: DictConfig) -> None:
     if config.tqdm == "tqdm":
         _tqdm = partial(tqdm, desc="wavenet generation", leave=False)
     else:
-        _tqdm = None
+        _tqdm = None  # type: ignore
 
     # Run synthesis for each utt.
     for lab_file in optional_tqdm(config.tqdm, desc="Utterance")(lab_files):
