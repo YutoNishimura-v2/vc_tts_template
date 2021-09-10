@@ -2,6 +2,10 @@
 - 目的: 今後, いろんなモデルを実装していくにあたり, 毎回dataloaderとかtrainとか書くのあほくさい.
 - なので, 使いまわし可能なコードを作ろう!!!
 
+## todo
+- setup.pyの変更に基づき, 後方互換性がなくなったので,
+tacotronやwavenetなどで, lossを.pyにしてconfigに追記するようにする.
+
 ## run.shの流れ
 
 - stage -1
@@ -187,3 +191,33 @@ synthesis.pyがデータをロードしたり, モデルを用意したりする
     - 中途半端にやっても無理なので, 「モジュールは完全に独立」or 「頑張って一般化」のにたく.
     - 一般化はできる気がしない. 素直に完全独立で行きましょう.
     - 別のが作りたくなったらコピペで対応.
+
+### 要件
+- 作るべきものだけをメモしておく. 逆に, ここ以外は一般化する.
+
+- preprocess.py
+    - ファイル名が`utt_id-feat.npy`である
+        - これさえ守れば, フォルダを作ったりしても, run.shとdatasetで対応可能.
+- collate_fn.py
+    - 出力はnp. to_deviceの方で書く.
+    - preprocessが特殊ではなく, 1つのみのファイルを扱うのであれば, collate_fnのみいじればよいが, 複数かかわるのであれば, get_dataloaderあたりから修正が必要.
+    - また, partialによって引数を受け取ってからmy_appに投げることも注意.
+- to_device
+    - deviceにデータを渡す関数. train.py内でdef.
+- model
+    - 自由に作成していいが, 入力データとして, ここで使わないとしてもcollat_fnからの全データを受け取れるようにはしておく. それによって一般化できる.
+    - 出力も自由.
+    - 推論モードがある場合, is_inferenceという引数を受け取るか, inferenceモードを作っておくこと.
+        - 今回は, evalの時にpitch targetをあげるか上げないかで, これはモデルは触る必要なし.
+- loss
+    - lossに関しては, 一般化する. modelと同じ階層に配置.
+    - 入力: batch, output. batchはcollate_fnから出てくる全データ.
+    outputは, modelから出てくる全データ.
+    - 出力: loss, loss_dict. lossは全lossのsum.
+    loss_dictは各loss名とその値が入った辞書.
+    - これを作成するだけであとはインスタンス化も自動.
+- optimizer
+    - pytorchと同じメソッド名で動くもでさえあればok.
+        - ただし, lr_schedulerは, set_optimizerというmethodで
+        optimizerをsetできるようにする.
+    - configでは, pytorchのものか作ったものかを選べるようにする.

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 import librosa
 import numpy as np
@@ -289,7 +289,8 @@ def logmelspectrogram(
     fmin: Optional[int] = None,
     fmax: Optional[int] = None,
     clip: float = 0.001,
-) -> np.ndarray:
+    need_energy: bool = False,
+) -> Tuple[np.ndarray, np.ndarray]:
     """Compute log-melspectrogram.
 
     Args:
@@ -330,6 +331,9 @@ def logmelspectrogram(
 
     # 対数を取る
     S = np.log10(S)
+
+    if need_energy is True:
+        return S.T, np.linalg.norm(S.T, axis=1)
 
     # Time first: (T, N)
     return S.T

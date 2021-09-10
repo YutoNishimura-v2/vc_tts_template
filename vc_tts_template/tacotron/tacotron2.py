@@ -1,8 +1,8 @@
 import torch
 from torch import nn
-from decoder import Decoder
-from encoder import Encoder
-from postnet import Postnet
+from vc_tts_template.tacotron.decoder import Decoder
+from vc_tts_template.tacotron.encoder import Encoder
+from vc_tts_template.tacotron.postnet import Postnet
 
 
 class Tacotron2(nn.Module):

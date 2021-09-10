@@ -1,6 +1,7 @@
 import torch
 
-from vc_tts_template.train_utils import pad_1d, pad_2d, ensure_divisible_by
+from vc_tts_template.utils import pad_1d, pad_2d
+from vc_tts_template.train_utils import ensure_divisible_by
 
 
 def collate_fn_tacotron(batch, reduction_factor=1):

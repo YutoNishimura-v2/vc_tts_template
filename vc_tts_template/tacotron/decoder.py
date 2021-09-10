@@ -7,7 +7,7 @@ import sys
 import torch
 import torch.nn.functional as F
 from torch import nn
-from attention import LocationSensitiveAttention
+from vc_tts_template.tacotron.attention import LocationSensitiveAttention
 
 sys.path.append("..")
 from vc_tts_template.utils import make_pad_mask

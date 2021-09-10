@@ -245,13 +245,132 @@ def _get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data
     return data_loaders
 
 
-def setup(config: Dict, device: torch.device, collate_fn: Callable) -> Tuple:
+def setup(
+    config: Dict, device: torch.device, 
+    collate_fn: Callable, get_dataloader: Optional[Callable] = None
+) -> Tuple:
     """Setup for traiining
 
     Args:
         config: configuration for training
         device: device to use for training
         collate_fn: function to collate mini-batches
+        get_dataloader: function to get dataloader. if you need original dataloader.
+
+    Returns:
+        (tuple): tuple containing model, optimizer, learning rate scheduler,
+            data loaders, tensorboard writer, and logger.
+
+    .. note::
+
+        書籍に記載のコードは、この関数を一部簡略化しています。
+    """
+    # NOTE: hydra は内部で stream logger を追加するので、二重に追加しないことに注意
+    logger = getLogger(config.verbose, add_stream_handler=False)  # type: ignore
+
+    logger.info(f"PyTorch version: {torch.__version__}")
+
+    # CUDA 周りの設定
+    if torch.cuda.is_available():
+        from torch.backends import cudnn
+
+        cudnn.benchmark = config.cudnn.benchmark  # type: ignore
+        cudnn.deterministic = config.cudnn.deterministic  # type: ignore
+        logger.info(f"cudnn.deterministic: {cudnn.deterministic}")
+        logger.info(f"cudnn.benchmark: {cudnn.benchmark}")
+        if torch.backends.cudnn.version() is not None:
+            logger.info(f"cuDNN version: {torch.backends.cudnn.version()}")
+
+    logger.info(f"Random seed: {config.seed}")  # type: ignore
+    init_seed(config.seed)  # type: ignore
+
+    # モデルのインスタンス化
+    # ↓これでインスタンス化できるhydraすごすぎる.
+    model = hydra.utils.instantiate(config.model.netG).to(device)  # type: ignore
+    logger.info(model)
+    logger.info(
+        "Number of trainable params: {:.3f} million".format(
+            num_trainable_params(model) / 1000000.0
+        )
+    )
+
+    # (optional) 学習済みモデルの読み込み
+    # ファインチューニングしたい場合
+    pretrained_checkpoint = config.train.pretrained.checkpoint  # type: ignore
+    if pretrained_checkpoint is not None and len(pretrained_checkpoint) > 0:
+        logger.info(
+            "Fine-tuning! Loading a checkpoint: {}".format(pretrained_checkpoint)
+        )
+        checkpoint = torch.load(pretrained_checkpoint, map_location=device)
+        model.load_state_dict(checkpoint["state_dict"])
+
+    # 複数 GPU 対応
+    if config.data_parallel:  # type: ignore
+        model = nn.DataParallel(model)
+
+    # Optimizer
+    # 例: config.train.optim.optimizer.name = "Adam"なら,
+    # optim.Adamをしていることと等価.
+    try:
+        optimizer_class = getattr(optim, config.train.optim.optimizer.name)  # type: ignore
+        optimizer = optimizer_class(
+            model.parameters(), **config.train.optim.optimizer.params  # type: ignore
+        )
+    except AttributeError:
+        # 自作だと判断.
+        optimizer = hydra.utils.instantiate(config.train.optim.optimizer)  # type: ignore
+
+    # 学習率スケジューラ
+    try:
+        lr_scheduler_class = getattr(
+            optim.lr_scheduler, config.train.optim.lr_scheduler.name  # type: ignore
+        )
+        lr_scheduler = lr_scheduler_class(
+            optimizer, **config.train.optim.lr_scheduler.params  # type: ignore
+        )
+    except AttributeError:
+        # 自作だと判断.
+        lr_scheduler = hydra.utils.instantiate(config.train.optim.lr_scheduler)  # type: ignore
+        lr_scheduler._set_optimizer(optimizer)
+
+    # loss
+    loss = hydra.utils.instantiate(config.train.criterion)  # type: ignore
+
+    # DataLoader
+    if get_dataloader is None:
+        data_loaders = _get_data_loaders(config.data, collate_fn)  # type: ignore
+    else:
+        data_loaders = get_dataloader(config.data, collate_fn)  # type: ignore
+
+    set_epochs_based_on_max_steps_(config.train, len(data_loaders["train"]), logger)  # type: ignore
+
+    # Tensorboard の設定
+    writer = SummaryWriter(to_absolute_path(config.train.log_dir))  # type: ignore
+
+    # config ファイルを保存しておく
+    # Pathめっちゃ有能じゃん
+    out_dir = Path(to_absolute_path(config.train.out_dir))  # type: ignore
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with open(out_dir / "model.yaml", "w") as f:
+        OmegaConf.save(config.model, f)  # type: ignore
+    with open(out_dir / "config.yaml", "w") as f:
+        OmegaConf.save(config, f)
+
+    return model, optimizer, lr_scheduler, loss, data_loaders, writer, logger
+
+
+def setup_old(
+    config: Dict, device: torch.device,
+    collate_fn: Callable, get_dataloader: Optional[Callable] = None
+) -> Tuple:
+    """Setup for traiining
+    tacorton, wavenet, dnntts用の, lossを再実装しないためのset
+
+    Args:
+        config: configuration for training
+        device: device to use for training
+        collate_fn: function to collate mini-batches
+        get_dataloader: function to get dataloader. if you need original dataloader.
 
     Returns:
         (tuple): tuple containing model, optimizer, learning rate scheduler,
@@ -311,7 +430,6 @@ def setup(config: Dict, device: torch.device, collate_fn: Callable) -> Tuple:
     optimizer = optimizer_class(
         model.parameters(), **config.train.optim.optimizer.params  # type: ignore
     )
-
     # 学習率スケジューラ
     lr_scheduler_class = getattr(
         optim.lr_scheduler, config.train.optim.lr_scheduler.name  # type: ignore
@@ -319,9 +437,11 @@ def setup(config: Dict, device: torch.device, collate_fn: Callable) -> Tuple:
     lr_scheduler = lr_scheduler_class(
         optimizer, **config.train.optim.lr_scheduler.params  # type: ignore
     )
-
     # DataLoader
-    data_loaders = _get_data_loaders(config.data, collate_fn)  # type: ignore
+    if get_dataloader is None:
+        data_loaders = _get_data_loaders(config.data, collate_fn)  # type: ignore
+    else:
+        data_loaders = get_dataloader(config.data, collate_fn)  # type: ignore
 
     set_epochs_based_on_max_steps_(config.train, len(data_loaders["train"]), logger)  # type: ignore
 

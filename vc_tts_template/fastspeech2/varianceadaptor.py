@@ -1,13 +1,13 @@
-import json
 import sys
 from collections import OrderedDict
+from typing import Dict
 
 import torch
 import torch.nn as nn
 import numpy as np
 
 sys.path.append('.')
-from vc_tts_template.utils import make_non_pad_mask, pad
+from vc_tts_template.utils import make_pad_mask, pad
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -19,12 +19,12 @@ class VarianceAdaptor(nn.Module):
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
         variance_predictor_dropout: int,
-        pitch_feature_level: str,
-        energy_feature_level: str,
+        pitch_feature_level: int,
+        energy_feature_level: int,
         pitch_quantization: str,
         energy_quantization: str,
         n_bins: int,
-        stats_path: str,  # path to stats.json
+        stats: Dict
     ):
         super(VarianceAdaptor, self).__init__()
         # duration, pitch, energyで共通なのね.
@@ -49,8 +49,8 @@ class VarianceAdaptor(nn.Module):
         )
 
         # default: pitch: feature: "phoneme_level"
-        self.pitch_feature_level = pitch_feature_level
-        self.energy_feature_level = energy_feature_level
+        self.pitch_feature_level = "phoneme_level" if pitch_feature_level > 0 else "frame_level"
+        self.energy_feature_level = "phoneme_level" if energy_feature_level > 0 else "frame_level"
 
         assert self.pitch_feature_level in ["phoneme_level", "frame_level"]
         assert self.energy_feature_level in ["phoneme_level", "frame_level"]
@@ -63,10 +63,8 @@ class VarianceAdaptor(nn.Module):
         assert pitch_quantization in ["linear", "log"]
         assert energy_quantization in ["linear", "log"]
 
-        with open(stats_path) as f:
-            stats = json.load(f)
-            pitch_min, pitch_max = stats["pitch"][:2]
-            energy_min, energy_max = stats["energy"][:2]
+        pitch_min, pitch_max = stats["pitch_min"], stats["pitch_max"]
+        energy_min, energy_max = stats["energy_min"], stats["energy_max"]
 
         if pitch_quantization == "log":
             self.pitch_bins = nn.Parameter(
@@ -177,7 +175,7 @@ class VarianceAdaptor(nn.Module):
             # そして, predictで作ったduration_roundedを使ってregulatorへ.
             x, mel_len = self.length_regulator(x, duration_rounded, max_len)
             # inferenceではmel_maskもないので, Noneとしてくる.
-            mel_mask = make_non_pad_mask(mel_len)
+            mel_mask = make_pad_mask(mel_len)
 
         if self.pitch_feature_level == "frame_level":
             # frame_levelなら, 一気に見るので, src_maskではなく, mel_maskを見てもらう.

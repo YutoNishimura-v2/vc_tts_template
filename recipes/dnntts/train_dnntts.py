@@ -11,7 +11,7 @@ sys.path.append("../..")
 from vc_tts_template.train_utils import (
     get_epochs_with_optional_tqdm,
     save_checkpoint,
-    setup,
+    setup_old,
 )
 from vc_tts_template.dnntts.collate_fn import collate_fn_dnntts
 from vc_tts_template.utils import make_non_pad_mask
@@ -76,7 +76,7 @@ def train_loop(
 @hydra.main(config_path="conf/train_dnntts", config_name="config")
 def my_app(config: DictConfig) -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model, optimizer, lr_scheduler, data_loaders, writer, logger = setup(
+    model, optimizer, lr_scheduler, data_loaders, writer, logger = setup_old(
         config, device, collate_fn_dnntts  # type: ignore
     )
     train_loop(

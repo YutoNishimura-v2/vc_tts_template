@@ -11,3 +11,5 @@ jupyterlab
 flake8
 autopep8
 mypy
+tgt
+types-PyYAML

@@ -1,8 +1,8 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 import torch
 import random
 import numpy as np
-from functools import partial  # 部分的に引数を適用できる.
+from functools import partial
 import torch.nn.functional as F
 
 
@@ -28,7 +28,7 @@ def optional_tqdm(tqdm_mode: str, **kwargs):
     return lambda x: x
 
 
-def make_pad_mask(lengths: List, maxlen: Optional[int] = None) -> torch.Tensor:
+def make_pad_mask(lengths: Union[torch.Tensor, List], maxlen: Optional[int] = None) -> torch.Tensor:
     """Make mask for padding frames
     つまり, padした部分がTrueになっているようなmaskを返す.
 
@@ -39,6 +39,9 @@ def make_pad_mask(lengths: List, maxlen: Optional[int] = None) -> torch.Tensor:
     Returns:
         torch.ByteTensor: mask
     """
+    device = torch.device('cpu')
+    if isinstance(lengths, torch.Tensor):
+        device = lengths.device
     if not isinstance(lengths, list):
         lengths = lengths.tolist()
     bs = int(len(lengths))
@@ -50,7 +53,7 @@ def make_pad_mask(lengths: List, maxlen: Optional[int] = None) -> torch.Tensor:
     seq_length_expand = seq_range_expand.new(lengths).unsqueeze(-1)
     mask = seq_range_expand >= seq_length_expand
 
-    return mask
+    return mask.to(device)
 
 
 def make_non_pad_mask(lengths: List, maxlen: Optional[int] = None) -> torch.Tensor:
@@ -98,7 +101,7 @@ def init_seed(seed: int) -> None:
         torch.cuda.manual_seed_all(seed)
 
 
-def pad_1d(x: torch.Tensor, max_len: int, constant_values: Optional[int] = 0) -> torch.Tensor:
+def pad_1d(x: Union[np.ndarray, List], max_len: Optional[int] = None, constant_values: Optional[int] = 0) -> np.ndarray:
     """Pad a 1d-tensor.
 
     Args:
@@ -109,16 +112,28 @@ def pad_1d(x: torch.Tensor, max_len: int, constant_values: Optional[int] = 0) ->
     Returns:
         torch.Tensor: padded tensor
     """
-    x = np.pad(
-        x,
-        (0, max_len - len(x)),
-        mode="constant",
-        constant_values=constant_values,
-    )
-    return x
+    def pad(x, max_len, constant_values):
+        x = np.pad(
+            x,
+            (0, max_len - len(x)),
+            mode="constant",
+            constant_values=constant_values,
+        )
+        return x
+
+    if type(x) is list:
+        max_len = max((len(x_) for x_ in x))
+        x = np.stack([pad(x_, max_len, constant_values) for x_ in x])
+    elif type(x) is np.ndarray:
+        assert max_len is not None, "you cant pad without maxlen"
+        x = pad(x, max_len, constant_values)
+    else:
+        raise RuntimeError
+
+    return x  # type: ignore
 
 
-def pad_2d(x: torch.Tensor, max_len: int, constant_values: Optional[int] = 0) -> torch.Tensor:
+def pad_2d(x: Union[np.ndarray, List], max_len: Optional[int] = None, constant_values: Optional[int] = 0) -> np.ndarray:
     """Pad a 2d-tensor.
 
     Args:
@@ -129,13 +144,25 @@ def pad_2d(x: torch.Tensor, max_len: int, constant_values: Optional[int] = 0) ->
     Returns:
         torch.Tensor: padded tensor
     """
-    x = np.pad(
-        x,
-        [(0, max_len - len(x)), (0, 0)],
-        mode="constant",
-        constant_values=constant_values,
-    )
-    return x
+    def pad(x, max_len, constant_values):
+        x = np.pad(
+            x,
+            [(0, max_len - len(x)), (0, 0)],
+            mode="constant",
+            constant_values=constant_values,
+        )
+        return x
+
+    if type(x) is list:
+        max_len = max((x_.shape[0] for x_ in x))
+        x = np.stack([pad(x_, max_len, constant_values) for x_ in x])
+    elif type(x) is np.ndarray:
+        assert max_len is not None, "you cant pad without maxlen"
+        x = pad(x, max_len, constant_values)
+    else:
+        raise RuntimeError("please len(x.shape) < 3")
+
+    return x  # type: ignore
 
 
 def pad(x: torch.Tensor, max_length: Optional[int] = None) -> torch.Tensor:

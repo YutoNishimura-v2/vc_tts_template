@@ -10,7 +10,7 @@ from vc_tts_template.train_utils import (
     get_epochs_with_optional_tqdm,
     moving_average_,
     save_checkpoint,
-    setup,
+    setup_old,
 )
 from vc_tts_template.wavenet.collate_fn import collate_fn_wavenet
 
@@ -118,7 +118,7 @@ def my_app(config: DictConfig) -> None:
         hop_size=config.data.hop_size,
         aux_context_window=config.data.aux_context_window,
     )
-    model, optimizer, lr_scheduler, data_loaders, writer, logger = setup(
+    model, optimizer, lr_scheduler, data_loaders, writer, logger = setup_old(
         config, device, collate_fn  # type: ignore
     )
     # exponential moving average

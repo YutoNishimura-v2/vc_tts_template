@@ -1,14 +1,11 @@
-import os
-import json
-import sys
+from typing import Dict
 
 import torch.nn as nn
 
-from encoder_decoder import Encoder, Decoder
-from layers import PostNet
-from varianceadaptor import VarianceAdaptor
-sys.path.append('.')
-from vc_tts_template.utils import make_non_pad_mask
+from vc_tts_template.fastspeech2.encoder_decoder import Encoder, Decoder
+from vc_tts_template.fastspeech2.layers import PostNet
+from vc_tts_template.fastspeech2.varianceadaptor import VarianceAdaptor
+from vc_tts_template.utils import make_pad_mask
 
 
 class FastSpeech2(nn.Module):
@@ -27,20 +24,20 @@ class FastSpeech2(nn.Module):
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
         variance_predictor_dropout: int,
-        pitch_feature_level: str,
-        energy_feature_level: str,
+        pitch_feature_level: int,  # 0 is frame 1 is phoneme
+        energy_feature_level: int,  # 0 is frame 1 is phoneme
         pitch_quantization: str,
         energy_quantization: str,
         n_bins: int,
-        stats_path: str,  # path to stats.json
         decoder_hidden_dim: int,
         decoder_num_layer: int,
         decoder_num_head: int,
         decoder_dropout: float,
         n_mel_channel: int,
-        multi_speaker: bool,
-        spakers_path: str,  # path to speakers.json
-        encoder_fix: bool
+        multi_speaker: int,  # 0 is false 1 is true
+        encoder_fix: bool,
+        stats: Dict,
+        speakers: Dict,
     ):
         super(FastSpeech2, self).__init__()
         self.encoder = Encoder(
@@ -63,7 +60,7 @@ class FastSpeech2(nn.Module):
             pitch_quantization,
             energy_quantization,
             n_bins,
-            stats_path,  # path to stats.json
+            stats  # type: ignore
         )
         self.decoder = Decoder(
             max_seq_len,
@@ -83,9 +80,8 @@ class FastSpeech2(nn.Module):
         )
 
         self.speaker_emb = None
-        if multi_speaker is True:
-            with open(os.path.join(spakers_path), "r",) as f:
-                n_speaker = len(json.load(f))
+        if multi_speaker > 0:
+            n_speaker = len(speakers)
             self.speaker_emb = nn.Embedding(
                 n_speaker,
                 encoder_hidden_dim,
@@ -95,6 +91,7 @@ class FastSpeech2(nn.Module):
 
     def forward(
         self,
+        ids,
         speakers,
         texts,
         src_lens,
@@ -109,10 +106,11 @@ class FastSpeech2(nn.Module):
         e_control=1.0,
         d_control=1.0,
     ):
-        src_masks = make_non_pad_mask(src_lens, max_src_len)
-        # PAD前の, 元データが入っている部分がTrueになっているmaskの取得
+        src_masks = make_pad_mask(src_lens, max_src_len)
+        # PAD前の, 元データが入っていない部分がTrueになっているmaskの取得
+        # これは, attentionで, -infをfillするために使いたいので.
         mel_masks = (
-            make_non_pad_mask(mel_lens, max_mel_len)
+            make_pad_mask(mel_lens, max_mel_len)
             if mel_lens is not None
             else None
         )

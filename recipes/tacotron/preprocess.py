@@ -10,7 +10,7 @@ from nnmnkwii.preprocessing import mulaw_quantize
 from scipy.io import wavfile
 from tqdm import tqdm
 from vc_tts_template.dsp import logmelspectrogram
-from vc_tts_template.tacotron.frontend.openjtalk import pp_symbols, text_to_sequence
+from vc_tts_template.frontend.openjtalk import pp_symbols, text_to_sequence
 from vc_tts_template.utils import pad_1d
 
 

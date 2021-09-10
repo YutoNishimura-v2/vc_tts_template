@@ -12,7 +12,7 @@ from tqdm import tqdm
 sys.path.append('..')
 from vc_tts_template.dsp import inv_mulaw_quantize, logmelspectrogram_to_audio
 from vc_tts_template.pretrained import retrieve_pretrained_model
-from vc_tts_template.tacotron.frontend.openjtalk import pp_symbols, text_to_sequence
+from vc_tts_template.frontend.openjtalk import pp_symbols, text_to_sequence
 from vc_tts_template.utils import StandardScaler
 
 

@@ -22,11 +22,17 @@ def get_parser():
 
 def process(path, scaler, inverse, out_dir):
     x = np.load(path)
+    is_1d = 0
+    if len(x.shape) == 1:
+        x = x.reshape(-1, 1)
+        is_1d = 1
     if inverse:
         y = scaler.inverse_transform(x)
     else:
         y = scaler.transform(x)
     assert x.dtype == y.dtype
+    if is_1d > 0:
+        y = y.reshape(-1)
     np.save(out_dir / path.name, y, allow_pickle=False)
 
 

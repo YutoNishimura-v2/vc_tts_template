@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
-from sublayers import MultiHeadAttention, PositionwiseFeedForward
+from vc_tts_template.fastspeech2.sublayers import MultiHeadAttention, PositionwiseFeedForward
 
 
 class FFTBlock(torch.nn.Module):

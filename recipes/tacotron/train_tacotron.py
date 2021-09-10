@@ -1,6 +1,7 @@
 from functools import partial
 from logging import Logger
 from pathlib import Path
+import sys
 
 import hydra
 import torch
@@ -9,13 +10,15 @@ from matplotlib import pyplot as plt
 from omegaconf import DictConfig
 from torch import nn
 from tqdm import tqdm
-from vc_tts_template.tacotron.frontend.openjtalk import sequence_to_text
+
+sys.path.append("../..")
+from vc_tts_template.frontend.openjtalk import sequence_to_text
 from vc_tts_template.train_utils import (
     get_epochs_with_optional_tqdm,
     plot_2d_feats,
     plot_attention,
     save_checkpoint,
-    setup,
+    setup_old,
 )
 from vc_tts_template.tacotron.collate_fn import collate_fn_tacotron
 from vc_tts_template.utils import make_non_pad_mask
@@ -226,7 +229,7 @@ def my_app(config: DictConfig) -> None:
     collate_fn = partial(
         collate_fn_tacotron, reduction_factor=config.model.netG.reduction_factor
     )
-    model, optimizer, lr_scheduler, data_loaders, writer, logger = setup(
+    model, optimizer, lr_scheduler, data_loaders, writer, logger = setup_old(
         config, device, collate_fn  # type: ignore
     )
     train_loop(config, device, model, optimizer, lr_scheduler, data_loaders, writer)

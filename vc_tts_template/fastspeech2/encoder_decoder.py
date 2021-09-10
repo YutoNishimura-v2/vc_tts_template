@@ -1,12 +1,8 @@
-import sys
-
 import torch
 import torch.nn as nn
 import numpy as np
 
-sys.path.append('.')
-
-from layers import FFTBlock
+from vc_tts_template.fastspeech2.layers import FFTBlock
 
 
 def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):

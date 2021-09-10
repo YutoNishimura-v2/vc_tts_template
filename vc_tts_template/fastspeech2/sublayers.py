@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-from modules import ScaledDotProductAttention
+from vc_tts_template.fastspeech2.modules import ScaledDotProductAttention
 
 
 class MultiHeadAttention(nn.Module):

@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 from vc_tts_template.dsp import inv_mulaw_quantize, logmelspectrogram_to_audio
-from vc_tts_template.tacotron.frontend.openjtalk import pp_symbols, text_to_sequence
+from vc_tts_template.frontend.openjtalk import pp_symbols, text_to_sequence
 
 
 @torch.no_grad()
