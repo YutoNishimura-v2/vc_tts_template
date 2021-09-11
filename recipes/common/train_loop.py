@@ -62,7 +62,6 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
             for batchs in tqdm(
                 data_loaders[phase], desc=f"{phase} iter", leave=False
             ):
-                group_size = len(batchs)
                 for batch in batchs:
                     batch = to_device(batch)
 
@@ -87,19 +86,22 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
 
                     # 最初の検証用データに対して、中間結果の可視化
                     if (
-                        not train
-                        and is_first == 1  # 最初
+                        is_first == 1  # 最初
                         and epoch % config.train.eval_epoch_interval == 0
                     ):
-                        is_first = 0
                         for is_inference in [False, True]:  # 非推論モードでやるの偉い.
                             eval_model(
+                                phase,
                                 train_iter,
                                 model,
                                 writers[phase],
                                 batch,
                                 is_inference
                             )
+                    if is_first == 1:
+                        # 一番最初のではかる. 最後だと端数になってしまう恐れ.
+                        group_size = len(batchs)
+                    is_first = 0
 
             # Epoch ごとのロスを出力
             for key, val in running_losses.items():

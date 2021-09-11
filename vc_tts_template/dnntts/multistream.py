@@ -40,9 +40,9 @@ def split_streams(inputs, stream_sizes):
     start_indices = np.hstack(([0], np.cumsum(stream_sizes)[:-1]))
     for start_idx, size in zip(start_indices, stream_sizes):
         if len(inputs.shape) == 3:
-            s = inputs[:, :, start_idx : start_idx + size]
+            s = inputs[:, :, start_idx: start_idx + size]
         else:
-            s = inputs[:, start_idx : start_idx + size]
+            s = inputs[:, start_idx: start_idx + size]
         ret.append(s)
 
     return ret
@@ -105,9 +105,9 @@ def get_static_features(
         if not enabled:
             continue
         if v:
-            static_features = inputs[:, start_idx : start_idx + size // num_windows]
+            static_features = inputs[:, start_idx: start_idx + size // num_windows]
         else:
-            static_features = inputs[:, start_idx : start_idx + size]
+            static_features = inputs[:, start_idx: start_idx + size]
         ret.append(static_features)
     return ret
 

@@ -9,7 +9,6 @@ from omegaconf import DictConfig
 sys.path.append("../..")
 from vc_tts_template.fastspeech2.collate_fn import (
     collate_fn_fastspeech2, fastspeech2_get_data_loaders)
-from vc_tts_template.frontend.openjtalk import sequence_to_text
 from vc_tts_template.train_utils import setup
 from recipes.common.train_loop import train_loop
 from recipes.fastspeech2.utils import plot_mel
@@ -17,7 +16,7 @@ from recipes.fastspeech2.utils import plot_mel
 
 @torch.no_grad()
 def eval_model(
-    step, model, writer, batch, is_inference
+    phase, step, model, writer, batch, is_inference
 ):
     # 最大3つまで
     N = min(len(batch[0]), 3)
@@ -34,33 +33,29 @@ def eval_model(
         output = model(*batch)
 
     for idx in range(N):  # 一個ずつsummary writerしていく.
-        text = "".join(
-            sequence_to_text(batch[2][idx][: batch[3][idx]].cpu().data.numpy())
-        )
-        if is_inference:
-            group = "inference"
-        else:
-            group = "teacher_forcing"
-    
         file_name = batch[0][idx]
-        mel = output[0][idx].cpu().data.numpy().T
+        if phase == 'train':
+            file_name = f"utt_{idx}"
         mel_post = output[1][idx].cpu().data.numpy().T
         pitch = output[2][idx].cpu().data.numpy()
         energy = output[3][idx].cpu().data.numpy()
+        duration = batch[10][idx].cpu().data.numpy()
         mel_gt = batch[5][idx].cpu().data.numpy().T
         pitch_gt = batch[8][idx].cpu().data.numpy()
         energy_gt = batch[9][idx].cpu().data.numpy()
 
-        fig = plot_mel([mel, pitch, energy], text)
-        writer.add_figure(f"{group}/out_before_postnet/{file_name}", fig, step)
+        mel_gts = [mel_gt, pitch_gt, energy_gt, duration]
+
+        if is_inference:
+            group = f"{phase}/inference"
+            mel_posts = [mel_post, pitch, energy, duration]
+        else:
+            group = f"{phase}/teacher_forcing"
+            mel_posts = [mel_post, pitch_gt, energy_gt, duration]
+
+        fig = plot_mel([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"])
+        writer.add_figure(f"{group}/{file_name}", fig, step)
         plt.close()
-        fig = plot_mel([mel_post, pitch, energy], text)
-        writer.add_figure(f"{group}/out_after_postnet/{file_name}", fig, step)
-        plt.close()
-        if not is_inference:
-            fig = plot_mel([mel_gt, pitch_gt, energy_gt], text)
-            writer.add_figure(f"{group}/out_ground_truth/{file_name}", fig, step)
-            plt.close()
 
 
 def to_device(data, device):

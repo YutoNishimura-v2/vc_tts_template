@@ -1,7 +1,7 @@
 # fastspeech2利用方法.
 
 - todo
-
+    - hifigan実装
 
 ## 事前準備
 1. 利用したいコーパスのwavをどこかに置く.

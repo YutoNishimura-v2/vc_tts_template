@@ -5,3 +5,4 @@
 **/tensorboard
 **/__pycache__
 ttslearn/
+*.pth.tar
