@@ -9,7 +9,7 @@ from torch import nn
 from vc_tts_template.train_utils import (
     get_epochs_with_optional_tqdm,
     moving_average_,
-    save_checkpoint,
+    save_checkpoint_old,
     setup_old,
 )
 from vc_tts_template.wavenet.collate_fn import collate_fn_wavenet
@@ -81,8 +81,8 @@ def train_loop(
             writer.add_scalar(f"Loss/{phase}", ave_loss, epoch)
             if not train and ave_loss < best_loss:
                 best_loss = ave_loss
-                save_checkpoint(logger, out_dir, model, optimizer, epoch, True)
-                save_checkpoint(
+                save_checkpoint_old(logger, out_dir, model, optimizer, epoch, True)
+                save_checkpoint_old(
                     logger,
                     out_dir,
                     model_ema,
@@ -93,8 +93,8 @@ def train_loop(
                 )
 
         if epoch % config.train.checkpoint_epoch_interval == 0:
-            save_checkpoint(logger, out_dir, model, optimizer, epoch, False)
-            save_checkpoint(
+            save_checkpoint_old(logger, out_dir, model, optimizer, epoch, False)
+            save_checkpoint_old(
                 logger,
                 out_dir,
                 model_ema,
@@ -105,8 +105,8 @@ def train_loop(
             )
 
     # save at last epoch
-    save_checkpoint(logger, out_dir, model, optimizer, nepochs)
-    save_checkpoint(logger, out_dir, model_ema, optimizer, nepochs, False, "_ema")
+    save_checkpoint_old(logger, out_dir, model, optimizer, nepochs)
+    save_checkpoint_old(logger, out_dir, model_ema, optimizer, nepochs, False, "_ema")
 
 
 @hydra.main(config_path="conf/train_wavenet", config_name="config")

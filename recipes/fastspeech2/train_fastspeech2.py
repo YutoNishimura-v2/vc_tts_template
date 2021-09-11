@@ -19,7 +19,7 @@ def eval_model(
     step, model, writer, batch, is_inference
 ):
     # 最大3つまで
-    N = min(len(in_feats), 3)
+    N = min(len(batch[0]), 3)
 
     if is_inference:
         outs, outs_fine, att_ws, out_lens = [], [], [], []

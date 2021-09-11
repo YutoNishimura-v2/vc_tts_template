@@ -17,7 +17,7 @@ from vc_tts_template.train_utils import (
     get_epochs_with_optional_tqdm,
     plot_2d_feats,
     plot_attention,
-    save_checkpoint,
+    save_checkpoint_old,
     setup_old,
 )
 from vc_tts_template.tacotron.collate_fn import collate_fn_tacotron
@@ -210,13 +210,13 @@ def train_loop(config, device, model, optimizer, lr_scheduler, data_loaders, wri
             ave_loss = running_losses["Loss"] / len(data_loaders[phase])
             if not train and ave_loss < best_loss:
                 best_loss = ave_loss
-                save_checkpoint(logger, out_dir, model, optimizer, epoch, True)
+                save_checkpoint_old(logger, out_dir, model, optimizer, epoch, True)
 
         if epoch % config.train.checkpoint_epoch_interval == 0:
-            save_checkpoint(logger, out_dir, model, optimizer, epoch, False)
+            save_checkpoint_old(logger, out_dir, model, optimizer, epoch, False)
 
     # save at last epoch
-    save_checkpoint(logger, out_dir, model, optimizer, nepochs)
+    save_checkpoint_old(logger, out_dir, model, optimizer, nepochs)
     logger.info(f"The best loss was {best_loss}")
 
     return model

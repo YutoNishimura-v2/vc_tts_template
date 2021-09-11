@@ -10,7 +10,7 @@ from torch import nn
 sys.path.append("../..")
 from vc_tts_template.train_utils import (
     get_epochs_with_optional_tqdm,
-    save_checkpoint,
+    save_checkpoint_old,
     setup_old,
 )
 from vc_tts_template.dnntts.collate_fn import collate_fn_dnntts
@@ -64,13 +64,13 @@ def train_loop(
             if not train and ave_loss < best_loss:
                 # bestなものを保存していく
                 best_loss = ave_loss
-                save_checkpoint(logger, out_dir, model, optimizer, epoch, is_best=True)
+                save_checkpoint_old(logger, out_dir, model, optimizer, epoch, is_best=True)
 
         lr_scheduler.step()
         if epoch % config.train.checkpoint_epoch_interval == 0:
-            save_checkpoint(logger, out_dir, model, optimizer, epoch, is_best=False)
+            save_checkpoint_old(logger, out_dir, model, optimizer, epoch, is_best=False)
 
-    save_checkpoint(logger, out_dir, model, optimizer, config.train.nepochs)
+    save_checkpoint_old(logger, out_dir, model, optimizer, config.train.nepochs)
 
 
 @hydra.main(config_path="conf/train_dnntts", config_name="config")

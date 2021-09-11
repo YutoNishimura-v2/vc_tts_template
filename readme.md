@@ -3,8 +3,6 @@
 - なので, 使いまわし可能なコードを作ろう!!!
 
 ## todo
-- setup.pyの変更に基づき, 後方互換性がなくなったので,
-tacotronやwavenetなどで, lossを.pyにしてconfigに追記するようにする.
 
 ## run.shの流れ
 

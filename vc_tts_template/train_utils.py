@@ -86,7 +86,8 @@ def set_epochs_based_on_max_steps_(train_config: Dict, steps_per_epoch: int, log
 
 def save_checkpoint(
     logger: logging.Logger, out_dir: Path, model: nn.Module, optimizer: optim.Optimizer,
-    epoch: int, is_best: Optional[bool] = False, postfix: Optional[str] = ""
+    lr_scheduler: optim.lr_scheduler._LRScheduler, epoch: int, is_best: Optional[bool] = False,
+    postfix: Optional[str] = ""
 ) -> None:
     """Save a checkpoint.
 
@@ -112,6 +113,7 @@ def save_checkpoint(
         {
             "state_dict": model.state_dict(),
             "optimizer_state": optimizer.state_dict(),
+            "lr_scheduler_state": lr_scheduler.state_dict()
         },
         path,
     )
@@ -246,7 +248,7 @@ def _get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data
 
 
 def setup(
-    config: Dict, device: torch.device, 
+    config: Dict, device: torch.device,
     collate_fn: Callable, get_dataloader: Optional[Callable] = None
 ) -> Tuple:
     """Setup for traiining
@@ -357,6 +359,43 @@ def setup(
         OmegaConf.save(config, f)
 
     return model, optimizer, lr_scheduler, loss, data_loaders, writer, logger
+
+
+def save_checkpoint_old(
+    logger: logging.Logger, out_dir: Path, model: nn.Module, optimizer: optim.Optimizer,
+    epoch: int, is_best: Optional[bool] = False, postfix: Optional[str] = ""
+) -> None:
+    """Save a checkpoint.
+
+    Args:
+        logger: Logger.
+        out_dir: Output directory.
+        model: Model.
+        optimizer: Optimizer.
+        epoch: Current epoch.
+        is_best: Whether or not the current model is the best.
+            Defaults to False.
+        postfix: Postfix. Defaults to "".
+    """
+    if isinstance(model, nn.DataParallel):
+        model = model.module
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if is_best:
+        path = out_dir / f"best_loss{postfix}.pth"
+    else:
+        path = out_dir / "epoch{:04d}{}.pth".format(epoch, postfix)
+    torch.save(
+        {
+            "state_dict": model.state_dict(),
+            "optimizer_state": optimizer.state_dict(),
+        },
+        path,
+    )
+
+    logger.info(f"Saved checkpoint at {path}")
+    if not is_best:
+        shutil.copyfile(path, out_dir / f"latest{postfix}.pth")
 
 
 def setup_old(
