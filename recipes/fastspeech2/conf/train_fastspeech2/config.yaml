@@ -48,7 +48,7 @@ train:
   max_train_steps:
   nepochs: -1
   checkpoint_epoch_interval: 50
-  eval_epoch_interval: 1
+  eval_epoch_interval: 10
 
   optim:
     optimizer:

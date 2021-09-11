@@ -2,6 +2,9 @@
 
 - todo
     - hifigan実装
+    - finetuning実装
+    - synthe実装
+    - tts実装
 
 ## 事前準備
 1. 利用したいコーパスのwavをどこかに置く.
