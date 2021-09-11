@@ -89,7 +89,7 @@ def fastspeech2_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dic
         )
         data_loaders[phase] = data_utils.DataLoader(
             dataset,
-            batch_size=data_config.batch_size,  # type: ignore
+            batch_size=data_config.batch_size * data_config.group_size,  # type: ignore
             collate_fn=collate_fn,
             pin_memory=True,
             num_workers=data_config.num_workers,  # type: ignore
@@ -99,24 +99,17 @@ def fastspeech2_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dic
     return data_loaders
 
 
-def collate_fn_fastspeech2(batch, speaker_dict=None):
-    """Collate function for Tacotron.
-    Args:
-        batch (list): List of tuples of the form (inputs, targets).
-        Datasetのreturnが1単位となって, それがbatch_size分入って渡される.
-    Returns:
-        tuple: Batch of inputs, input lengths, targets, target lengths and stop flags.
-    """
-    file_names = [batch[idx][0] for idx in range(len(batch))]
-    texts = [batch[idx][1] for idx in range(len(batch))]
-    mels = [batch[idx][2] for idx in range(len(batch))]
-    pitches = [batch[idx][3] for idx in range(len(batch))]
-    energies = [batch[idx][4] for idx in range(len(batch))]
-    durations = [batch[idx][5] for idx in range(len(batch))]
+def reprocess(batch, idxs, speaker_dict):
+    file_names = [batch[idx][0] for idx in idxs]
+    texts = [batch[idx][1] for idx in idxs]
+    mels = [batch[idx][2] for idx in idxs]
+    pitches = [batch[idx][3] for idx in idxs]
+    energies = [batch[idx][4] for idx in idxs]
+    durations = [batch[idx][5] for idx in idxs]
 
     ids = np.array([fname.replace("-feats.npy", "") for fname in file_names])
     if speaker_dict is None:
-        speakers = np.array([0 for _ in range(len(batch))])
+        speakers = np.array([0 for _ in idxs])
     else:
         speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in file_names])
     # reprocessの内容をここに.
@@ -143,3 +136,29 @@ def collate_fn_fastspeech2(batch, speaker_dict=None):
         energies,
         durations
     )
+
+
+def collate_fn_fastspeech2(batch, batch_size, speaker_dict=None):
+    """Collate function for Tacotron.
+    Args:
+        batch (list): List of tuples of the form (inputs, targets).
+        Datasetのreturnが1単位となって, それがbatch_size分入って渡される.
+    Returns:
+        tuple: Batch of inputs, input lengths, targets, target lengths and stop flags.
+    """
+    # shape[0]がtimeになるようなindexを指定する.
+    len_arr = np.array([batch[idx][1].shape[0] for idx in range(len(batch))])
+    # 以下固定
+    idx_arr = np.argsort(-len_arr)
+    tail = idx_arr[len(idx_arr) - (len(idx_arr) % batch_size):]
+    idx_arr = idx_arr[: len(idx_arr) - (len(idx_arr) % batch_size)]
+    idx_arr = idx_arr.reshape((-1, batch_size)).tolist()
+    if len(tail) > 0:
+        idx_arr += [tail.tolist()]
+    output = list()
+
+    # 以下, reprocessへの引数が変更の余地あり.
+    for idx in idx_arr:
+        output.append(reprocess(batch, idx, speaker_dict))
+
+    return output

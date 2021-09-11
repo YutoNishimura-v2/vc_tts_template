@@ -198,6 +198,9 @@ synthesis.pyがデータをロードしたり, モデルを用意したりする
         - これさえ守れば, フォルダを作ったりしても, run.shとdatasetで対応可能.
 - collate_fn.py
     - 出力はnp. to_deviceの方で書く.
+    - また, TTS, VC taskを想定しているので, group, sort機能をつける.
+        - なので, 出力するのはlistということに注意.
+        - reprocessを書くのが良さそう.
     - preprocessが特殊ではなく, 1つのみのファイルを扱うのであれば, collate_fnのみいじればよいが, 複数かかわるのであれば, get_dataloaderあたりから修正が必要.
     - また, partialによって引数を受け取ってからmy_appに投げることも注意.
 - to_device
@@ -213,6 +216,7 @@ synthesis.pyがデータをロードしたり, モデルを用意したりする
     outputは, modelから出てくる全データ.
     - 出力: loss, loss_dict. lossは全lossのsum.
     loss_dictは各loss名とその値が入った辞書.
+        - total_lossというkeyを1つは用意すること
     - これを作成するだけであとはインスタンス化も自動.
 - optimizer
     - pytorchと同じメソッド名で動くもでさえあればok.

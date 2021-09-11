@@ -35,7 +35,7 @@ data:
   # data loader
   num_workers: 4
   batch_size: 16
-
+  group_size: 4
   # mini-batch sampling
   # (max_time_frames * hop_size) samples are randomly selected
   max_time_frames: 50

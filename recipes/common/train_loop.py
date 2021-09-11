@@ -46,7 +46,7 @@ def _update_running_losses_(running_losses, loss_values):
             running_losses[key] = val
 
 
-def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loaders, writer, logger, eval_model):
+def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loaders, writers, logger, eval_model):
     out_dir = Path(to_absolute_path(config.train.out_dir))
     best_loss = torch.finfo(torch.float32).max
     train_iter = 1
@@ -57,51 +57,56 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
             train = phase.startswith("train")
             model.train() if train else model.eval()
             running_losses = {}  # epoch毎のloss. ここでresetしてるし.
-            for idx, batch in tqdm(
-                enumerate(data_loaders[phase]), desc=f"{phase} iter", leave=False
+            is_first = 1
+            group_size = 0
+            for batchs in tqdm(
+                data_loaders[phase], desc=f"{phase} iter", leave=False
             ):
-                batch = to_device(batch)
+                group_size = len(batchs)
+                for batch in batchs:
+                    batch = to_device(batch)
 
-                loss_values = train_step(
-                    model,
-                    optimizer,
-                    lr_scheduler,
-                    train,
-                    loss,
-                    batch,
-                    logger
-                )
-                if train:
-                    for key, val in loss_values.items():
-                        writer.add_scalar(f"{key}ByStep/train", val, train_iter)
-                    writer.add_scalar(
-                        "LearningRate", lr_scheduler.get_last_lr()[0], train_iter
+                    loss_values = train_step(
+                        model,
+                        optimizer,
+                        lr_scheduler,
+                        train,
+                        loss,
+                        batch,
+                        logger
                     )
-                    train_iter += 1
-                # lossを一気に足してためておく. 賢い.
-                _update_running_losses_(running_losses, loss_values)
-
-                # 最初の検証用データに対して、中間結果の可視化
-                if (
-                    not train
-                    and idx == 0  # 最初
-                    and epoch % config.train.eval_epoch_interval == 0
-                ):
-                    for is_inference in [False, True]:  # 非推論モードでやるの偉い.
-                        eval_model(
-                            train_iter,
-                            model,
-                            writer,
-                            batch,
-                            is_inference
+                    if train:
+                        for key, val in loss_values.items():
+                            writers[phase].add_scalar(f"loss_bystep/{key}", val, train_iter)
+                        writers[phase].add_scalar(
+                            "LearningRate", lr_scheduler.get_last_lr()[0], train_iter
                         )
+                        train_iter += 1
+                    # lossを一気に足してためておく. 賢い.
+                    _update_running_losses_(running_losses, loss_values)
+
+                    # 最初の検証用データに対して、中間結果の可視化
+                    if (
+                        not train
+                        and is_first == 1  # 最初
+                        and epoch % config.train.eval_epoch_interval == 0
+                    ):
+                        is_first = 0
+                        for is_inference in [False, True]:  # 非推論モードでやるの偉い.
+                            eval_model(
+                                train_iter,
+                                model,
+                                writers[phase],
+                                batch,
+                                is_inference
+                            )
 
             # Epoch ごとのロスを出力
             for key, val in running_losses.items():
-                ave_loss = val / len(data_loaders[phase])
-                writer.add_scalar(f"{key}/{phase}", ave_loss, epoch)
+                ave_loss = val / (len(data_loaders[phase]) * group_size)
+                writers[phase].add_scalar(f"loss/{key}", ave_loss, epoch)
 
-            ave_loss = running_losses["Loss"] / len(data_loaders[phase])
+            ave_loss = running_losses["total_loss"] / (len(data_loaders[phase]) * group_size)
             if not train and ave_loss < best_loss:
                 best_loss = ave_loss
                 save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, epoch, True)

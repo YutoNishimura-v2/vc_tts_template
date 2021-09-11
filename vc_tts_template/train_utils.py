@@ -237,7 +237,7 @@ def _get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data
         dataset = _Dataset(in_feats_paths, out_feats_paths)
         data_loaders[phase] = data_utils.DataLoader(
             dataset,
-            batch_size=data_config.batch_size,  # type: ignore
+            batch_size=data_config.batch_size * data_config.group_size,  # type: ignore
             collate_fn=collate_fn,
             pin_memory=True,
             num_workers=data_config.num_workers,  # type: ignore
@@ -347,7 +347,9 @@ def setup(
     set_epochs_based_on_max_steps_(config.train, len(data_loaders["train"]), logger)  # type: ignore
 
     # Tensorboard の設定
-    writer = SummaryWriter(to_absolute_path(config.train.log_dir))  # type: ignore
+    writer_tr = SummaryWriter(to_absolute_path(config.train.log_dir + "/train"))  # type: ignore
+    writer_dv = SummaryWriter(to_absolute_path(config.train.log_dir + "/dev"))  # type: ignore
+    writers = {"train": writer_tr, "dev": writer_dv}
 
     # config ファイルを保存しておく
     # Pathめっちゃ有能じゃん
@@ -358,7 +360,7 @@ def setup(
     with open(out_dir / "config.yaml", "w") as f:
         OmegaConf.save(config, f)
 
-    return model, optimizer, lr_scheduler, loss, data_loaders, writer, logger
+    return model, optimizer, lr_scheduler, loss, data_loaders, writers, logger
 
 
 def save_checkpoint_old(

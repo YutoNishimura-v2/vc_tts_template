@@ -33,8 +33,9 @@ data:
     out_dir:
 
   # data loader
-  num_workers: 4
+  num_workers: 20
   batch_size:
+  group_size: 4
 
 ###########################################################
 #                TRAIN SETTING                            #
@@ -47,7 +48,7 @@ train:
   max_train_steps:
   nepochs: -1
   checkpoint_epoch_interval: 50
-  eval_epoch_interval: 10
+  eval_epoch_interval: 1
 
   optim:
     optimizer:

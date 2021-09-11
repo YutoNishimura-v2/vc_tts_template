@@ -36,6 +36,7 @@ data:
   # data loader
   num_workers: 4
   batch_size: 32
+  group_size: 4
 
 ###########################################################
 #                TRAIN SETTING                            #

@@ -28,7 +28,8 @@ def optional_tqdm(tqdm_mode: str, **kwargs):
     return lambda x: x
 
 
-def make_pad_mask(lengths: Union[torch.Tensor, List], maxlen: Optional[int] = None) -> torch.Tensor:
+def make_pad_mask(lengths: Union[torch.Tensor, List], maxlen: Optional[int] = None,
+                  device: Optional[torch.device] = None) -> torch.Tensor:
     """Make mask for padding frames
     つまり, padした部分がTrueになっているようなmaskを返す.
 
@@ -39,24 +40,23 @@ def make_pad_mask(lengths: Union[torch.Tensor, List], maxlen: Optional[int] = No
     Returns:
         torch.ByteTensor: mask
     """
-    device = torch.device('cpu')
-    if isinstance(lengths, torch.Tensor):
-        device = lengths.device
-    if not isinstance(lengths, list):
-        lengths = lengths.tolist()
-    bs = int(len(lengths))
+    if not isinstance(lengths, torch.Tensor):
+        if device is None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        lengths = torch.Tensor(lengths).to(device)
+    device = lengths.device
+
+    batch_size = lengths.shape[0]
     if maxlen is None:
-        maxlen = int(max(lengths))
+        maxlen = int(torch.max(lengths).item())
 
-    seq_range = torch.arange(0, maxlen, dtype=torch.int64)
-    seq_range_expand = seq_range.unsqueeze(0).expand(bs, maxlen)
-    seq_length_expand = seq_range_expand.new(lengths).unsqueeze(-1)
-    mask = seq_range_expand >= seq_length_expand
+    ids = torch.arange(0, maxlen).unsqueeze(0).expand(batch_size, -1).to(device)
+    mask = ids >= lengths.unsqueeze(1).expand(-1, maxlen)
 
-    return mask.to(device)
+    return mask
 
 
-def make_non_pad_mask(lengths: List, maxlen: Optional[int] = None) -> torch.Tensor:
+def make_non_pad_mask(lengths: Union[torch.Tensor, List], maxlen: Optional[int] = None) -> torch.Tensor:
     """Make mask for non-padding frames
 
     Args:
