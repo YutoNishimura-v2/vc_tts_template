@@ -1,6 +1,7 @@
 # fastspeech2利用方法.
 
 - todo
+    - trainのdevの時に正解を与えないようにするか否か
     - hifigan実装
     - finetuning実装
     - synthe実装
