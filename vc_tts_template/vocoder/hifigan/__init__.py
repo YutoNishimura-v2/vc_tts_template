@@ -1,7 +1,5 @@
-from .models import Generator
+import sys
+sys.path.append('.')
 
-
-class AttrDict(dict):
-    def __init__(self, *args, **kwargs):
-        super(AttrDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
+from hifigan.env import AttrDict
+from hifigan.models import Generator

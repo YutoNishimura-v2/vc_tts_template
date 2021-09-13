@@ -1,9 +1,9 @@
 # fastspeech2利用方法.
 
 - todo
-    - trainのdevの時に正解を与えないようにするか否か
     - hifigan実装
-    - finetuning実装
+        - collate_fnまで終了.
+        - 次はモデルのインスタンス化の話
     - synthe実装
     - tts実装
 
@@ -55,3 +55,7 @@
         - 決め打ちでいけ.
 
 - 上位のconfigで決めたところは空白にしておく. そうでないと二重に設定することになりバグの温床.
+
+
+- hifiganは, 出力melでfinetuningをせずに, 単にwavだけでfinetuningするようにする.
+    - その際に, srを気にしない入力受付にするようにするところだけ注意.

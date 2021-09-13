@@ -299,6 +299,7 @@ def setup(
     # (optional) 学習済みモデルの読み込み
     # ファインチューニングしたい場合
     pretrained_checkpoint = config.train.pretrained.checkpoint  # type: ignore
+    checkpoint = None
     if pretrained_checkpoint is not None and len(pretrained_checkpoint) > 0:
         logger.info(
             "Fine-tuning! Loading a checkpoint: {}".format(pretrained_checkpoint)
@@ -334,6 +335,15 @@ def setup(
         # 自作だと判断.
         lr_scheduler = hydra.utils.instantiate(config.train.optim.lr_scheduler)  # type: ignore
         lr_scheduler._set_optimizer(optimizer)
+
+    if checkpoint is not None:
+        if config.train.pretrained.optimizer_reset is True:  # type: ignore
+            logger.info(
+                "skipping loading optimizer and lr_scheduler's states!"
+            )
+        else:
+            optimizer.load_state_dict(checkpoint["optimizer_state"])
+            lr_scheduler.load_state_dict(checkpoint["lr_scheduler_state"])
 
     # loss
     loss = hydra.utils.instantiate(config.train.criterion)  # type: ignore

@@ -120,7 +120,34 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
 fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
-    echo "stage 3: Training fastspeech2"
+    echo "stage 3: finetuning hifigan"
+    xrun python train_hifigan.py model=$acoustic_model tqdm=$tqdm \
+        cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
+        data.train.utt_list=data/train.list \
+        data.train.in_dir=$wav_root \
+        data.dev.utt_list=data/dev.list \
+        data.dev.in_dir=$dump_norm_dir/$dev_set/in_fastspeech2/ \
+        data.batch_size=$fastspeech2_data_batch_size \
+        data.sampling_rate=$sample_rate \
+        data.n_fft=$filter_length \
+        data.num_mels=$n_mel_channels \
+        data.hop_size=$hop_length
+        data.win_size=$win_length
+        data.fmin=$mel_fmin
+        data.fmax=$mel_fmax
+        train.out_dir=$expdir/${acoustic_model} \
+        train.log_dir=tensorboard/${expname}_${acoustic_model} \
+        train.max_train_steps=$fastspeech2_train_max_train_steps \
+        train.criterion.pitch_feature_level=$pitch_phoneme_averaging\
+        train.criterion.energy_feature_level=$energy_phoneme_averaging\
+        model.netG.pitch_feature_level=$pitch_phoneme_averaging \
+        model.netG.energy_feature_level=$energy_phoneme_averaging \
+        model.netG.n_mel_channel=$n_mel_channels \
+        model.netG.multi_speaker=$multi_speaker
+fi
+
+if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
+    echo "stage 4: Training fastspeech2"
     xrun python train_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
@@ -141,38 +168,8 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
         model.netG.multi_speaker=$multi_speaker
 fi
 
-if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
-    echo "stage 4: Training WaveNet vocoder"
-    xrun python train_wavenet.py model=$wavenet_model tqdm=$tqdm \
-        data.train.utt_list=data/train.list \
-        data.train.in_dir=$dump_norm_dir/$train_set/out_tacotron/ \
-        data.train.out_dir=$dump_org_dir/$train_set/out_wavenet/ \
-        data.dev.utt_list=data/dev.list \
-        data.dev.in_dir=$dump_norm_dir/$dev_set/out_tacotron/ \
-        data.dev.out_dir=$dump_org_dir/$dev_set/out_wavenet/ \
-        train.out_dir=$expdir/${wavenet_model} \
-        train.log_dir=tensorboard/${expname}_${wavenet_model} \
-        train.max_train_steps=$wavenet_train_max_train_steps \
-        data.batch_size=$wavenet_data_batch_size \
-        cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic
-fi
-
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
-    echo "stage 5: Synthesis waveforms by the griffin-lim algorithm"
-    for s in ${testsets[@]}; do
-        xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
-            in_dir=${lab_root} \
-            out_dir=$expdir/synthesis_${acoustic_model}_griffin_lim/$s \
-            sample_rate=$sample_rate \
-            acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
-            acoustic.out_scaler_path=$dump_norm_dir/out_tacotron_scaler.joblib \
-            acoustic.model_yaml=$expdir/${acoustic_model}/model.yaml \
-            reverse=$reverse num_eval_utts=$num_eval_utts
-    done
-fi
-
-if [ ${stage} -le 6 ] && [ ${stop_stage} -ge 6 ]; then
-    echo "stage 6: Synthesis waveforms by WaveNet vocoder"
+    echo "stage 6: Synthesis waveforms by hifigan"
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
             in_dir=${lab_root} \

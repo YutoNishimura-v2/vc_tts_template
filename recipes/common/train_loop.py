@@ -8,7 +8,7 @@ from vc_tts_template.train_utils import (
 )
 
 
-def train_step(
+def _train_step(
     model,
     optimizer,
     lr_scheduler,
@@ -46,7 +46,8 @@ def _update_running_losses_(running_losses, loss_values):
             running_losses[key] = val
 
 
-def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loaders, writers, logger, eval_model):
+def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loaders,
+               writers, logger, eval_model, train_step=None):
     out_dir = Path(to_absolute_path(config.train.out_dir))
     best_loss = torch.finfo(torch.float32).max
     train_iter = 1
@@ -65,6 +66,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                 for batch in batchs:
                     batch = to_device(batch)
 
+                    train_step = _train_step if train_step is None else train_step
                     loss_values = train_step(
                         model,
                         optimizer,

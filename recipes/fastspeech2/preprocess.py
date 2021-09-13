@@ -8,6 +8,7 @@ from typing import List, Dict
 import librosa
 import numpy as np
 import pyworld as pw
+from scipy.io import wavfile
 import tgt
 from scipy.interpolate import interp1d
 from tqdm import tqdm
@@ -91,7 +92,12 @@ def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
     if start >= end:
         return None
     # Read and trim wav files
-    wav, _ = librosa.load(wav_path, sr=sr)
+    # resample
+    _sr, x = wavfile.read(wav_path)
+    if x.dtype in [np.int16, np.int32]:
+        x = (x / np.iinfo(x.dtype).max).astype(np.float64)
+    wav = librosa.resample(x, _sr, sr)
+
     wav = wav[
         int(sr * start): int(sr * end)
     ].astype(np.float32)

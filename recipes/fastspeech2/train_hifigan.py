@@ -1,3 +1,8 @@
+from recipes.fastspeech2.utils import plot_mel
+from recipes.common.train_loop import train_loop
+from vc_tts_template.train_utils import setup
+from vc_tts_template.vocoder.hifigan.collate_fn import (
+    collate_fn_hifigan, hifigan_get_data_loaders)
 import sys
 from functools import partial
 
@@ -7,11 +12,6 @@ from matplotlib import pyplot as plt
 from omegaconf import DictConfig
 
 sys.path.append("../..")
-from vc_tts_template.fastspeech2.collate_fn import (
-    collate_fn_fastspeech2, fastspeech2_get_data_loaders)
-from vc_tts_template.train_utils import setup
-from recipes.common.train_loop import train_loop
-from recipes.fastspeech2.utils import plot_mel
 
 
 def fastspeech2_train_step(
@@ -99,42 +99,23 @@ def eval_model(
 
 
 def to_device(data, device):
-    if len(data) == 11:
+    if len(data) == 4:
         (
             ids,
-            speakers,
-            texts,
-            src_lens,
-            max_src_len,
+            audios,
             mels,
-            mel_lens,
-            max_mel_len,
-            pitches,
-            energies,
-            durations,
+            mel_losses
         ) = data
 
-        speakers = torch.from_numpy(speakers).long().to(device)
-        texts = torch.from_numpy(texts).long().to(device)
-        src_lens = torch.from_numpy(src_lens).to(device)
-        mels = torch.from_numpy(mels).float().to(device)
-        mel_lens = torch.from_numpy(mel_lens).to(device)
-        pitches = torch.from_numpy(pitches).float().to(device)
-        energies = torch.from_numpy(energies).to(device)
-        durations = torch.from_numpy(durations).long().to(device)
+        audios = torch.Tensor(audios).float().to(device)
+        mels = torch.Tensor(mels).float().to(device)
+        mel_losses = torch.Tensor(mel_losses).float().to(device)
 
         return (
             ids,
-            speakers,
-            texts,
-            src_lens,
-            max_src_len,
+            audios,
             mels,
-            mel_lens,
-            max_mel_len,
-            pitches,
-            energies,
-            durations,
+            mel_losses,
         )
 
     if len(data) == 6:
@@ -152,19 +133,13 @@ def my_app(config: DictConfig) -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # 以下自由
-    if config.model.netG.speakers is None:
-        assert config.model.netG.multi_speaker == 0, f"""multi_speaker: {config.model.netG.multi_speaker},
-        speakers_dict: {config.model.netG.speakers}"""
-    else:
-        assert config.model.netG.multi_speaker > 0, f"""multi_speaker: {config.model.netG.multi_speaker},
-        speakers_dict: {config.model.netG.speakers}"""
 
     collate_fn = partial(
-        collate_fn_fastspeech2, batch_size=config.data.batch_size, speaker_dict=config.model.netG.speakers
+        collate_fn_hifigan, config=config.data
     )
 
     model, optimizer, lr_scheduler, loss, data_loaders, writers, logger = setup(
-        config, device, collate_fn, fastspeech2_get_data_loaders  # type: ignore
+        config, device, collate_fn, hifigan_get_data_loaders  # type: ignore
     )
 
     # 以下固定

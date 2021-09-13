@@ -35,7 +35,16 @@ data:
   # data loader
   num_workers: 20
   batch_size:
-  group_size: 4
+  group_size: 1
+  sampling_rate:
+  segment_size: 8192
+  n_fft:
+  num_mels:
+  hop_size:
+  win_size:
+  fmin:
+  fmax:
+  fmax_loss: null
 
 ###########################################################
 #                TRAIN SETTING                            #
