@@ -1,5 +1,3 @@
-import sys
-sys.path.append('.')
+from .models import Generator, MultiPeriodDiscriminator, MultiScaleDiscriminator
 
-from hifigan.env import AttrDict
-from hifigan.models import Generator
+__all__ = ["Generator", "MultiPeriodDiscriminator", "MultiScaleDiscriminator"]

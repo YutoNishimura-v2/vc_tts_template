@@ -222,7 +222,11 @@ synthesis.pyがデータをロードしたり, モデルを用意したりする
         - total_lossというkeyを1つは用意すること
     - これを作成するだけであとはインスタンス化も自動.
 - optimizer
-    - pytorchと同じメソッド名で動くもでさえあればok.
+    - originalの場合, pytorchと同じメソッド名で動くもでさえあればok.
         - ただし, lr_schedulerは, set_optimizerというmethodで
         optimizerをsetできるようにする.
+        - optimizerは, set_modelというmethodでmodelをセットできるようにする.
+
+        - 複数のoptimizer, schedulerを使いたい場合は, hifiganのように, 
+        load_state_dictやstate_dictを作るように.
     - configでは, pytorchのものか作ったものかを選べるようにする.

@@ -43,19 +43,15 @@ energy_phoneme_averaging: 1
 ###########################################################
 
 acoustic_model: fastspeech2
-wavenet_model: wavenet_sr16k_mulaw256_30layers
+vocoder_model: hifigan
 
 ### fastspeech2  ###
 fastspeech2_train_max_train_steps: 900000
 fastspeech2_data_batch_size: 8
 
-### WaveNet ###
-# 注意: 50万ステップの学習には数日時間がかかることが予想されます
-wavenet_train_max_train_steps: 500000
-# 注意: 必要なGPUメモリ（目安）:
-# バッチサイズ8の場合に10GB程度、バッチサイズ16の場合に17GB程度
-# PyTorch 1.8.1, CUDA 11.2, cuDNN 7.6.3
-wavenet_data_batch_size: 16
+### hifigan ###
+hifigan_train_max_train_steps: 500000
+hifigan_data_batch_size: 16
 
 ###########################################################
 #                SYNTHESIS SETTING                        #

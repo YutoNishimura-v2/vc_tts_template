@@ -56,7 +56,12 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs):
         for phase in data_loaders.keys():
             train = phase.startswith("train")
-            model.train() if train else model.eval()
+            if isinstance(model, dict):
+                # hifiganのように複数modelを持つ場合, dictで管理.
+                for key in model.keys():
+                    model[key].train() if train else model.eval()
+            else:
+                model.train() if train else model.eval()
             running_losses = {}  # epoch毎のloss. ここでresetしてるし.
             is_first = 1
             group_size = 0
@@ -65,7 +70,6 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
             ):
                 for batch in batchs:
                     batch = to_device(batch)
-
                     train_step = _train_step if train_step is None else train_step
                     loss_values = train_step(
                         model,

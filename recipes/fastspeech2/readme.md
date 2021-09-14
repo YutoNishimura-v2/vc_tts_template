@@ -2,8 +2,7 @@
 
 - todo
     - hifigan実装
-        - collate_fnまで終了.
-        - 次はモデルのインスタンス化の話
+        - あとはeval_modelと, weightの用意.
     - synthe実装
     - tts実装
 

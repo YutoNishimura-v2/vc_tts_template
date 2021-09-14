@@ -1,6 +1,7 @@
 import random
 from pathlib import Path
 from typing import Callable, Dict
+import warnings
 
 import librosa
 import numpy as np
@@ -11,14 +12,18 @@ from scipy.io import wavfile
 from torch.utils import data as data_utils
 from vc_tts_template.utils import load_utt_list
 
+warnings.simplefilter('ignore', UserWarning)
+
 
 class hifigan_Dataset(data_utils.Dataset):
-    def __init__(self, in_feats_paths, sampling_rate):
+    def __init__(self, in_feats_paths, sampling_rate, n_cashe_reuse):
         self.audio_files = in_feats_paths  # wav_path
         self.sampling_rate = sampling_rate
+        self._cache_ref_count = 0
+        self.n_cache_reuse = n_cashe_reuse
 
     def __getitem__(self, index):
-        wav_path = self.in_feats_paths[index]
+        wav_path = self.audio_files[index]
         filename = wav_path.name.replace(".wav", "")
         if self._cache_ref_count == 0:
             _sr, x = wavfile.read(wav_path)
@@ -60,7 +65,8 @@ def hifigan_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[st
 
         dataset = hifigan_Dataset(
             in_feats_paths,
-            data_config.sampling_rate  # type: ignore
+            data_config.sampling_rate,  # type: ignore
+            data_config.n_cache_reuse  # type: ignore
         )
         data_loaders[phase] = data_utils.DataLoader(
             dataset,
@@ -138,8 +144,9 @@ def collate_fn_hifigan(batch, config):
                                    config.fmin, config.fmax_loss)
 
         ids.append(filename)
-        audios.append(audio.squeeze(0))
-        mels.append(mel.squeeze())
-        mel_losses.append(mel_loss.squeeze())
+        audios.append(audio.squeeze(0).numpy())
+        mels.append(mel.squeeze().numpy())
+        mel_losses.append(mel_loss.squeeze().numpy())
 
-    return ids, audios, mels, mel_losses
+    # group化をdefaultとしているので.
+    return [[ids, audios, mels, mel_losses]]

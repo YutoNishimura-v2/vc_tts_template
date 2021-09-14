@@ -101,22 +101,41 @@ def save_checkpoint(
             Defaults to False.
         postfix: Postfix. Defaults to "".
     """
-    if isinstance(model, nn.DataParallel):
-        model = model.module
+    if isinstance(model, dict):
+        for key in model.keys():
+            if isinstance(model[key], nn.DataParallel):
+                model[key] = model[key].module
+    else:
+        if isinstance(model, nn.DataParallel):
+            model = model.module
 
     out_dir.mkdir(parents=True, exist_ok=True)
     if is_best:
         path = out_dir / f"best_loss{postfix}.pth"
     else:
         path = out_dir / "epoch{:04d}{}.pth".format(epoch, postfix)
-    torch.save(
-        {
-            "state_dict": model.state_dict(),
-            "optimizer_state": optimizer.state_dict(),
-            "lr_scheduler_state": lr_scheduler.state_dict()
-        },
-        path,
-    )
+
+    if isinstance(model, dict):
+        model_state_dict = {
+            k: v.state_dict() for k, v in model.items()
+        }
+        torch.save(
+            {
+                "state_dict": model_state_dict,
+                "optimizer_state": optimizer.state_dict(),
+                "lr_scheduler_state": lr_scheduler.state_dict()
+            },
+            path,
+        )
+    else:
+        torch.save(
+            {
+                "state_dict": model.state_dict(),
+                "optimizer_state": optimizer.state_dict(),
+                "lr_scheduler_state": lr_scheduler.state_dict()
+            },
+            path,
+        )
 
     logger.info(f"Saved checkpoint at {path}")
     if not is_best:
@@ -247,9 +266,28 @@ def _get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data
     return data_loaders
 
 
+def _several_model_loader(config, device, logger, checkpoint):
+    model_dict = {}
+    for model_name in config.model.keys():
+        model = hydra.utils.instantiate(config.model[model_name]).to(device)
+        logger.info(model)
+        logger.info(
+            "Number of trainable params of {}: {:.3f} million".format(
+                model_name, num_trainable_params(model) / 1000000.0
+            )
+        )
+        if checkpoint is not None:
+            model.load_state_dict(checkpoint["state_dict"][model_name])
+        if config.data_parallel:
+            model = nn.DataParallel(model)
+        model_dict[model_name] = model
+
+    return model_dict
+
+
 def setup(
     config: Dict, device: torch.device,
-    collate_fn: Callable, get_dataloader: Optional[Callable] = None
+    collate_fn: Callable, get_dataloader: Optional[Callable] = None,
 ) -> Tuple:
     """Setup for traiining
 
@@ -286,16 +324,6 @@ def setup(
     logger.info(f"Random seed: {config.seed}")  # type: ignore
     init_seed(config.seed)  # type: ignore
 
-    # モデルのインスタンス化
-    # ↓これでインスタンス化できるhydraすごすぎる.
-    model = hydra.utils.instantiate(config.model.netG).to(device)  # type: ignore
-    logger.info(model)
-    logger.info(
-        "Number of trainable params: {:.3f} million".format(
-            num_trainable_params(model) / 1000000.0
-        )
-    )
-
     # (optional) 学習済みモデルの読み込み
     # ファインチューニングしたい場合
     pretrained_checkpoint = config.train.pretrained.checkpoint  # type: ignore
@@ -305,7 +333,25 @@ def setup(
             "Fine-tuning! Loading a checkpoint: {}".format(pretrained_checkpoint)
         )
         checkpoint = torch.load(pretrained_checkpoint, map_location=device)
-        model.load_state_dict(checkpoint["state_dict"])
+
+    # モデルのインスタンス化
+    if len(config.model.keys()) == 1:  # type: ignore
+        model = hydra.utils.instantiate(config.model.netG).to(device)  # type: ignore
+        logger.info(model)
+        logger.info(
+            "Number of trainable params: {:.3f} million".format(
+                num_trainable_params(model) / 1000000.0
+            )
+        )
+        if checkpoint is not None:
+            model.load_state_dict(checkpoint["state_dict"])  # type: ignore
+
+        # 複数 GPU 対応
+        if config.data_parallel:  # type: ignore
+            model = nn.DataParallel(model)
+
+    else:
+        model = _several_model_loader(config, device, logger, checkpoint)
 
     # 複数 GPU 対応
     if config.data_parallel:  # type: ignore
@@ -314,24 +360,25 @@ def setup(
     # Optimizer
     # 例: config.train.optim.optimizer.name = "Adam"なら,
     # optim.Adamをしていることと等価.
-    try:
+    if 'name' in config.train.optim.keys():  # type: ignore
         optimizer_class = getattr(optim, config.train.optim.optimizer.name)  # type: ignore
         optimizer = optimizer_class(
             model.parameters(), **config.train.optim.optimizer.params  # type: ignore
         )
-    except AttributeError:
+    else:
         # 自作だと判断.
         optimizer = hydra.utils.instantiate(config.train.optim.optimizer)  # type: ignore
+        optimizer._set_model(model)
 
     # 学習率スケジューラ
-    try:
+    if 'name' in config.train.optim.keys():  # type: ignore
         lr_scheduler_class = getattr(
             optim.lr_scheduler, config.train.optim.lr_scheduler.name  # type: ignore
         )
         lr_scheduler = lr_scheduler_class(
             optimizer, **config.train.optim.lr_scheduler.params  # type: ignore
         )
-    except AttributeError:
+    else:
         # 自作だと判断.
         lr_scheduler = hydra.utils.instantiate(config.train.optim.lr_scheduler)  # type: ignore
         lr_scheduler._set_optimizer(optimizer)

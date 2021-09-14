@@ -37,6 +37,7 @@ data:
   batch_size:
   group_size: 1
   sampling_rate:
+  n_cache_reuse: 1
   segment_size: 8192
   n_fft:
   num_mels:
@@ -61,22 +62,16 @@ train:
 
   optim:
     optimizer:
-      name: Adam
-      params:
-        lr: 0.0625  # encoder_hidden ** (-0.5)
-        betas: [0.9, 0.98]
-        eps: 0.000000001
-        weight_decay: 0.0
+      _target_: vc_tts_template.vocoder.hifigan.optimizer.hifigan_optim
+      learning_rate: 0.0002
+      adam_b1: 0.8
+      adam_b2: 0.99
     lr_scheduler:
-      _target_: vc_tts_template.fastspeech2.optimizer.ScheduledOptim
-      warm_up_step: 4000
-      anneal_steps: [300000, 400000, 500000]
-      anneal_rate: 0.3
-  
+      _target_: vc_tts_template.vocoder.hifigan.optimizer.hifigan_lr_scheduler
+      lr_decay: 0.999
+      
   criterion:
-    _target_: vc_tts_template.fastspeech2.loss.FastSpeech2Loss
-    pitch_feature_level:
-    energy_feature_level:
+    _target_: vc_tts_template.vocoder.hifigan.loss.hifiganloss
 
   pretrained:
     # 注意: outputs/date/time がcwdです. そこからの相対パスで書いてください.
