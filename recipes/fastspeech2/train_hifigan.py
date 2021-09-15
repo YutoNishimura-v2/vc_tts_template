@@ -8,12 +8,12 @@ from omegaconf import DictConfig
 import torch.nn.functional as F
 
 sys.path.append("../..")
-from recipes.fastspeech2.utils import plot_mel
 from recipes.common.train_loop import train_loop
 from vc_tts_template.train_utils import setup
 from vc_tts_template.vocoder.hifigan.collate_fn import (
     collate_fn_hifigan, hifigan_get_data_loaders)
 from vc_tts_template.vocoder.hifigan.collate_fn import mel_spectrogram
+from vc_tts_template.train_utils import plot_mels
 
 
 def hifigan_train_step(
@@ -68,7 +68,7 @@ def hifigan_train_step(
             mel_error = F.l1_loss(y_mel, y_g_hat_mel).item()
         loss_values = {
             'Gen Loss Total': loss_gen_all.item(),
-            'Mel-Spec. Error': mel_error
+            'Mel-Spec. Error': mel_error,
         }
         # 本来はepoch毎にstepしている(著者実装).
         lr_scheduler.scheduler_g.step()
@@ -81,55 +81,41 @@ def hifigan_train_step(
             _, y, x, y_mel = batch
             y_g_hat = model['netG'](x)
             y_mel = torch.autograd.Variable(y_mel)
-            y_g_hat_mel = mel_spectrogram(y=y_g_hat.squeeze(1))
+            y_g_hat_mel = mel_spectrogram_in_train_step(y=y_g_hat.squeeze(1))
             val_err = F.l1_loss(y_mel, y_g_hat_mel).item()
         loss_values = {
-            'Mel-Spec. Error': val_err
+            'Mel-Spec. Error': val_err,
         }
     return loss_values
 
 
 @torch.no_grad()
-def eval_model(
-    phase, step, model, writer, batch, is_inference
+def hifigan_eval_model(
+    phase, step, model, writer, batch, is_inference,
+    sampling_rate, mel_spectrogram_in_eval
 ):
+    if is_inference or phase == 'train':
+        # 今回は, teacher_forcingとか関係ないので, 片方では結果を出さない.
+        # また, trainで出す必要もないので出さない.
+        return
     # 最大3つまで
     N = min(len(batch[0]), 3)
-
-    if is_inference:
-        # pitch, energyとして正解データを与えない.
-        output = model(
-            *batch[:8],
-            p_targets=None,
-            e_targets=None,
-            d_targets=batch[10]
-        )
-    else:
-        output = model(*batch)
+    _, _, x, _ = batch
+    y_g_hat = model['netG'](x)
+    y_hat_spec = mel_spectrogram_in_eval(y=y_g_hat.squeeze(1))
 
     for idx in range(N):  # 一個ずつsummary writerしていく.
         file_name = batch[0][idx]
-        if phase == 'train':
-            file_name = f"utt_{idx}"
-        mel_post = output[1][idx].cpu().data.numpy().T
-        pitch = output[2][idx].cpu().data.numpy()
-        energy = output[3][idx].cpu().data.numpy()
-        duration = batch[10][idx].cpu().data.numpy()
-        mel_gt = batch[5][idx].cpu().data.numpy().T
-        pitch_gt = batch[8][idx].cpu().data.numpy()
-        energy_gt = batch[9][idx].cpu().data.numpy()
+        audio_gt = batch[1][idx].cpu().data.numpy()
+        mel_gt = batch[2][idx].cpu().data.numpy()
+        audio = y_g_hat[idx].cpu().data.numpy()
+        mel = y_hat_spec[idx].cpu().data.numpy()
 
-        mel_gts = [mel_gt, pitch_gt, energy_gt, duration]
+        writer.add_audio(f"ground_truth/{file_name}", audio_gt, step, sampling_rate)
+        writer.add_audio(f"prediction/{file_name}", audio, step, sampling_rate)
 
-        if is_inference:
-            group = f"{phase}/inference"
-            mel_posts = [mel_post, pitch, energy, duration]
-        else:
-            group = f"{phase}/teacher_forcing"
-            mel_posts = [mel_post, pitch_gt, energy_gt, duration]
-
-        fig = plot_mel([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"])
-        writer.add_figure(f"{group}/{file_name}", fig, step)
+        fig = plot_mels([mel, mel_gt], ["prediction", "ground_truth"])
+        writer.add_figure(f"{file_name}", fig, step)
         plt.close()
 
 
@@ -168,11 +154,19 @@ def my_app(config: DictConfig) -> None:
     # train_stepで利用
     mel_spectrogram_in_train_step = partial(
         mel_spectrogram, n_fft=config.data.n_fft, num_mels=config.data.num_mels,
-        sampling_rate=config.data.sampling_rate, hop_size=config.data.hop_size, 
+        sampling_rate=config.data.sampling_rate, hop_size=config.data.hop_size,
         win_size=config.data.win_size, fmin=config.data.fmin, fmax=config.data.fmax_loss
+    )
+    mel_spectrogram_in_eval = partial(
+        mel_spectrogram, n_fft=config.data.n_fft, num_mels=config.data.num_mels,
+        sampling_rate=config.data.sampling_rate, hop_size=config.data.hop_size,
+        win_size=config.data.win_size, fmin=config.data.fmin, fmax=config.data.fmax
     )
     train_step = partial(
         hifigan_train_step, mel_spectrogram_in_train_step=mel_spectrogram_in_train_step
+    )
+    eval_model = partial(
+        hifigan_eval_model, mel_spectrogram_in_eval=mel_spectrogram_in_eval, sampling_rate=config.data.sampling_rate
     )
     # 以下固定
     to_device_ = partial(to_device, device=device)

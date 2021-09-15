@@ -3,6 +3,7 @@
 - todo
     - hifigan実装
         - あとはeval_modelと, weightの用意.
+    - hifiganを用いたevalを書く
     - synthe実装
     - tts実装
 

@@ -11,7 +11,7 @@ from vc_tts_template.fastspeech2.collate_fn import (
     collate_fn_fastspeech2, fastspeech2_get_data_loaders)
 from vc_tts_template.train_utils import setup
 from recipes.common.train_loop import train_loop
-from recipes.fastspeech2.utils import plot_mel
+from recipes.fastspeech2.utils import plot_mel_with_prosody
 
 
 def fastspeech2_train_step(
@@ -93,7 +93,7 @@ def eval_model(
             group = f"{phase}/teacher_forcing"
             mel_posts = [mel_post, pitch_gt, energy_gt, duration]
 
-        fig = plot_mel([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"])
+        fig = plot_mel_with_prosody([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"])
         writer.add_figure(f"{group}/{file_name}", fig, step)
         plt.close()
 

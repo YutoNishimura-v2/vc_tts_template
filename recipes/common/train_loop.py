@@ -114,7 +114,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                 ave_loss = val / (len(data_loaders[phase]) * group_size)
                 writers[phase].add_scalar(f"loss/{key}", ave_loss, epoch)
 
-            ave_loss = running_losses["total_loss"] / (len(data_loaders[phase]) * group_size)
+            ave_loss = running_losses[list(running_losses.keys())[-1]] / (len(data_loaders[phase]) * group_size)
             if not train and ave_loss < best_loss:
                 best_loss = ave_loss
                 save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, epoch, True)

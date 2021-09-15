@@ -68,9 +68,10 @@ def hifigan_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[st
             data_config.sampling_rate,  # type: ignore
             data_config.n_cache_reuse  # type: ignore
         )
+        batch_size = data_config.batch_size * data_config.group_size if phase == 'train' else 1  # type: ignore
         data_loaders[phase] = data_utils.DataLoader(
             dataset,
-            batch_size=data_config.batch_size * data_config.group_size,  # type: ignore
+            batch_size=batch_size,
             collate_fn=collate_fn,
             pin_memory=True,
             num_workers=data_config.num_workers,  # type: ignore

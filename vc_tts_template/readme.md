@@ -69,6 +69,7 @@
     - moving_average_: パラメータの移動平均を計算し, テスト用モデルに再代入してあげる. @wavenet
     - plot_attention: attention weightを入れたらfigを返してくれる.
     - plot_2d_feats: 二次元の特徴量を図示してくれる.
+    - plot_mels: melに特化したわけではないが, 2次元の特徴量を複数渡したときに縦にくっつけて表示してくれる.
     - setup: configとcollate_fnを用意するだけですべてインスタンス化して返してくれる. その代わり, ちゃんとconfigを書く必要がある.
 
 - utils.py

@@ -217,9 +217,10 @@ synthesis.pyがデータをロードしたり, モデルを用意したりする
     - lossに関しては, 一般化する. modelと同じ階層に配置.
     - 入力: batch, output. batchはcollate_fnから出てくる全データ.
     outputは, modelから出てくる全データ.
-    - 出力: loss, loss_dict. lossは全lossのsum.
-    loss_dictは各loss名とその値が入った辞書.
+    - 出力: loss, loss_dict. lossは全lossのsum. loss_dictは各loss名とその値が入った辞書.
         - total_lossというkeyを1つは用意すること
+        - ↑修正. 最後のkeyを, best_model保存の基準にした.
+            - 順序は, python3.6以降保持されるようになったらしい.
     - これを作成するだけであとはインスタンス化も自動.
 - optimizer
     - originalの場合, pytorchと同じメソッド名で動くもでさえあればok.

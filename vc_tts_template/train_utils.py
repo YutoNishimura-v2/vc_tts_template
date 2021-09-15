@@ -184,6 +184,23 @@ def plot_attention(alignment: torch.Tensor) -> plt.figure:
     return fig
 
 
+def plot_mels(mels, titles):
+    fig, axes = plt.subplots(len(mels), 1, squeeze=False)
+    if titles is None:
+        titles = [None for i in range(len(mels))]
+
+    for i in range(len(mels)):
+        mel = mels[i]
+        axes[i][0].imshow(mel, origin="lower")
+        axes[i][0].set_aspect(2.5, adjustable="box")
+        axes[i][0].set_ylim(0, mel.shape[0])
+        axes[i][0].set_title(titles[i], fontsize="medium")
+        axes[i][0].tick_params(labelsize="x-small", left=False, labelleft=False)
+        axes[i][0].set_anchor("W")
+
+    return fig
+
+
 def plot_2d_feats(feats: torch.Tensor, title=None) -> plt.figure:
     """Plot 2D features.
     Args:

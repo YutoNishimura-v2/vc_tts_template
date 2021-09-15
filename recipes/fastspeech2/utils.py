@@ -9,7 +9,7 @@ def expand(values, durations):
     return np.array(out)
 
 
-def plot_mel(data, titles):
+def plot_mel_with_prosody(data, titles):
     fig, axes = plt.subplots(len(data), 1, squeeze=False)
     if titles is None:
         titles = [None for i in range(len(data))]

@@ -58,7 +58,7 @@ train:
   max_train_steps:
   nepochs: -1
   checkpoint_epoch_interval: 50
-  eval_epoch_interval: 10
+  eval_epoch_interval: 1
 
   optim:
     optimizer:
@@ -69,7 +69,7 @@ train:
     lr_scheduler:
       _target_: vc_tts_template.vocoder.hifigan.optimizer.hifigan_lr_scheduler
       lr_decay: 0.999
-      
+
   criterion:
     _target_: vc_tts_template.vocoder.hifigan.loss.hifiganloss
 

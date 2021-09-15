@@ -51,7 +51,7 @@ fastspeech2_data_batch_size: 8
 
 ### hifigan ###
 hifigan_train_max_train_steps: 500000
-hifigan_data_batch_size: 16
+hifigan_data_batch_size: 32
 
 ###########################################################
 #                SYNTHESIS SETTING                        #
@@ -66,4 +66,4 @@ reverse: false
 num_eval_utts: -1
 
 acoustic_eval_checkpoint: latest.pth
-wavenet_eval_checkpoint: latest_ema.pth
+hifigan_eval_checkpoint: latest_ema.pth
