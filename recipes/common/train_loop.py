@@ -47,7 +47,7 @@ def _update_running_losses_(running_losses, loss_values):
 
 
 def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loaders,
-               writers, logger, eval_model, train_step=None):
+               writers, logger, eval_model, train_step=None, epoch_step=False):
     out_dir = Path(to_absolute_path(config.train.out_dir))
     best_loss = torch.finfo(torch.float32).max
     train_iter = 1
@@ -59,7 +59,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
             if isinstance(model, dict):
                 # hifiganのように複数modelを持つ場合, dictで管理.
                 for key in model.keys():
-                    model[key].train() if train else model.eval()
+                    model[key].train() if train else model[key].eval()
             else:
                 model.train() if train else model.eval()
             running_losses = {}  # epoch毎のloss. ここでresetしてるし.
@@ -69,7 +69,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                 data_loaders[phase], desc=f"{phase} iter", leave=False
             ):
                 for batch in batchs:
-                    batch = to_device(batch)
+                    batch = to_device(batch, phase)
                     train_step = _train_step if train_step is None else train_step
                     loss_values = train_step(
                         model,
@@ -118,6 +118,9 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
             if not train and ave_loss < best_loss:
                 best_loss = ave_loss
                 save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, epoch, True)
+
+            if epoch_step is True:
+                lr_scheduler.step()
 
         if epoch % config.train.checkpoint_epoch_interval == 0:
             save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, epoch, False)

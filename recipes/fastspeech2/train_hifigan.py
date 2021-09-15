@@ -70,19 +70,20 @@ def hifigan_train_step(
             'Gen Loss Total': loss_gen_all.item(),
             'Mel-Spec. Error': mel_error,
         }
-        # 本来はepoch毎にstepしている(著者実装).
-        lr_scheduler.scheduler_g.step()
-        lr_scheduler.scheduler_d.step()
 
     else:
         torch.cuda.empty_cache()
         with torch.no_grad():
             # validationはbatch_size=1で固定.
-            _, y, x, y_mel = batch
-            y_g_hat = model['netG'](x)
-            y_mel = torch.autograd.Variable(y_mel)
-            y_g_hat_mel = mel_spectrogram_in_train_step(y=y_g_hat.squeeze(1))
-            val_err = F.l1_loss(y_mel, y_g_hat_mel).item()
+            _, _, x, y_mel = batch
+            val_err = 0
+            for x_, y_mel_ in zip(x, y_mel):
+                x_ = x_.unsqueeze(0)
+                y_mel_ = y_mel_.unsqueeze(0)
+                y_g_hat = model['netG'](x_)
+                y_mel_ = torch.autograd.Variable(y_mel_)
+                y_g_hat_mel = mel_spectrogram_in_train_step(y=y_g_hat.squeeze(1))
+                val_err += F.l1_loss(y_mel_, y_g_hat_mel).item()
         loss_values = {
             'Mel-Spec. Error': val_err,
         }
@@ -101,34 +102,46 @@ def hifigan_eval_model(
     # 最大3つまで
     N = min(len(batch[0]), 3)
     _, _, x, _ = batch
-    y_g_hat = model['netG'](x)
-    y_hat_spec = mel_spectrogram_in_eval(y=y_g_hat.squeeze(1))
+    y_g_hats = []
+    y_hat_specs = []
+    for x_ in x[:N]:
+        x_ = x_.unsqueeze(0)
+        y_g_hat = model['netG'](x_)
+        y_hat_spec = mel_spectrogram_in_eval(y=y_g_hat.squeeze(1))
+        y_g_hats.append(y_g_hat)
+        y_hat_specs.append(y_hat_spec.squeeze(0))
 
     for idx in range(N):  # 一個ずつsummary writerしていく.
         file_name = batch[0][idx]
         audio_gt = batch[1][idx].cpu().data.numpy()
         mel_gt = batch[2][idx].cpu().data.numpy()
-        audio = y_g_hat[idx].cpu().data.numpy()
-        mel = y_hat_spec[idx].cpu().data.numpy()
+        audio = y_g_hats[idx].cpu().data.numpy()
+        mel = y_hat_specs[idx].cpu().data.numpy()
 
         writer.add_audio(f"ground_truth/{file_name}", audio_gt, step, sampling_rate)
         writer.add_audio(f"prediction/{file_name}", audio, step, sampling_rate)
 
         fig = plot_mels([mel, mel_gt], ["prediction", "ground_truth"])
-        writer.add_figure(f"{file_name}", fig, step)
+        writer.add_figure(f"mel/{file_name}", fig, step)
         plt.close()
 
 
-def to_device(data, device):
+def to_device(data, phase, device):
     (
         ids,
         audios,
         mels,
         mel_losses
     ) = data
-    audios = torch.Tensor(audios).float().to(device, non_blocking=True)
-    mels = torch.Tensor(mels).float().to(device, non_blocking=True)
-    mel_losses = torch.Tensor(mel_losses).float().to(device, non_blocking=True)
+
+    if phase == 'train':
+        audios = torch.Tensor(audios).float().to(device, non_blocking=True)
+        mels = torch.Tensor(mels).float().to(device, non_blocking=True)
+        mel_losses = torch.Tensor(mel_losses).float().to(device, non_blocking=True)
+    else:
+        audios = [torch.Tensor(audio).float().to(device, non_blocking=True) for audio in audios]
+        mels = [torch.Tensor(mel).float().to(device, non_blocking=True) for mel in mels]
+        mel_losses = [torch.Tensor(mel_loss).float().to(device, non_blocking=True) for mel_loss in mel_losses]
 
     return (
         ids,
@@ -171,7 +184,7 @@ def my_app(config: DictConfig) -> None:
     # 以下固定
     to_device_ = partial(to_device, device=device)
     train_loop(config, to_device_, model, optimizer, lr_scheduler, loss, data_loaders,
-               writers, logger, eval_model, train_step)
+               writers, logger, eval_model, train_step, epoch_step=True)
 
 
 if __name__ == "__main__":

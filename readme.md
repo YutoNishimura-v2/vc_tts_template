@@ -231,3 +231,7 @@ synthesis.pyがデータをロードしたり, モデルを用意したりする
         - 複数のoptimizer, schedulerを使いたい場合は, hifiganのように, 
         load_state_dictやstate_dictを作るように.
     - configでは, pytorchのものか作ったものかを選べるようにする.
+- eval_model
+    - vocoderなどは, my_appの中でインスタンス化してinferenceもmy_appで渡す.
+- train_step
+    - 特殊ケースの場合(hifiganのような)は, train_loopに渡すことで組み込める.

@@ -1,56 +1,10 @@
 # HiFi-GAN: Generative Adversarial Networks for Efficient and High Fidelity Speech Synthesis
 
-## 想定
-- 既に存在しているフォルダを指すことにする.
-    - input_mel_path
-        - mels: NARS2Sで推論したmelを出力したフォルダ.
-        - train.txt
-        - val.txt
-    - input_wav_path
-        - *.wav: pre_voiceに入った, 変換先wav.
-
-    - 注意
-        - melは, teacher forcingで作らないと, melと音声が合わない.
-        - つまり, durationだけ正解を与えて推論するしかない.
-
-- output_path
-    - (finetuningに用いる最初の重みを投入する)
-
 ## 使い方
-### train
-- 事前に用意するもの: 音声ファイル(srなど成型済み), train.txt, val.txt
+- vc_tts_templateに準拠.
+- weightsに, vocoderとして用いるための重みを配置しておく.
+- 以下のコードで, universal weightはdownloadできる.
 
-- train.pyを実行時, cwdはhifiganではなく一番上.
-
-- 各引数に以下を与える
-- input_mel_path: train.txt, val.txtが入っているフォルダ. melとか言ってるけどmelはいらん.
-- input_wav_path: wavが入っているフォルダ.
-- checkpoint_path: 保存したいフォルダパス
-- config: jsonで書かれたconfig
-
-あとはお好み.
-
-### finetuning
-- 自前で用意したmelを用いてfinetuningしたいとき↓
-    - input_mel_path: txtに加えて, melsというフォルダがあり, そこにmelがたまっている.
-        - NARS2Sのものを利用したい場合, フォルダ名をmelsにして, ファイル名も"mel-"を外し, melを転置して再保存する必要あり
-    - fine_tuning: これはつけるだけ.
-    - load_model_only: これによってoptimizerをリセットすることが可能. お好み.
-
-- melは用意していないが, Unicersalとかのpretrainからfinetuningしたい場合
-    - ただ重みをoutputフォルダにぶち込んでおくだけ. 勝手に認識して始めてくれる.
-
-### inference
-- これはNARS2Sを通して利用する場合
-
-- hifi-gan直下に
-    - config.json: 以下の重みを訓練する際に利用したもの.
-    - 重みファイル
-    - この2つを配置する.
-
-- その後, 
-    - get_vocoderの`ckpt = torch.load("hifigan/generator_universal.pth.tar", map_location=device)`
-    - この行を, 自分で用意した重みのpathに変える.
 
 ### Jungil Kong, Jaehyeon Kim, Jaekyoung Bae
 

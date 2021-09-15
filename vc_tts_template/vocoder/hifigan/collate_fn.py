@@ -16,10 +16,12 @@ warnings.simplefilter('ignore', UserWarning)
 
 
 class hifigan_Dataset(data_utils.Dataset):
-    def __init__(self, in_feats_paths, sampling_rate, n_cashe_reuse):
+    def __init__(self, in_feats_paths, sampling_rate, n_cashe_reuse, split, segment_size=None):
         self.audio_files = in_feats_paths  # wav_path
         self.sampling_rate = sampling_rate
         self._cache_ref_count = 0
+        self.split = split
+        self.segment_size = segment_size
         self.n_cache_reuse = n_cashe_reuse
 
     def __getitem__(self, index):
@@ -38,8 +40,17 @@ class hifigan_Dataset(data_utils.Dataset):
             self._cache_ref_count -= 1
 
         audio = torch.FloatTensor(audio)
+        audio = audio.unsqueeze(0)
 
-        return filename, audio
+        if self.split:
+            if audio.size(1) >= self.segment_size:
+                max_audio_start = audio.size(1) - self.segment_size
+                audio_start = random.randint(0, max_audio_start)
+                audio = audio[:, audio_start:audio_start+self.segment_size]
+            else:
+                audio = torch.nn.functional.pad(audio, (0, self.segment_size - audio.size(1)), 'constant')
+
+        return filename, audio.squeeze(0)
 
     def __len__(self):
         return len(self.audio_files)
@@ -63,12 +74,23 @@ def hifigan_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[st
 
         in_feats_paths = [in_dir / f"{utt_id}.wav" for utt_id in utt_ids]
 
-        dataset = hifigan_Dataset(
-            in_feats_paths,
-            data_config.sampling_rate,  # type: ignore
-            data_config.n_cache_reuse  # type: ignore
-        )
-        batch_size = data_config.batch_size * data_config.group_size if phase == 'train' else 1  # type: ignore
+        if phase == 'train':
+            dataset = hifigan_Dataset(
+                in_feats_paths,
+                data_config.sampling_rate,  # type: ignore
+                data_config.n_cache_reuse,  # type: ignore
+                split=True,
+                segment_size=data_config.segment_size  # type: ignore
+            )
+        else:
+            dataset = hifigan_Dataset(
+                in_feats_paths,
+                data_config.sampling_rate,  # type: ignore
+                data_config.n_cache_reuse,  # type: ignore
+                split=False
+            )
+
+        batch_size = data_config.batch_size * data_config.group_size  # type: ignore
         data_loaders[phase] = data_utils.DataLoader(
             dataset,
             batch_size=batch_size,
@@ -128,13 +150,6 @@ def collate_fn_hifigan(batch, config):
     for data in batch:
         filename, audio = data
         audio = audio.unsqueeze(0)
-
-        if audio.size(1) >= config.segment_size:
-            max_audio_start = audio.size(1) - config.segment_size
-            audio_start = random.randint(0, max_audio_start)
-            audio = audio[:, audio_start:audio_start+config.segment_size]
-        else:
-            audio = torch.nn.functional.pad(audio, (0, config.segment_size - audio.size(1)), 'constant')
 
         mel = mel_spectrogram(audio, config.n_fft, config.num_mels,
                               config.sampling_rate, config.hop_size, config.win_size, config.fmin, config.fmax,

@@ -42,6 +42,10 @@ class hifigan_lr_scheduler:
         self.scheduler_g = self.scheduler_g(optimizer.optim_g, gamma=self.lr_decay)
         self.scheduler_d = self.scheduler_d(optimizer.optim_d, gamma=self.lr_decay)
 
+    def step(self):
+        self.scheduler_g.step()
+        self.scheduler_d.step()
+
     def state_dict(self):
         return {'g': self.scheduler_g, 'd': self.scheduler_d}
 

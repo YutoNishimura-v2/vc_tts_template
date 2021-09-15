@@ -185,6 +185,8 @@ def plot_attention(alignment: torch.Tensor) -> plt.figure:
 
 
 def plot_mels(mels, titles):
+    """mel: shape=(time, dim)
+    """
     fig, axes = plt.subplots(len(mels), 1, squeeze=False)
     if titles is None:
         titles = [None for i in range(len(mels))]
@@ -216,6 +218,61 @@ def plot_2d_feats(feats: torch.Tensor, title=None) -> plt.figure:
     if title is not None:
         ax.set_title(title)
     return fig
+
+
+def get_vocoder(device: torch.device, model_name: str,
+                model_config_path: str, weight_path: str
+                ) -> Optional[nn.Module]:
+    """
+    Args:
+      model_config: 利用したいconfigへのpath
+    """
+    assert model_name in ["hifigan"]
+    if model_name == "hifigan":
+        model_config = hydra.compose(model_config_path)
+        generator = hydra.utils.instantiate(model_config['']['']['']['train_hifigan']['model']['netG']).to(device)
+        ckpt = torch.load(weight_path, map_location=device)
+        generator.load_state_dict(ckpt["state_dict"]["netG"])
+        generator.eval()
+        generator.remove_weight_norm()
+        return generator
+
+    return None
+
+
+def vocoder_infer(mels: torch.Tensor, vocoder_dict: Dict,
+                  max_wav_value: Optional[int] = None,
+                  lengths: Optional[List[int]] = None
+                  ) -> Optional[List[np.ndarray]]:
+    """
+    Args:
+      mels: (batch, time, dim)
+      vocoder_dict: {model_name: vocoder}
+      max_wav_value: needed if you use hifigan
+      lengths: needed if you want to trim waves.
+        please check if you multiple sampling_rate.
+    """
+    model_name = list(vocoder_dict.keys())[0]
+    assert model_name in ["hifigan"]
+    vocoder = vocoder_dict[model_name]
+
+    if model_name == "hifigan":
+        with torch.no_grad():
+            wavs = vocoder(mels).squeeze(1)
+
+        wavs = (
+            wavs.cpu().numpy()
+            * max_wav_value
+        ).astype("int16")
+        wavs = [wav for wav in wavs]
+
+        for i in range(len(mels)):
+            if lengths is not None:
+                wavs[i] = wavs[i][: lengths[i]]
+
+        return wavs
+
+    return None
 
 
 class _Dataset(data_utils.Dataset):  # type: ignore
@@ -377,7 +434,7 @@ def setup(
     # Optimizer
     # 例: config.train.optim.optimizer.name = "Adam"なら,
     # optim.Adamをしていることと等価.
-    if 'name' in config.train.optim.keys():  # type: ignore
+    if 'name' in list(config.train.optim.optimizer.keys()):  # type: ignore
         optimizer_class = getattr(optim, config.train.optim.optimizer.name)  # type: ignore
         optimizer = optimizer_class(
             model.parameters(), **config.train.optim.optimizer.params  # type: ignore
@@ -388,7 +445,7 @@ def setup(
         optimizer._set_model(model)
 
     # 学習率スケジューラ
-    if 'name' in config.train.optim.keys():  # type: ignore
+    if 'name' in list(config.train.optim.lr_scheduler.keys()):  # type: ignore
         lr_scheduler_class = getattr(
             optim.lr_scheduler, config.train.optim.lr_scheduler.name  # type: ignore
         )

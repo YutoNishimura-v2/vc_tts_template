@@ -3,13 +3,13 @@ from functools import partial
 
 import hydra
 import torch
-from matplotlib import pyplot as plt
 from omegaconf import DictConfig
+import matplotlib.pyplot as plt
 
 sys.path.append("../..")
 from vc_tts_template.fastspeech2.collate_fn import (
     collate_fn_fastspeech2, fastspeech2_get_data_loaders)
-from vc_tts_template.train_utils import setup
+from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer
 from recipes.common.train_loop import train_loop
 from recipes.fastspeech2.utils import plot_mel_with_prosody
 
@@ -55,8 +55,8 @@ def fastspeech2_train_step(
 
 
 @torch.no_grad()
-def eval_model(
-    phase, step, model, writer, batch, is_inference
+def fastspeech2_eval_model(
+    phase, step, model, writer, batch, is_inference, vocoder_infer, sampling_rate
 ):
     # 最大3つまで
     N = min(len(batch[0]), 3)
@@ -76,6 +76,9 @@ def eval_model(
         file_name = batch[0][idx]
         if phase == 'train':
             file_name = f"utt_{idx}"
+
+        audio_recon = vocoder_infer(batch[5][idx].unsqueeze(0))
+        audio_synth = vocoder_infer(output[1][idx].unsqueeze(0))
         mel_post = output[1][idx].cpu().data.numpy().T
         pitch = output[2][idx].cpu().data.numpy()
         energy = output[3][idx].cpu().data.numpy()
@@ -95,10 +98,12 @@ def eval_model(
 
         fig = plot_mel_with_prosody([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"])
         writer.add_figure(f"{group}/{file_name}", fig, step)
+        writer.add_audio(f"{group}/{file_name}_reconstruct", audio_recon, step, sampling_rate)
+        writer.add_audio(f"{group}/{file_name}_synthesis", audio_synth, step, sampling_rate)
         plt.close()
 
 
-def to_device(data, device):
+def to_device(data, phase, device):
     if len(data) == 11:
         (
             ids,
@@ -165,6 +170,16 @@ def my_app(config: DictConfig) -> None:
 
     model, optimizer, lr_scheduler, loss, data_loaders, writers, logger = setup(
         config, device, collate_fn, fastspeech2_get_data_loaders  # type: ignore
+    )
+    # set_vocoder
+    vocoder = get_vocoder(
+        device, config.train.vocoder_name, config.train.vocoder_config, config.train.vocoder_weight_path
+    )
+    _vocoder_infer = partial(
+        vocoder_infer, vocoder_dict={config.train.vocoder_name: vocoder}, max_wav_value=config.train.max_wav_value
+    )
+    eval_model = partial(
+        fastspeech2_eval_model, vocoder_infer=_vocoder_infer, sampling_rate=config.train.sampling_rate
     )
 
     # 以下固定

@@ -154,6 +154,8 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         train.out_dir=$expdir/${acoustic_model} \
         train.log_dir=tensorboard/${expname}_${acoustic_model} \
         train.max_train_steps=$fastspeech2_train_max_train_steps \
+        train.sampling_rate=$sample_rate \
+        train.vocoder_name=$vocoder_model \
         train.criterion.pitch_feature_level=$pitch_phoneme_averaging\
         train.criterion.energy_feature_level=$energy_phoneme_averaging\
         model.netG.pitch_feature_level=$pitch_phoneme_averaging \
