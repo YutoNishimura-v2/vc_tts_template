@@ -2,6 +2,7 @@ import random
 from pathlib import Path
 from typing import Callable, Dict
 import warnings
+import sys
 
 import librosa
 import numpy as np
@@ -10,7 +11,9 @@ from hydra.utils import to_absolute_path
 from librosa.filters import mel as librosa_mel_fn
 from scipy.io import wavfile
 from torch.utils import data as data_utils
-from vc_tts_template.utils import load_utt_list
+
+sys.path.append("../..")
+from utils import load_utt_list
 
 warnings.simplefilter('ignore', UserWarning)
 

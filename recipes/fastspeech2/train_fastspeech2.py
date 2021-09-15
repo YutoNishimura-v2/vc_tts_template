@@ -77,8 +77,6 @@ def fastspeech2_eval_model(
         if phase == 'train':
             file_name = f"utt_{idx}"
 
-        audio_recon = vocoder_infer(batch[5][idx].unsqueeze(0))
-        audio_synth = vocoder_infer(output[1][idx].unsqueeze(0))
         mel_post = output[1][idx].cpu().data.numpy().T
         pitch = output[2][idx].cpu().data.numpy()
         energy = output[3][idx].cpu().data.numpy()
@@ -86,6 +84,9 @@ def fastspeech2_eval_model(
         mel_gt = batch[5][idx].cpu().data.numpy().T
         pitch_gt = batch[8][idx].cpu().data.numpy()
         energy_gt = batch[9][idx].cpu().data.numpy()
+        mel_len = batch[6][idx].item()
+        audio_recon = vocoder_infer(batch[5][idx][:mel_len].unsqueeze(0))[0]
+        audio_synth = vocoder_infer(output[1][idx][:mel_len].unsqueeze(0))[0]
 
         mel_gts = [mel_gt, pitch_gt, energy_gt, duration]
 
@@ -98,8 +99,8 @@ def fastspeech2_eval_model(
 
         fig = plot_mel_with_prosody([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"])
         writer.add_figure(f"{group}/{file_name}", fig, step)
-        writer.add_audio(f"{group}/{file_name}_reconstruct", audio_recon, step, sampling_rate)
-        writer.add_audio(f"{group}/{file_name}_synthesis", audio_synth, step, sampling_rate)
+        writer.add_audio(f"{group}/{file_name}_reconstruct", audio_recon/max(abs(audio_recon)), step, sampling_rate)
+        writer.add_audio(f"{group}/{file_name}_synthesis", audio_synth/max(abs(audio_recon)), step, sampling_rate)
         plt.close()
 
 
@@ -176,7 +177,9 @@ def my_app(config: DictConfig) -> None:
         device, config.train.vocoder_name, config.train.vocoder_config, config.train.vocoder_weight_path
     )
     _vocoder_infer = partial(
-        vocoder_infer, vocoder_dict={config.train.vocoder_name: vocoder}, max_wav_value=config.train.max_wav_value
+        vocoder_infer, vocoder_dict={config.train.vocoder_name: vocoder},
+        mel_scaler_path=config.train.mel_scaler_path,
+        max_wav_value=config.train.max_wav_value
     )
     eval_model = partial(
         fastspeech2_eval_model, vocoder_infer=_vocoder_infer, sampling_rate=config.train.sampling_rate

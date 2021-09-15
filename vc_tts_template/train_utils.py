@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple, Iterable
 import shutil
 
+import joblib
 import hydra
 import numpy as np
 import torch
@@ -231,7 +232,7 @@ def get_vocoder(device: torch.device, model_name: str,
     if model_name == "hifigan":
         model_config = hydra.compose(model_config_path)
         generator = hydra.utils.instantiate(model_config['']['']['']['train_hifigan']['model']['netG']).to(device)
-        ckpt = torch.load(weight_path, map_location=device)
+        ckpt = torch.load(to_absolute_path(weight_path), map_location=device)
         generator.load_state_dict(ckpt["state_dict"]["netG"])
         generator.eval()
         generator.remove_weight_norm()
@@ -241,6 +242,7 @@ def get_vocoder(device: torch.device, model_name: str,
 
 
 def vocoder_infer(mels: torch.Tensor, vocoder_dict: Dict,
+                  mel_scaler_path: str,
                   max_wav_value: Optional[int] = None,
                   lengths: Optional[List[int]] = None
                   ) -> Optional[List[np.ndarray]]:
@@ -257,17 +259,25 @@ def vocoder_infer(mels: torch.Tensor, vocoder_dict: Dict,
     vocoder = vocoder_dict[model_name]
 
     if model_name == "hifigan":
+        scaler = joblib.load(to_absolute_path(mel_scaler_path))
+        device = mels.device
+        mels = [scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mels]  # type: ignore
+        mels = torch.Tensor(mels).to(device)
         with torch.no_grad():
-            wavs = vocoder(mels).squeeze(1)
+            # 基本(time, dim)だが, hifiganはなぜか(dim, time)で扱う.
+            wavs = vocoder(mels.transpose(1, 2)).squeeze(1)
 
-        wavs = (
-            wavs.cpu().numpy()
-            * max_wav_value
-        ).astype("int16")
+        if max_wav_value is not None:
+            wavs = (
+                wavs.cpu().data.numpy()
+                * max_wav_value
+            ).astype("int16")
+        else:
+            wavs = wavs.cpu().data.numpy()
         wavs = [wav for wav in wavs]
 
-        for i in range(len(mels)):
-            if lengths is not None:
+        if lengths is not None:
+            for i in range(len(mels)):
                 wavs[i] = wavs[i][: lengths[i]]
 
         return wavs
@@ -406,7 +416,7 @@ def setup(
         logger.info(
             "Fine-tuning! Loading a checkpoint: {}".format(pretrained_checkpoint)
         )
-        checkpoint = torch.load(pretrained_checkpoint, map_location=device)
+        checkpoint = torch.load(to_absolute_path(pretrained_checkpoint), map_location=device)
 
     # モデルのインスタンス化
     if len(config.model.keys()) == 1:  # type: ignore

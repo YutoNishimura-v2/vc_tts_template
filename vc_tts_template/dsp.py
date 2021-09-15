@@ -288,7 +288,8 @@ def logmelspectrogram(
     n_mels: int = 80,
     fmin: Optional[int] = None,
     fmax: Optional[int] = None,
-    clip: float = 0.001,
+    clip: float = 1e-3,
+    log_base: str = 'common',
     need_energy: bool = False,
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Compute log-melspectrogram.
@@ -314,7 +315,7 @@ def logmelspectrogram(
     if n_fft is None:
         n_fft = _next_power_of_2(win_length)
 
-    S = librosa.stft(
+    magnitude = librosa.stft(
         y, n_fft=n_fft, hop_length=hop_length, win_length=win_length, window="hanning"
     )
 
@@ -324,16 +325,22 @@ def logmelspectrogram(
     # メルフィルタバンク
     mel_basis = librosa.filters.mel(sr, n_fft, fmin=fmin, fmax=fmax, n_mels=n_mels)
     # スペクトログラム -> メルスペクトログラム
-    S = np.dot(mel_basis, np.abs(S))
+    magnitude = np.abs(magnitude)
+    S = np.dot(mel_basis, magnitude)
 
     # クリッピング
     S = np.maximum(S, clip)
 
     # 対数を取る
-    S = np.log10(S)
+    if log_base == 'common':
+        S = np.log10(S)
+    elif log_base == 'natural':
+        # fastspeech, hifiganはこちら.
+        S = np.log(S)
 
     if need_energy is True:
-        return S.T, np.linalg.norm(S.T, axis=1)
+        # fastspeech2の実装準拠.
+        return S.T, np.linalg.norm(magnitude.T, axis=1)
 
     # Time first: (T, N)
     return S.T

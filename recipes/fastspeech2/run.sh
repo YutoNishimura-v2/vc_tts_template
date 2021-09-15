@@ -77,6 +77,7 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
             --sample_rate $sample_rate --filter_length $filter_length \
             --hop_length $hop_length --win_length $win_length \
             --n_mel_channels $n_mel_channels --mel_fmin $mel_fmin --mel_fmax $mel_fmax \
+            --clip $clip --log_base $log_base \
             --multi_speaker $multi_speaker --pitch_phoneme_averaging $pitch_phoneme_averaging \
             --energy_phoneme_averaging $energy_phoneme_averaging
     done
@@ -155,6 +156,7 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         train.log_dir=tensorboard/${expname}_${acoustic_model} \
         train.max_train_steps=$fastspeech2_train_max_train_steps \
         train.sampling_rate=$sample_rate \
+        train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
         train.vocoder_name=$vocoder_model \
         train.criterion.pitch_feature_level=$pitch_phoneme_averaging\
         train.criterion.energy_feature_level=$energy_phoneme_averaging\
@@ -165,18 +167,18 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
-    echo "stage 6: Synthesis waveforms by hifigan"
+    echo "stage 5: Synthesis waveforms by hifigan"
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
             in_dir=${lab_root} \
-            out_dir=$expdir/synthesis_${acoustic_model}_${wavenet_model}/$s \
+            out_dir=$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
-            acoustic.out_scaler_path=$dump_norm_dir/out_tacotron_scaler.joblib \
+            acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
             acoustic.model_yaml=$expdir/${acoustic_model}/model.yaml \
-            wavenet.checkpoint=$expdir/${wavenet_model}/$wavenet_eval_checkpoint \
-            wavenet.model_yaml=$expdir/${wavenet_model}/model.yaml \
-            use_wavenet=true reverse=$reverse num_eval_utts=$num_eval_utts
+            vocoder.checkpoint=$expdir/${vocoder_model}/$vocoder_eval_checkpoint \
+            vocoder.model_yaml=$expdir/${vocoder_model}/model.yaml \
+            reverse=$reverse num_eval_utts=$num_eval_utts
     done
 fi
 

@@ -1,9 +1,13 @@
 # fastspeech2利用方法.
 
 - todo
-    - hifigan実装
-        - あとはeval_modelと, weightの用意.
     - hifiganを用いたevalを書く
+        - 謎にノイズ乗る問題
+        - 正規化のせいではなさそう
+            - hifiganのtrainの方で, partial_fit→inverseしてからinferenceしてみたけど, noiseは乗っておらず.
+        - あと違う点といえば, melの作り方. だが, それを言い出したらMy_fastspeech2で問題ない理由が謎になる.
+            - melはMy_fastspeech2とも違う作り方. あやしい.
+            - 違いました. energyも違うし, パラメタが違った...。
     - synthe実装
     - tts実装
 

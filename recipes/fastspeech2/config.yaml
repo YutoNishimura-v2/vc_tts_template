@@ -36,6 +36,8 @@ n_mel_channels: 80
 mel_fmin: 0
 mel_fmax: 8000
 multi_speaker: 0
+clip: 0.00001
+log_base: 'natural'
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
 ###########################################################
@@ -66,4 +68,4 @@ reverse: false
 num_eval_utts: -1
 
 acoustic_eval_checkpoint: latest.pth
-hifigan_eval_checkpoint: latest_ema.pth
+vocoder_eval_checkpoint: latest.pth

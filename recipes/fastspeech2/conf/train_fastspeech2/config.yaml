@@ -48,14 +48,15 @@ train:
   max_train_steps:
   nepochs: -1
   checkpoint_epoch_interval: 50
-  eval_epoch_interval: 10
+  eval_epoch_interval: 1
 
   vocoder_name:
   # 注意: my_appの@で指定したconfig_pathがcwdです.
   vocoder_config: "../train_hifigan/model/hifigan.yaml"
-  # 注意: outputs/date/time がcwdです.
-  vocoder_weight_path: "../../../../../vc_tts_template/vocoder/hifigan/weights/universal.pth"
+  # 注意: ./run.shのいるディレクトリがcwdです.
+  vocoder_weight_path: "../../vc_tts_template/vocoder/hifigan/weights/universal.pth"
   sampling_rate:
+  mel_scaler_path:
   max_wav_value: 32768.0
 
   optim:
@@ -78,7 +79,7 @@ train:
     energy_feature_level:
 
   pretrained:
-    # 注意: outputs/date/time がcwdです. そこからの相対パスで書いてください.
-    # 例: "../../../exp/jsut_sr22050/fastspeech2/latest.pth"
+    # 注意: ./run.shのいるディレクトリがcwdです.
+    # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
     checkpoint:
     optimizer_reset:

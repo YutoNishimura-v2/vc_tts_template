@@ -18,11 +18,7 @@ reverse: false
 # 指定がない場合、utt_list の発話をすべて処理する
 num_eval_utts:
 
-sample_rate: 16000
-
-# Trueの場合、WaveNetボコーダ
-# Falseの場合、Griffin-Limのアルゴリズム
-use_wavenet: false
+sample_rate:
 
 acoustic:
   checkpoint:
@@ -30,7 +26,7 @@ acoustic:
   out_scaler_path:
   model_yaml:
 
-wavenet:
+vocoder:
   checkpoint:
   in_scaler_path:
   out_scaler_path:

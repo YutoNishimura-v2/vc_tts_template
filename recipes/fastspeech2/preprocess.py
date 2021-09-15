@@ -35,6 +35,8 @@ def get_parser():
     parser.add_argument("--n_mel_channels", type=int)
     parser.add_argument("--mel_fmin", type=int)
     parser.add_argument("--mel_fmax", type=int)
+    parser.add_argument("--clip", type=float)
+    parser.add_argument("--log_base", type=str)
     parser.add_argument("--multi_speaker", type=int)
     parser.add_argument("--pitch_phoneme_averaging", type=int)
     parser.add_argument("--energy_phoneme_averaging", type=int)
@@ -83,7 +85,7 @@ def get_alignment(tier, sr, hop_length):
 
 
 def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
-                      n_mels, fmin, fmax,
+                      n_mels, fmin, fmax, clip_thresh, log_base,
                       pitch_phoneme_averaging, energy_phoneme_averaging):
     textgrid = tgt.io.read_textgrid(lab_path)
     text, duration, start, end = get_alignment(
@@ -120,6 +122,8 @@ def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
         n_mels,
         fmin,
         fmax,
+        clip=clip_thresh,
+        log_base=log_base,
         need_energy=True
     )
     mel_spectrogram = mel_spectrogram[: sum(duration), :]
@@ -176,6 +180,8 @@ def preprocess(
     n_mels,
     fmin,
     fmax,
+    clip_thresh,
+    log_base,
     pitch_phoneme_averaging,
     energy_phoneme_averaging,
     in_dir,
@@ -193,6 +199,8 @@ def preprocess(
         n_mels,
         fmin,
         fmax,
+        clip_thresh,
+        log_base,
         pitch_phoneme_averaging,
         energy_phoneme_averaging
     )
@@ -269,6 +277,8 @@ if __name__ == "__main__":
                 args.n_mel_channels,
                 args.mel_fmin,
                 args.mel_fmax,
+                args.clip,
+                args.log_base,
                 args.pitch_phoneme_averaging > 0,
                 args.energy_phoneme_averaging > 0,
                 in_dir,
