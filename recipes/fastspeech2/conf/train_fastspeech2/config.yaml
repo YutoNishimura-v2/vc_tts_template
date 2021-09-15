@@ -54,7 +54,7 @@ train:
   # 注意: ./run.shのいるディレクトリがcwdです.
   vocoder_config: "conf/train_hifigan/model/hifigan.yaml"
   # 注意: ./run.shのいるディレクトリがcwdです.
-  vocoder_weight_path: "../../vc_tts_template/vocoder/hifigan/weights/universal.pth"
+  vocoder_weight_path: "exp/jsut_sr22050_jsut_1/hifigan/latest.pth"
   sampling_rate:
   mel_scaler_path:
   max_wav_value: 32768.0
