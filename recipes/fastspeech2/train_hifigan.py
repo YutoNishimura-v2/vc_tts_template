@@ -77,6 +77,7 @@ def hifigan_train_step(
             # validationはbatch_size=1で固定.
             _, _, x, y_mel = batch
             val_err = 0
+            cnt = 0
             for x_, y_mel_ in zip(x, y_mel):
                 x_ = x_.unsqueeze(0)
                 y_mel_ = y_mel_.unsqueeze(0)
@@ -84,8 +85,9 @@ def hifigan_train_step(
                 y_mel_ = torch.autograd.Variable(y_mel_)
                 y_g_hat_mel = mel_spectrogram_in_train_step(y=y_g_hat.squeeze(1))
                 val_err += F.l1_loss(y_mel_, y_g_hat_mel).item()
+                cnt += 1
         loss_values = {
-            'Mel-Spec. Error': val_err,
+            'Mel-Spec. Error': val_err/cnt,
         }
     return loss_values
 
