@@ -25,7 +25,7 @@ class hifigan_optim:
                                     self.learning_rate, betas=[self.adam_b1, self.adam_b2])
 
     def state_dict(self):
-        return {'g': self.optim_g, 'd': self.optim_d}
+        return {'g': self.optim_g.state_dict(), 'd': self.optim_d.state_dict()}
 
     def load_state_dict(self, checkpoint):
         self.optim_g.load_state_dict(checkpoint['g'])
@@ -47,7 +47,7 @@ class hifigan_lr_scheduler:
         self.scheduler_d.step()
 
     def state_dict(self):
-        return {'g': self.scheduler_g, 'd': self.scheduler_d}
+        return {'g': self.scheduler_g.state_dict(), 'd': self.scheduler_d.state_dict()}
 
     def load_state_dict(self, checkpoint):
         self.scheduler_g.load_state_dict(checkpoint['g'])

@@ -19,7 +19,7 @@ from vc_tts_template.logger import getLogger
 from vc_tts_template.utils import init_seed, load_utt_list
 
 
-def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int) -> Iterable:
+def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int, last_epoch: int = 0) -> Iterable:
     """Get epochs with optional progress bar.
 
     Args:
@@ -33,9 +33,9 @@ def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int) -> Iterable:
     if tqdm_mode == "tqdm":
         from tqdm import tqdm
 
-        epochs = tqdm(range(1, nepochs + 1), desc="epoch")
+        epochs = tqdm(range(1, nepochs+1), initial=last_epoch, desc="epoch")
     else:
-        epochs = range(1, nepochs + 1)
+        epochs = range(last_epoch+1, nepochs + 1)
 
     return epochs
 
@@ -124,7 +124,8 @@ def save_checkpoint(
             {
                 "state_dict": model_state_dict,
                 "optimizer_state": optimizer.state_dict(),
-                "lr_scheduler_state": lr_scheduler.state_dict()
+                "lr_scheduler_state": lr_scheduler.state_dict(),
+                "last_epoch": epoch
             },
             path,
         )
@@ -133,7 +134,8 @@ def save_checkpoint(
             {
                 "state_dict": model.state_dict(),
                 "optimizer_state": optimizer.state_dict(),
-                "lr_scheduler_state": lr_scheduler.state_dict()
+                "lr_scheduler_state": lr_scheduler.state_dict(),
+                "last_epoch": epoch
             },
             path,
         )
@@ -467,6 +469,7 @@ def setup(
         lr_scheduler = hydra.utils.instantiate(config.train.optim.lr_scheduler)  # type: ignore
         lr_scheduler._set_optimizer(optimizer)
 
+    last_epoch = 0
     if checkpoint is not None:
         if config.train.pretrained.optimizer_reset is True:  # type: ignore
             logger.info(
@@ -475,6 +478,7 @@ def setup(
         else:
             optimizer.load_state_dict(checkpoint["optimizer_state"])
             lr_scheduler.load_state_dict(checkpoint["lr_scheduler_state"])
+            last_epoch = checkpoint["last_epoch"]
 
     # loss
     loss = hydra.utils.instantiate(config.train.criterion)  # type: ignore
@@ -501,7 +505,7 @@ def setup(
     with open(out_dir / "config.yaml", "w") as f:
         OmegaConf.save(config, f)
 
-    return model, optimizer, lr_scheduler, loss, data_loaders, writers, logger
+    return model, optimizer, lr_scheduler, loss, data_loaders, writers, logger, last_epoch
 
 
 def save_checkpoint_old(

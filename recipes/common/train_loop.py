@@ -47,13 +47,13 @@ def _update_running_losses_(running_losses, loss_values):
 
 
 def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loaders,
-               writers, logger, eval_model, train_step=None, epoch_step=False):
+               writers, logger, eval_model, train_step=None, epoch_step=False, last_epoch=0):
     out_dir = Path(to_absolute_path(config.train.out_dir))
     best_loss = torch.finfo(torch.float32).max
     train_iter = 1
     nepochs = config.train.nepochs
 
-    for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs):
+    for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs, last_epoch=last_epoch):
         for phase in data_loaders.keys():
             train = phase.startswith("train")
             if isinstance(model, dict):

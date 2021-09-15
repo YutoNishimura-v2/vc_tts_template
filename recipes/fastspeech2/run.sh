@@ -120,7 +120,7 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
         data.fmax=$mel_fmax \
         train.out_dir=$expdir/${vocoder_model} \
         train.log_dir=tensorboard/${expname}_${vocoder_model} \
-        train.max_train_steps=$hifigan_train_max_train_steps
+        train.nepochs=$hifigan_train_train_nepochs
 fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then

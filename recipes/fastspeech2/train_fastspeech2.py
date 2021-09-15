@@ -161,7 +161,7 @@ def my_app(config: DictConfig) -> None:
         collate_fn_fastspeech2, batch_size=config.data.batch_size, speaker_dict=config.model.netG.speakers
     )
 
-    model, optimizer, lr_scheduler, loss, data_loaders, writers, logger = setup(
+    model, optimizer, lr_scheduler, loss, data_loaders, writers, logger, last_epoch = setup(
         config, device, collate_fn, fastspeech2_get_data_loaders  # type: ignore
     )
     # set_vocoder
@@ -180,7 +180,7 @@ def my_app(config: DictConfig) -> None:
     # 以下固定
     to_device_ = partial(to_device, device=device)
     train_loop(config, to_device_, model, optimizer, lr_scheduler, loss, data_loaders,
-               writers, logger, eval_model, fastspeech2_train_step)
+               writers, logger, eval_model, fastspeech2_train_step, last_epoch=last_epoch)
 
 
 if __name__ == "__main__":
