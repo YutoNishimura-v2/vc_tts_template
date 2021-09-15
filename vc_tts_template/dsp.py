@@ -332,9 +332,10 @@ def logmelspectrogram(
     S = np.maximum(S, clip)
 
     # 対数を取る
-    if log_base == 'common':
+    assert log_base in ["common", "natural"]
+    if log_base == "common":
         S = np.log10(S)
-    elif log_base == 'natural':
+    elif log_base == "natural":
         # fastspeech, hifiganはこちら.
         S = np.log(S)
 

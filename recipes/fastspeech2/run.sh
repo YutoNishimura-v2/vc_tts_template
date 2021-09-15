@@ -186,44 +186,42 @@ if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ]; then
     echo "Create tar.gz to share experiments"
     rm -rf tmp/exp
     mkdir -p tmp/exp/$expname
-    for model in $acoustic_model $wavenet_model; do
+    for model in $acoustic_model $vocoder_model; do
         rsync -avr $expdir/$model tmp/exp/$expname/ --exclude "epoch*.pth"
     done
-    rsync -avr $expdir/synthesis_${acoustic_model}_griffin_lim tmp/exp/$expname/ --exclude "epoch*.pth"
-    rsync -avr $expdir/synthesis_${acoustic_model}_${wavenet_model} tmp/exp/$expname/ --exclude "epoch*.pth"
+    rsync -avr $expdir/synthesis_${acoustic_model}_${vocoder_model} tmp/exp/$expname/ --exclude "epoch*.pth"
     cd tmp
-    tar czvf tacotron_exp.tar.gz exp/
-    mv tacotron_exp.tar.gz ..
+    tar czvf fastspeech2_exp.tar.gz exp/
+    mv fastspeech2_exp.tar.gz ..
     cd -
     rm -rf tmp
-    echo "Please check tacotron_exp.tar.gz"
+    echo "Please check fastspeech2_exp.tar.gz"
 fi
 
 if [ ${stage} -le 99 ] && [ ${stop_stage} -ge 99 ]; then
     echo "Pack models for TTS"
-    dst_dir=tts_models/${expname}_${acoustic_model}_${wavenet_model}
+    dst_dir=tts_models/${expname}_${acoustic_model}_${vocoder_model}
     mkdir -p $dst_dir
 
     # global config
     cat > ${dst_dir}/config.yaml <<EOL
 sample_rate: ${sample_rate}
-mu: ${mu}
 acoustic_model: ${acoustic_model}
-wavenet_model: ${wavenet_model}
+vocoder_model: ${vocoder_model}
 EOL
 
     # Stats
-    python $COMMON_ROOT/scaler_joblib2npy.py $dump_norm_dir/out_tacotron_scaler.joblib $dst_dir
+    python $COMMON_ROOT/scaler_joblib2npy.py $dump_norm_dir/out_fastspeech2_mel_scaler.joblib $dst_dir
 
     # Acoustic model
     python $COMMON_ROOT/clean_checkpoint_state.py $expdir/${acoustic_model}/$acoustic_eval_checkpoint \
         $dst_dir/acoustic_model.pth
     cp $expdir/${acoustic_model}/model.yaml $dst_dir/acoustic_model.yaml
 
-    # WaveNet
-    python $COMMON_ROOT/clean_checkpoint_state.py $expdir/${wavenet_model}/$wavenet_eval_checkpoint \
-        $dst_dir/wavenet_model.pth
-    cp $expdir/${wavenet_model}/model.yaml $dst_dir/wavenet_model.yaml
+    # vocoder
+    python $COMMON_ROOT/clean_checkpoint_state.py $expdir/${vocoder_model}/$vocoder_eval_checkpoint \
+        $dst_dir/vocoder_model.pth
+    cp $expdir/${vocoder_model}/model.yaml $dst_dir/vocoder_model.yaml
 
     echo "All the files are ready for TTS!"
     echo "Please check the $dst_dir directory"

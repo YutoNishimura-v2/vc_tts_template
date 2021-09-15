@@ -64,6 +64,8 @@ model_registry = {
         "url": f"{_urls['v0.2.1']}/multspk_tacotron2_pwg_cv24k.tar.gz",
         "_target_": "ttslearn.contrib:Tacotron2PWGTTS",
     },
+    "fastspeech2": {
+    }
 }
 
 

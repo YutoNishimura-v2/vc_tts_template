@@ -26,11 +26,10 @@ class Tacotron2TTS(object):
 
     Examples:
 
-        >>> from ttslearn.tacotron import Tacotron2TTS
+        >>> from vc_tts_template.fastspeech2 import Tacotron2TTS
         >>> engine = Tacotron2TTS()
         >>> wav, sr = engine.tts("一貫学習にチャレンジしましょう！")
     """
-
     def __init__(self, model_dir=None, device="cpu"):
         self.device = device
 

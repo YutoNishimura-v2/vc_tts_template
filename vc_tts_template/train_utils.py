@@ -230,8 +230,8 @@ def get_vocoder(device: torch.device, model_name: str,
     """
     assert model_name in ["hifigan"]
     if model_name == "hifigan":
-        model_config = hydra.compose(model_config_path)
-        generator = hydra.utils.instantiate(model_config['']['']['']['train_hifigan']['model']['netG']).to(device)
+        model_config = OmegaConf.load(to_absolute_path(model_config_path))
+        generator = hydra.utils.instantiate(model_config.netG).to(device)
         ckpt = torch.load(to_absolute_path(weight_path), map_location=device)
         generator.load_state_dict(ckpt["state_dict"]["netG"])
         generator.eval()

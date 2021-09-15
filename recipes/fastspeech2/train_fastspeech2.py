@@ -67,7 +67,7 @@ def fastspeech2_eval_model(
             *batch[:8],
             p_targets=None,
             e_targets=None,
-            d_targets=batch[10]
+            d_targets=None
         )
     else:
         output = model(*batch)
@@ -84,9 +84,10 @@ def fastspeech2_eval_model(
         mel_gt = batch[5][idx].cpu().data.numpy().T
         pitch_gt = batch[8][idx].cpu().data.numpy()
         energy_gt = batch[9][idx].cpu().data.numpy()
-        mel_len = batch[6][idx].item()
-        audio_recon = vocoder_infer(batch[5][idx][:mel_len].unsqueeze(0))[0]
-        audio_synth = vocoder_infer(output[1][idx][:mel_len].unsqueeze(0))[0]
+        mel_len_gt = batch[6][idx].item()
+        mel_len_pre = output[9][idx].item()
+        audio_recon = vocoder_infer(batch[5][idx][:mel_len_gt].unsqueeze(0))[0]
+        audio_synth = vocoder_infer(output[1][idx][:mel_len_pre].unsqueeze(0))[0]
 
         mel_gts = [mel_gt, pitch_gt, energy_gt, duration]
 
@@ -99,58 +100,49 @@ def fastspeech2_eval_model(
 
         fig = plot_mel_with_prosody([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"])
         writer.add_figure(f"{group}/{file_name}", fig, step)
-        writer.add_audio(f"{group}/{file_name}_reconstruct", audio_recon/max(abs(audio_recon)), step, sampling_rate)
+        if is_inference:
+            writer.add_audio(f"{group}/{file_name}_reconstruct", audio_recon/max(abs(audio_recon)), step, sampling_rate)
         writer.add_audio(f"{group}/{file_name}_synthesis", audio_synth/max(abs(audio_recon)), step, sampling_rate)
         plt.close()
 
 
 def to_device(data, phase, device):
-    if len(data) == 11:
-        (
-            ids,
-            speakers,
-            texts,
-            src_lens,
-            max_src_len,
-            mels,
-            mel_lens,
-            max_mel_len,
-            pitches,
-            energies,
-            durations,
-        ) = data
+    (
+        ids,
+        speakers,
+        texts,
+        src_lens,
+        max_src_len,
+        mels,
+        mel_lens,
+        max_mel_len,
+        pitches,
+        energies,
+        durations,
+    ) = data
 
-        speakers = torch.from_numpy(speakers).long().to(device)
-        texts = torch.from_numpy(texts).long().to(device)
-        src_lens = torch.from_numpy(src_lens).to(device)
-        mels = torch.from_numpy(mels).float().to(device)
-        mel_lens = torch.from_numpy(mel_lens).to(device)
-        pitches = torch.from_numpy(pitches).float().to(device)
-        energies = torch.from_numpy(energies).to(device)
-        durations = torch.from_numpy(durations).long().to(device)
+    speakers = torch.from_numpy(speakers).long().to(device)
+    texts = torch.from_numpy(texts).long().to(device)
+    src_lens = torch.from_numpy(src_lens).to(device)
+    mels = torch.from_numpy(mels).float().to(device)
+    mel_lens = torch.from_numpy(mel_lens).to(device)
+    pitches = torch.from_numpy(pitches).float().to(device)
+    energies = torch.from_numpy(energies).to(device)
+    durations = torch.from_numpy(durations).long().to(device)
 
-        return (
-            ids,
-            speakers,
-            texts,
-            src_lens,
-            max_src_len,
-            mels,
-            mel_lens,
-            max_mel_len,
-            pitches,
-            energies,
-            durations,
-        )
-
-    if len(data) == 6:
-        (ids, raw_texts, speakers, texts, src_lens, max_src_len) = data
-
-        speakers = torch.from_numpy(speakers).long().to(device)
-        texts = torch.from_numpy(texts).long().to(device)
-        src_lens = torch.from_numpy(src_lens).to(device)
-
-        return (ids, raw_texts, speakers, texts, src_lens, max_src_len)
+    return (
+        ids,
+        speakers,
+        texts,
+        src_lens,
+        max_src_len,
+        mels,
+        mel_lens,
+        max_mel_len,
+        pitches,
+        energies,
+        durations,
+    )
 
 
 @hydra.main(config_path="conf/train_fastspeech2", config_name="config")

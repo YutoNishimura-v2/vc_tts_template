@@ -13,7 +13,7 @@ from scipy.io import wavfile
 from torch.utils import data as data_utils
 
 sys.path.append("../..")
-from utils import load_utt_list
+from vc_tts_template.utils import load_utt_list
 
 warnings.simplefilter('ignore', UserWarning)
 
