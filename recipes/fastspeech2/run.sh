@@ -39,24 +39,6 @@ else
 fi
 expdir=exp/$expname
 
-# if [ ${stage} -le -1 ] && [ ${stop_stage} -ge -1 ]; then
-#     echo "stage -1: Data download"
-#     mkdir -p downloads
-#     if [ ! -d downloads/jsut_ver1 ]; then
-#         cd downloads
-#         curl -LO http://ss-takashi.sakura.ne.jp/corpus/jsut_ver1.1.zip
-#         unzip -o jsut_ver1.1.zip
-#         cd -
-#     fi
-#     if [ ! -d downloads/jsut-lab ]; then
-#         cd downloads
-#         curl -LO https://github.com/sarulab-speech/jsut-label/archive/v0.0.2.zip
-#         unzip -o v0.0.2.zip
-#         ln -s jsut-label-0.0.2 jsut-label
-#         cd -
-#     fi
-# fi
-
 if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     echo "stage 0: Data preparation"
     echo "train/dev/eval split"

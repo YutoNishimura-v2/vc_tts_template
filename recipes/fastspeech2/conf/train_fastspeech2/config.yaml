@@ -47,11 +47,11 @@ train:
   # steps can either be specified by steps or epochs
   max_train_steps:
   nepochs: -1
-  checkpoint_epoch_interval: 1
-  eval_epoch_interval: 1
+  checkpoint_epoch_interval: 50
+  eval_epoch_interval: 10
 
   vocoder_name:
-  # 注意: my_appの@で指定したconfig_pathがcwdです.
+  # 注意: ./run.shのいるディレクトリがcwdです.
   vocoder_config: "conf/train_hifigan/model/hifigan.yaml"
   # 注意: ./run.shのいるディレクトリがcwdです.
   vocoder_weight_path: "../../vc_tts_template/vocoder/hifigan/weights/universal.pth"
