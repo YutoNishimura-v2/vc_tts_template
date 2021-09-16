@@ -12,3 +12,6 @@
         - Long_dialogueのための, pretrain.
     - Long_dialogue_1
         - emotionを実装してからの初実行. 比較対象がないのが残念.
+    - Long_dialogue_2
+        - emotionを外して. Long_dialogue_1と全く同じtrain_set.
+        - さらに, hifiganも完全に使いまわし.

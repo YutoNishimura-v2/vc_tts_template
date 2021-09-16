@@ -2,7 +2,7 @@
 spk: "Long_dialogue"
 
 # exp tag(for managing experiments)
-tag: "Long_dialogue_1"
+tag: "Long_dialogue_2"
 
 sample_rate: 22050
 
@@ -48,7 +48,7 @@ energy_phoneme_averaging: 1
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wEmotion
+acoustic_model: fastspeech2
 vocoder_model: hifigan
 
 ### fastspeech2  ###

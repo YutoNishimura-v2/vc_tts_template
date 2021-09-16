@@ -95,6 +95,8 @@ class FastSpeech2(nn.Module):
             )
 
         self.encoder_fix = encoder_fix
+        self.speakers = speakers
+        self.emotions = emotions
 
     def forward(
         self,

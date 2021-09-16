@@ -41,8 +41,8 @@ def synthesis(device, lab_file, speaker_dict, emotion_dict, acoustic_model,
     src_lens = [in_feats.shape[0]]
     max_src_len = max(src_lens)
 
-    speakers = torch.tensor(speakers, dtype=torch.long).unsqueeze(0).to(device)
-    emotions = torch.tensor(emotions, dtype=torch.long).unsqueeze(0).to(device)
+    speakers = torch.tensor(speakers, dtype=torch.long).to(device)
+    emotions = torch.tensor(emotions, dtype=torch.long).to(device)
     in_feats = torch.tensor(in_feats, dtype=torch.long).unsqueeze(0).to(device)
     src_lens = torch.tensor(src_lens, dtype=torch.long).to(device)
 
