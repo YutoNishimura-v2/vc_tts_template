@@ -64,7 +64,10 @@ def fastspeech2_eval_model(
     if is_inference:
         # pitch, energyとして正解データを与えない.
         output = model(
-            *batch[:8],
+            *batch[:5],
+            mels=None,
+            mel_lens=None,
+            max_mel_len=None,
             p_targets=None,
             e_targets=None,
             d_targets=None
