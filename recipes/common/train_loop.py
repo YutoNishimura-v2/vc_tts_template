@@ -117,16 +117,16 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
             ave_loss = running_losses[list(running_losses.keys())[-1]] / (len(data_loaders[phase]) * group_size)
             if not train and ave_loss < best_loss:
                 best_loss = ave_loss
-                save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, epoch, True)
+                save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, epoch, train_iter, True)
 
             if epoch_step is True:
                 lr_scheduler.step()
 
         if epoch % config.train.checkpoint_epoch_interval == 0:
-            save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, epoch, False)
+            save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, epoch, train_iter, False)
 
     # save at last epoch
-    save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, nepochs)
+    save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, nepochs, train_iter)
     logger.info(f"The best loss was {best_loss}")
 
     return model
