@@ -15,3 +15,5 @@
     - Long_dialogue_2
         - emotionを外して. Long_dialogue_1と全く同じtrain_set.
         - さらに, hifiganも完全に使いまわし.
+    - Long_dialogue_3
+        - pretrainだけなしにして, それ以外は2と同じ.
