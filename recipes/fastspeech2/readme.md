@@ -1,5 +1,8 @@
 # fastspeech2利用方法.
 - todo
+    - fastspeech2の出力melでhifiganをtrainingできるようにする?
+        - 必要になったら. length周りが面倒だったりするし.
+        - nars2sの方では実装しているので参考にする感じで.
 ## 事前準備
 1. 利用したいコーパスのwavをどこかに置く.
     - srは変更する必要なし.
