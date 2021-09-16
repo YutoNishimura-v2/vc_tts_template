@@ -263,7 +263,7 @@ def vocoder_infer(mels: torch.Tensor, vocoder_dict: Dict,
     if model_name == "hifigan":
         scaler = joblib.load(to_absolute_path(mel_scaler_path))
         device = mels.device
-        mels = [scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mels]  # type: ignore
+        mels = np.array([scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mels])  # type: ignore
         mels = torch.Tensor(mels).to(device)
         with torch.no_grad():
             # 基本(time, dim)だが, hifiganはなぜか(dim, time)で扱う.
@@ -471,6 +471,8 @@ def setup(
 
     last_epoch = 0
     if checkpoint is not None:
+        # optimizerたちをresetするとしても, last_epochは引き継いでいた方が見やすい気がする.
+        last_epoch = checkpoint["last_epoch"]
         if config.train.pretrained.optimizer_reset is True:  # type: ignore
             logger.info(
                 "skipping loading optimizer and lr_scheduler's states!"
@@ -478,7 +480,6 @@ def setup(
         else:
             optimizer.load_state_dict(checkpoint["optimizer_state"])
             lr_scheduler.load_state_dict(checkpoint["lr_scheduler_state"])
-            last_epoch = checkpoint["last_epoch"]
 
     # loss
     loss = hydra.utils.instantiate(config.train.criterion)  # type: ignore
