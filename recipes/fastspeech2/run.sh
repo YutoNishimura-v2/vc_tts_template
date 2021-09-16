@@ -120,7 +120,7 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
         data.fmax=$mel_fmax \
         train.out_dir=$expdir/${vocoder_model} \
         train.log_dir=tensorboard/${expname}_${vocoder_model} \
-        train.nepochs=$hifigan_train_train_nepochs
+        train.nepochs=$hifigan_train_nepochs
 fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
@@ -136,7 +136,7 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         data.batch_size=$fastspeech2_data_batch_size \
         train.out_dir=$expdir/${acoustic_model} \
         train.log_dir=tensorboard/${expname}_${acoustic_model} \
-        train.max_train_steps=$fastspeech2_train_max_train_steps \
+        train.nepochs=$fastspeech2_train_nepochs \
         train.sampling_rate=$sample_rate \
         train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
         train.vocoder_name=$vocoder_model \

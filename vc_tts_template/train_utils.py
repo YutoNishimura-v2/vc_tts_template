@@ -489,7 +489,9 @@ def setup(
     else:
         data_loaders = get_dataloader(config.data, collate_fn)  # type: ignore
 
-    set_epochs_based_on_max_steps_(config.train, len(data_loaders["train"]), logger)  # type: ignore
+    set_epochs_based_on_max_steps_(
+        config.train, len(data_loaders["train"])*config.data.group_size, logger  # type: ignore
+    )
 
     # Tensorboard の設定
     writer_tr = SummaryWriter(to_absolute_path(config.train.log_dir + "/train"))  # type: ignore

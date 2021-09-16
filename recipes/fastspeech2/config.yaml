@@ -48,11 +48,12 @@ acoustic_model: fastspeech2
 vocoder_model: hifigan
 
 ### fastspeech2  ###
-fastspeech2_train_max_train_steps: 400000
+# max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
+fastspeech2_train_nepochs: 250
 fastspeech2_data_batch_size: 8
 
 ### hifigan ###
-hifigan_train_train_nepochs: 100
+hifigan_train_nepochs: 100
 hifigan_data_batch_size: 32
 
 ###########################################################
