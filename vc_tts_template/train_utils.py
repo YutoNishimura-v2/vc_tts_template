@@ -16,7 +16,7 @@ from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
 
 from vc_tts_template.logger import getLogger
-from vc_tts_template.utils import init_seed, load_utt_list
+from vc_tts_template.utils import init_seed, load_utt_list, adaptive_load_state_dict
 
 
 def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int, last_epoch: int = 0) -> Iterable:
@@ -364,7 +364,7 @@ def _several_model_loader(config, device, logger, checkpoint):
             )
         )
         if checkpoint is not None:
-            model.load_state_dict(checkpoint["state_dict"][model_name])
+            adaptive_load_state_dict(model, checkpoint["state_dict"][model_name], logger)
         if config.data_parallel:
             model = nn.DataParallel(model)
         model_dict[model_name] = model
@@ -431,7 +431,7 @@ def setup(
             )
         )
         if checkpoint is not None:
-            model.load_state_dict(checkpoint["state_dict"])  # type: ignore
+            adaptive_load_state_dict(model, checkpoint["state_dict"], logger)
 
         # 複数 GPU 対応
         if config.data_parallel:  # type: ignore

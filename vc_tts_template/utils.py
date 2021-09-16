@@ -6,18 +6,40 @@ from functools import partial
 import torch.nn.functional as F
 
 
-def adaptive_load_state_dict(model, state_dict):
+def adaptive_load_state_dict(model, state_dict, logger=None):
     model_state_dict = model.state_dict()
-    for k in state_dict:
-        if k in model_state_dict:
+    for k in state_dict.keys():
+        if k in model_state_dict.keys():
             if state_dict[k].shape != model_state_dict[k].shape:
-                print(f"Skip loading parameter: {k}, "
-                      f"required shape: {model_state_dict[k].shape}, "
-                      f"loaded shape: {state_dict[k].shape}")
-                state_dict[k] = model_state_dict[k]
+                if logger is not None:
+                    logger.info(
+                        f"""Skip loading parameter: {k},\n
+                        required shape: {model_state_dict[k].shape},\n
+                        loaded shape: {state_dict[k].shape}"""
+                    )
+                else:
+                    print(f"Skip loading parameter: {k}, "
+                          f"required shape: {model_state_dict[k].shape}, "
+                          f"loaded shape: {state_dict[k].shape}")
+            else:
+                # 正常読み込み.
+                model_state_dict[k] = state_dict[k]
         else:
-            print(f"Dropping parameter {k}")
-    model.load_state_dict(state_dict)
+            if logger is not None:
+                logger.info(
+                    f"Dropping parameter {k}, because there is no {k} in your model"
+                )
+            else:
+                print(f"Dropping parameter {k}, because there is no {k} in your model")
+    for k in model_state_dict.keys():
+        if k not in state_dict.keys():
+            if logger is not None:
+                logger.info(
+                    f"Leaving parameter {k}, because there is no {k} in your state_dict"
+                )
+            else:
+                print(f"Leaving parameter {k}, because there is no {k} in your state_dict")
+    model.load_state_dict(model_state_dict)
 
 
 def optional_tqdm(tqdm_mode: str, **kwargs):

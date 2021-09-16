@@ -75,6 +75,7 @@
     - setup: configとcollate_fnを用意するだけですべてインスタンス化して返してくれる. その代わり, ちゃんとconfigを書く必要がある.
 
 - utils.py
+    - adaptive_load_state_dict: 読み込めるkeyだけ読み込むload_state_dict
     - optional_tqdm: tqdm, tqdm-notebookどちらかを返してくれる関数. 基本使わないかも.
     - make_pad_mask: pad部分がTrueになるようなmaskを返す.
     - make_non_pad_mask: ↑これの逆.

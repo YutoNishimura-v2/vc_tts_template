@@ -109,11 +109,11 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
 
     ids = np.array([fname.replace("-feats.npy", "") for fname in file_names])
     if speaker_dict is not None:
-        speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in file_names])
+        speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in ids])
     else:
         speakers = np.array([0 for _ in idxs])
     if emotion_dict is not None:
-        emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in file_names])
+        emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
     else:
         emotions = np.array([0 for _ in idxs])
 
@@ -131,6 +131,7 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     return (
         ids,
         speakers,
+        emotions,
         texts,
         text_lens,
         max(text_lens),
@@ -140,7 +141,6 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         pitches,
         energies,
         durations,
-        emotions
     )
 
 

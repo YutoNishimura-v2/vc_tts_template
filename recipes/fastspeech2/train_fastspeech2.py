@@ -32,11 +32,10 @@ def fastspeech2_train_step(
         output = model(*batch)
     else:
         output = model(
-            *batch[:8],
+            *batch[:9],
             p_targets=None,
             e_targets=None,
-            d_targets=batch[10],
-            emotions=batch[11]
+            d_targets=batch[11],
         )
 
     loss, loss_values = loss(batch, output)
@@ -65,14 +64,13 @@ def fastspeech2_eval_model(
     if is_inference:
         # pitch, energyとして正解データを与えない.
         output = model(
-            *batch[:5],
+            *batch[:6],
             mels=None,
             mel_lens=None,
             max_mel_len=None,
             p_targets=None,
             e_targets=None,
             d_targets=None,
-            emotions=batch[11]
         )
     else:
         output = model(*batch)
@@ -87,12 +85,12 @@ def fastspeech2_eval_model(
         energy = output[3][idx].cpu().data.numpy()
         duration = output[5][idx].cpu().data.numpy().astype("int16")
         mel_len_pre = output[9][idx].item()
-        mel_gt = batch[5][idx].cpu().data.numpy().T
+        mel_gt = batch[6][idx].cpu().data.numpy().T
         mel_len_gt = batch[6][idx].item()
-        pitch_gt = batch[8][idx].cpu().data.numpy()
-        energy_gt = batch[9][idx].cpu().data.numpy()
-        duration_gt = batch[10][idx].cpu().data.numpy()
-        audio_recon = vocoder_infer(batch[5][idx][:mel_len_gt].unsqueeze(0))[0]
+        pitch_gt = batch[9][idx].cpu().data.numpy()
+        energy_gt = batch[10][idx].cpu().data.numpy()
+        duration_gt = batch[11][idx].cpu().data.numpy()
+        audio_recon = vocoder_infer(batch[6][idx][:mel_len_gt].unsqueeze(0))[0]
         audio_synth = vocoder_infer(output[1][idx][:mel_len_pre].unsqueeze(0))[0]
 
         mel_gts = [mel_gt, pitch_gt, energy_gt, duration_gt]
@@ -115,6 +113,7 @@ def to_device(data, phase, device):
     (
         ids,
         speakers,
+        emotions,
         texts,
         src_lens,
         max_src_len,
@@ -124,7 +123,6 @@ def to_device(data, phase, device):
         pitches,
         energies,
         durations,
-        emotions
     ) = data
 
     speakers = torch.from_numpy(speakers).long().to(device)
@@ -140,6 +138,7 @@ def to_device(data, phase, device):
     return (
         ids,
         speakers,
+        emotions,
         texts,
         src_lens,
         max_src_len,
@@ -149,7 +148,6 @@ def to_device(data, phase, device):
         pitches,
         energies,
         durations,
-        emotions
     )
 
 

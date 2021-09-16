@@ -49,10 +49,10 @@ def synthesis(device, lab_file, speaker_dict, emotion_dict, acoustic_model,
     output = acoustic_model(
         ids=ids,
         speakers=speakers,
+        emotions=emotions,
         texts=in_feats,
         src_lens=src_lens,
         max_src_len=max_src_len,
-        emotions=emotions
     )
 
     mel_post = output[1]

@@ -134,10 +134,10 @@ Vocoder model: {wavenet_str}
         output = self.acoustic_model(
             ids=None,
             speakers=speakers,
+            emotions=emotions,
             texts=in_feats,
             src_lens=src_lens,
             max_src_len=max_src_len,
-            emotions=emotions
         )
 
         mel_post = output[1]

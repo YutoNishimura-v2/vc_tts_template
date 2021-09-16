@@ -100,6 +100,7 @@ class FastSpeech2(nn.Module):
         self,
         ids,
         speakers,
+        emotions,
         texts,
         src_lens,
         max_src_len,
@@ -112,7 +113,6 @@ class FastSpeech2(nn.Module):
         p_control=1.0,
         e_control=1.0,
         d_control=1.0,
-        emotions=None
     ):
         src_masks = make_pad_mask(src_lens, max_src_len)
         # PAD前の, 元データが入っていない部分がTrueになっているmaskの取得
