@@ -148,6 +148,8 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         train.sampling_rate=$sample_rate \
         train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
         train.vocoder_name=$vocoder_model \
+        train.vocoder_config=$vocoder_config \
+        train.vocoder_weight_path=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
         train.criterion.pitch_feature_level=$pitch_phoneme_averaging \
         train.criterion.energy_feature_level=$energy_phoneme_averaging \
         model.netG.pitch_feature_level=$pitch_phoneme_averaging \
@@ -165,8 +167,8 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
             acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
             acoustic.model_yaml=$expdir/${acoustic_model}/model.yaml \
-            vocoder.checkpoint=$expdir/${vocoder_model}/$vocoder_eval_checkpoint \
-            vocoder.model_yaml=$expdir/${vocoder_model}/model.yaml \
+            vocoder.checkpoint=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
+            vocoder.model_yaml=$vocoder_config \
             reverse=$reverse num_eval_utts=$num_eval_utts
     done
 fi
@@ -175,9 +177,8 @@ if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ]; then
     echo "Create tar.gz to share experiments"
     rm -rf tmp/exp
     mkdir -p tmp/exp/$expname
-    for model in $acoustic_model $vocoder_model; do
-        rsync -avr $expdir/$model tmp/exp/$expname/ --exclude "epoch*.pth"
-    done
+    rsync -avr $expdir/$acoustic_model tmp/exp/$expname/ --exclude "epoch*.pth"
+    rsync -avr $vocoder_weight_base_path tmp/exp/$expname/ --exclude "epoch*.pth"
     rsync -avr $expdir/synthesis_${acoustic_model}_${vocoder_model} tmp/exp/$expname/ --exclude "epoch*.pth"
     cd tmp
     tar czvf fastspeech2_exp.tar.gz exp/
@@ -208,9 +209,9 @@ EOL
     cp $expdir/${acoustic_model}/model.yaml $dst_dir/acoustic_model.yaml
 
     # vocoder
-    python $COMMON_ROOT/clean_checkpoint_state.py $expdir/${vocoder_model}/$vocoder_eval_checkpoint \
+    python $COMMON_ROOT/clean_checkpoint_state.py $vocoder_weight_base_path/$vocoder_eval_checkpoint \
         $dst_dir/vocoder_model.pth
-    cp $expdir/${vocoder_model}/model.yaml $dst_dir/vocoder_model.yaml
+    cp $vocoder_weight_base_path/model.yaml $dst_dir/vocoder_model.yaml
 
     echo "All the files are ready for TTS!"
     echo "Please check the $dst_dir directory"

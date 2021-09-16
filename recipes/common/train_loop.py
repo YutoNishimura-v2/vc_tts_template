@@ -126,7 +126,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
             save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, epoch, train_iter, False)
 
     # save at last epoch
-    save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, nepochs, train_iter)
+    save_checkpoint(logger, out_dir, model, optimizer, lr_scheduler, nepochs+last_epoch, train_iter)
     logger.info(f"The best loss was {best_loss}")
 
     return model
