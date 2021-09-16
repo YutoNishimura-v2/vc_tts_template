@@ -105,7 +105,7 @@ def fastspeech2_eval_model(
         writer.add_figure(f"{group}/{file_name}", fig, step)
         if is_inference:
             writer.add_audio(f"{group}/{file_name}_reconstruct", audio_recon/max(abs(audio_recon)), step, sampling_rate)
-        writer.add_audio(f"{group}/{file_name}_synthesis", audio_synth/max(abs(audio_recon)), step, sampling_rate)
+        writer.add_audio(f"{group}/{file_name}_synthesis", audio_synth/max(abs(audio_synth)), step, sampling_rate)
         plt.close()
 
 
