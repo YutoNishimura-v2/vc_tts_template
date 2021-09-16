@@ -41,6 +41,7 @@ expdir=exp/$expname
 # configを残しておく.
 mkdir -p $expdir
 cp ./config.yaml $expdir/
+cp -r conf $expdir/conf
 
 if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     echo "stage 0: Data preparation"
@@ -147,11 +148,11 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         train.sampling_rate=$sample_rate \
         train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
         train.vocoder_name=$vocoder_model \
-        train.criterion.pitch_feature_level=$pitch_phoneme_averaging\
-        train.criterion.energy_feature_level=$energy_phoneme_averaging\
+        train.criterion.pitch_feature_level=$pitch_phoneme_averaging \
+        train.criterion.energy_feature_level=$energy_phoneme_averaging \
         model.netG.pitch_feature_level=$pitch_phoneme_averaging \
         model.netG.energy_feature_level=$energy_phoneme_averaging \
-        model.netG.n_mel_channel=$n_mel_channels \
+        model.netG.n_mel_channel=$n_mel_channels
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then

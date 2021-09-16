@@ -142,7 +142,7 @@ Vocoder model: {wavenet_str}
 
         mel_post = output[1]
         mels = [self.acoustic_out_scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mel_post]  # type: ignore
-        mels = torch.Tensor(mels).to(self.device)
+        mels = torch.Tensor(np.array(mels)).to(self.device)
         wav = self.vocoder_model(mels.transpose(1, 2)).squeeze(1).cpu().data.numpy()[0]
 
         return self.post_process(wav), self.sample_rate

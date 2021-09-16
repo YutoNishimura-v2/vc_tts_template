@@ -57,7 +57,7 @@ def synthesis(device, lab_file, speaker_dict, emotion_dict, acoustic_model,
 
     mel_post = output[1]
     mels = [acoustic_out_scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mel_post]  # type: ignore
-    mels = torch.Tensor(mels).to(device)
+    mels = torch.Tensor(np.array(mels)).to(device)
     wavs = vocoder_model(mels.transpose(1, 2)).squeeze(1).cpu().data.numpy()
 
     return wavs[0]
