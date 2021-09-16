@@ -32,8 +32,9 @@ def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int, last_epoch: int 
     """
     if tqdm_mode == "tqdm":
         from tqdm import tqdm
-
-        epochs = tqdm(range(1, last_epoch+nepochs+1), initial=last_epoch, desc="epoch")
+        epochs = tqdm(
+            range(last_epoch+1, last_epoch+nepochs+1), total=last_epoch+nepochs, initial=last_epoch, desc="epoch"
+        )
     else:
         epochs = range(last_epoch+1, last_epoch+nepochs + 1)
 
