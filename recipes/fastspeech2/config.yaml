@@ -68,4 +68,4 @@ reverse: false
 num_eval_utts: -1
 
 acoustic_eval_checkpoint: latest.pth
-vocoder_eval_checkpoint: latest.pth
+vocoder_eval_checkpoint: best_loss.pth
