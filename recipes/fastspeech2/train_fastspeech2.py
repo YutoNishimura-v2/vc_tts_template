@@ -86,7 +86,7 @@ def fastspeech2_eval_model(
         duration = output[5][idx].cpu().data.numpy().astype("int16")
         mel_len_pre = output[9][idx].item()
         mel_gt = batch[6][idx].cpu().data.numpy().T
-        mel_len_gt = batch[6][idx].item()
+        mel_len_gt = batch[7][idx].item()
         pitch_gt = batch[9][idx].cpu().data.numpy()
         energy_gt = batch[10][idx].cpu().data.numpy()
         duration_gt = batch[11][idx].cpu().data.numpy()
