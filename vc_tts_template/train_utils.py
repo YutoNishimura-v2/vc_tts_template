@@ -88,8 +88,8 @@ def set_epochs_based_on_max_steps_(train_config: Dict, steps_per_epoch: int, log
 
 def save_checkpoint(
     logger: logging.Logger, out_dir: Path, model: nn.Module, optimizer: optim.Optimizer,
-    lr_scheduler: optim.lr_scheduler._LRScheduler, epoch: int, is_best: Optional[bool] = False,
-    postfix: Optional[str] = ""
+    lr_scheduler: optim.lr_scheduler._LRScheduler, epoch: int, train_iter: int,
+    is_best: Optional[bool] = False, postfix: Optional[str] = ""
 ) -> None:
     """Save a checkpoint.
 
@@ -126,7 +126,8 @@ def save_checkpoint(
                 "state_dict": model_state_dict,
                 "optimizer_state": optimizer.state_dict(),
                 "lr_scheduler_state": lr_scheduler.state_dict(),
-                "last_epoch": epoch
+                "last_epoch": epoch,
+                "last_train_iter": train_iter
             },
             path,
         )
@@ -136,7 +137,8 @@ def save_checkpoint(
                 "state_dict": model.state_dict(),
                 "optimizer_state": optimizer.state_dict(),
                 "lr_scheduler_state": lr_scheduler.state_dict(),
-                "last_epoch": epoch
+                "last_epoch": epoch,
+                "last_train_iter": train_iter
             },
             path,
         )
@@ -471,9 +473,12 @@ def setup(
         lr_scheduler._set_optimizer(optimizer)
 
     last_epoch = 0
+    last_train_iter = 0
     if checkpoint is not None:
         # optimizerたちをresetするとしても, last_epochは引き継いでいた方が見やすい気がする.
         last_epoch = checkpoint["last_epoch"]
+        if "last_train_iter" in checkpoint.keys():  # 後方互換性のため.
+            last_train_iter = checkpoint["last_train_iter"]
         if config.train.pretrained.optimizer_reset is True:  # type: ignore
             logger.info(
                 "skipping loading optimizer and lr_scheduler's states!"
@@ -509,7 +514,7 @@ def setup(
     with open(out_dir / "config.yaml", "w") as f:
         OmegaConf.save(config, f)
 
-    return model, optimizer, lr_scheduler, loss, data_loaders, writers, logger, last_epoch
+    return model, optimizer, lr_scheduler, loss, data_loaders, writers, logger, last_epoch, last_train_iter
 
 
 def save_checkpoint_old(
