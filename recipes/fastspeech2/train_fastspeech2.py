@@ -83,23 +83,23 @@ def fastspeech2_eval_model(
         mel_post = output[1][idx].cpu().data.numpy().T
         pitch = output[2][idx].cpu().data.numpy()
         energy = output[3][idx].cpu().data.numpy()
-        duration = batch[10][idx].cpu().data.numpy()
+        duration = output[5][idx].cpu().data.numpy().astype("int16")
+        mel_len_pre = output[9][idx].item()
         mel_gt = batch[5][idx].cpu().data.numpy().T
+        mel_len_gt = batch[6][idx].item()
         pitch_gt = batch[8][idx].cpu().data.numpy()
         energy_gt = batch[9][idx].cpu().data.numpy()
-        mel_len_gt = batch[6][idx].item()
-        mel_len_pre = output[9][idx].item()
+        duration_gt = batch[10][idx].cpu().data.numpy()
         audio_recon = vocoder_infer(batch[5][idx][:mel_len_gt].unsqueeze(0))[0]
         audio_synth = vocoder_infer(output[1][idx][:mel_len_pre].unsqueeze(0))[0]
 
-        mel_gts = [mel_gt, pitch_gt, energy_gt, duration]
-
+        mel_gts = [mel_gt, pitch_gt, energy_gt, duration_gt]
         if is_inference:
             group = f"{phase}/inference"
             mel_posts = [mel_post, pitch, energy, duration]
         else:
             group = f"{phase}/teacher_forcing"
-            mel_posts = [mel_post, pitch_gt, energy_gt, duration]
+            mel_posts = [mel_post, pitch_gt, energy_gt, duration_gt]
 
         fig = plot_mel_with_prosody([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"])
         writer.add_figure(f"{group}/{file_name}", fig, step)
