@@ -37,7 +37,6 @@ def get_parser():
     parser.add_argument("--mel_fmax", type=int)
     parser.add_argument("--clip", type=float)
     parser.add_argument("--log_base", type=str)
-    parser.add_argument("--multi_speaker", type=int)
     parser.add_argument("--pitch_phoneme_averaging", type=int)
     parser.add_argument("--energy_phoneme_averaging", type=int)
     return parser
@@ -231,7 +230,6 @@ def preprocess(
         allow_pickle=False,
     )
     return (
-        wav_file.name.split("_")[0],
         np.min(pitch),
         np.max(pitch),
         np.min(energy),
@@ -261,7 +259,6 @@ if __name__ == "__main__":
     out_energy_dir.mkdir(parents=True, exist_ok=True)
     out_duration_dir.mkdir(parents=True, exist_ok=True)
 
-    speaker_lst: List[str] = []
     stats_tmp: Dict[str, List[float]] = {"pitch_min": [], "pitch_max": [], "energy_min": [], "energy_max": []}
 
     with ProcessPoolExecutor(args.n_jobs) as executor:
@@ -287,26 +284,11 @@ if __name__ == "__main__":
             for wav_file, lab_file in zip(wav_files, lab_files)
         ]
         for future in tqdm(futures):
-            spk, p_m, p_M, e_m, e_M = future.result()
-            speaker_lst.append(spk)
+            p_m, p_M, e_m, e_M = future.result()
             stats_tmp["pitch_min"].append(p_m)
             stats_tmp["pitch_max"].append(p_M)
             stats_tmp["energy_min"].append(e_m)
             stats_tmp["energy_max"].append(e_M)
-
-    if args.multi_speaker > 0:
-        speakers_path = Path(args.out_dir).parent / "speakers.json"
-        speaker_set = set(speaker_lst)  # type: ignore
-        speakers = {}
-        if speakers_path.exists():
-            with open(speakers_path) as f:
-                speakers = json.load(f)
-        for spk in speaker_set:
-            if spk not in speakers.keys():
-                speakers[spk] = len(speakers.keys())
-
-        with open(speakers_path, "w") as f:
-            f.write(json.dumps(speakers))
 
     stats_path = Path(args.out_dir).parent / "stats.json"
     stats = {"pitch_min": 1e+9, "pitch_max": -1e+9, "energy_min": 1e+9, "energy_max": -1e-9}

@@ -38,18 +38,25 @@ else
     expname=${spk}_sr${sample_rate}_${tag}
 fi
 expdir=exp/$expname
+# configを残しておく.
+mkdir -p $expdir
+cp ./config.yaml $expdir/
 
 if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     echo "stage 0: Data preparation"
     echo "train/dev/eval split"
     mkdir -p data
     find $lab_root -name "*.TextGrid" -exec basename {} .TextGrid \; | shuf > data/utt_list.txt
-    head -n 6242 data/utt_list.txt > data/train.list
-    tail -300 data/utt_list.txt > data/deveval.list
-    head -n 200 data/deveval.list > data/dev.list
-    tail -n 100 data/deveval.list > data/eval.list
+    head -n $train_num data/utt_list.txt > data/train.list
+    tail -$deveval_num data/utt_list.txt > data/deveval.list
+    head -n $dev_num data/deveval.list > data/dev.list
+    tail -n $eval_num data/deveval.list > data/eval.list
     rm -f data/deveval.list
 fi
+
+# 自分で用意していたとしてもcopyしてlistを残しておく.
+mkdir -p $expdir/data
+cp -r data/*.list $expdir/data/
 
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     echo "stage 1: Feature generation for fastspeech2"
@@ -60,7 +67,7 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
             --hop_length $hop_length --win_length $win_length \
             --n_mel_channels $n_mel_channels --mel_fmin $mel_fmin --mel_fmax $mel_fmax \
             --clip $clip --log_base $log_base \
-            --multi_speaker $multi_speaker --pitch_phoneme_averaging $pitch_phoneme_averaging \
+            --pitch_phoneme_averaging $pitch_phoneme_averaging \
             --energy_phoneme_averaging $energy_phoneme_averaging
     done
 fi
@@ -145,7 +152,6 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         model.netG.pitch_feature_level=$pitch_phoneme_averaging \
         model.netG.energy_feature_level=$energy_phoneme_averaging \
         model.netG.n_mel_channel=$n_mel_channels \
-        model.netG.multi_speaker=$multi_speaker
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then

@@ -24,4 +24,4 @@ netG:
   encoder_fix: False
   stats: {"pitch_min": 70, "pitch_max": 750, "energy_min": 10, "energy_max": 27}
   speakers:
-  emotions:
+  emotions: {"喜び": 0, "平静": 1, "悲しみ": 2, "怒り": 3}

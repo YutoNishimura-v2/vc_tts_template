@@ -1,8 +1,8 @@
 # General settings.
-spk: "jsut"
+spk: "Long_dialogue"
 
 # exp tag(for managing experiments)
-tag: jsut_1
+tag: Long_dialogue_1
 
 sample_rate: 22050
 
@@ -21,10 +21,15 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-wav_root: "../../../dataset/out_JSUT/JSUT/wav"
-lab_root: "../../../dataset/out_JSUT/textgrid"
+wav_root: "../../../dataset/out_Long_dialogue/Long_dialogue/wav"
+lab_root: "../../../dataset/out_Long_dialogue/textgrid"
 
 n_jobs: 8
+
+train_num: 1002
+deveval_num: 200
+dev_num: 150
+eval_num: 50
 
 ###########################################################
 #                FEATURE EXTRACTION SETTING               #
@@ -35,7 +40,6 @@ win_length: 1024
 n_mel_channels: 80
 mel_fmin: 0
 mel_fmax: 8000
-multi_speaker: 0
 clip: 0.00001
 log_base: "natural"
 pitch_phoneme_averaging: 1
@@ -44,7 +48,7 @@ energy_phoneme_averaging: 1
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2
+acoustic_model: fastspeech2wEmotion
 vocoder_model: hifigan
 
 ### fastspeech2  ###

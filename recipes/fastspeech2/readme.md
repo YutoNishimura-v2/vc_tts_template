@@ -12,10 +12,13 @@
 
 **注意**
 - multi-speakerにしたい場合は, ファイル名の前に話者名を「_」を付けて追加すること.
-- 例: `JSUT_BASIC5000_0001.wav`
+    - 例: `JSUT_BASIC5000_0001.wav`
+    - そして, netGのspeakersに事前に用意したspeakerのdictionalyを追加すること.
+- emotion embを付けたい場合は, ファイル名の**後**に感情を「_」をつけて追加.
+    - 例: `JSUT_BASIC5000_0001_悲しみ.wav`
+    - そして, fastspeech2wEmotionのnetGのemotionsに事前に用意したspeakerのdictionalyを追加すること.
 
-- speakerとstatsに関しては, dump以下に全データ通してのそれをjsonとして吐きだすので, それを参考に入力. 
-    - multi-speaker = 0 の時は何も書かなくてよい.
+- statsに関しては, dump以下に全データ通してのそれをjsonとして吐きだすので, それを参考に入力. 
 
 - train/dev/eval splitは毎回shuffleしている. 実験を完全再現したいのであれば, stage 0は実行せず, gitに入っているものをそのまま利用すること.
 

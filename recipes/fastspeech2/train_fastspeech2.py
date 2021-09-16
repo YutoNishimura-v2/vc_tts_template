@@ -35,7 +35,8 @@ def fastspeech2_train_step(
             *batch[:8],
             p_targets=None,
             e_targets=None,
-            d_targets=batch[10]
+            d_targets=batch[10],
+            emotions=batch[11]
         )
 
     loss, loss_values = loss(batch, output)
@@ -70,7 +71,8 @@ def fastspeech2_eval_model(
             max_mel_len=None,
             p_targets=None,
             e_targets=None,
-            d_targets=None
+            d_targets=None,
+            emotions=batch[11]
         )
     else:
         output = model(*batch)
@@ -122,6 +124,7 @@ def to_device(data, phase, device):
         pitches,
         energies,
         durations,
+        emotions
     ) = data
 
     speakers = torch.from_numpy(speakers).long().to(device)
@@ -132,6 +135,7 @@ def to_device(data, phase, device):
     pitches = torch.from_numpy(pitches).float().to(device)
     energies = torch.from_numpy(energies).to(device)
     durations = torch.from_numpy(durations).long().to(device)
+    emotions = torch.from_numpy(emotions).long().to(device)
 
     return (
         ids,
@@ -145,6 +149,7 @@ def to_device(data, phase, device):
         pitches,
         energies,
         durations,
+        emotions
     )
 
 
@@ -153,15 +158,9 @@ def my_app(config: DictConfig) -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # 以下自由
-    if config.model.netG.speakers is None:
-        assert config.model.netG.multi_speaker == 0, f"""multi_speaker: {config.model.netG.multi_speaker},
-        speakers_dict: {config.model.netG.speakers}"""
-    else:
-        assert config.model.netG.multi_speaker > 0, f"""multi_speaker: {config.model.netG.multi_speaker},
-        speakers_dict: {config.model.netG.speakers}"""
-
     collate_fn = partial(
-        collate_fn_fastspeech2, batch_size=config.data.batch_size, speaker_dict=config.model.netG.speakers
+        collate_fn_fastspeech2, batch_size=config.data.batch_size,
+        speaker_dict=config.model.netG.speakers, emotion_dict=config.model.netG.emotions
     )
 
     model, optimizer, lr_scheduler, loss, data_loaders, writers, logger, last_epoch = setup(

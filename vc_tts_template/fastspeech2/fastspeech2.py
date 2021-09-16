@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 
 import torch.nn as nn
 
@@ -34,10 +34,10 @@ class FastSpeech2(nn.Module):
         decoder_num_head: int,
         decoder_dropout: float,
         n_mel_channel: int,
-        multi_speaker: int,  # 0 is false 1 is true
         encoder_fix: bool,
         stats: Dict,
-        speakers: Dict,
+        speakers: Optional[Dict] = None,
+        emotions: Optional[Dict] = None
     ):
         super(FastSpeech2, self).__init__()
         self.encoder = Encoder(
@@ -80,10 +80,17 @@ class FastSpeech2(nn.Module):
         )
 
         self.speaker_emb = None
-        if multi_speaker > 0:
+        if speakers is not None:
             n_speaker = len(speakers)
             self.speaker_emb = nn.Embedding(
                 n_speaker,
+                encoder_hidden_dim,
+            )
+        self.emotion_emb = None
+        if emotions is not None:
+            n_emotion = len(emotions)
+            self.emotion_emb = nn.Embedding(
+                n_emotion,
                 encoder_hidden_dim,
             )
 
@@ -105,6 +112,7 @@ class FastSpeech2(nn.Module):
         p_control=1.0,
         e_control=1.0,
         d_control=1.0,
+        emotions=None
     ):
         src_masks = make_pad_mask(src_lens, max_src_len)
         # PAD前の, 元データが入っていない部分がTrueになっているmaskの取得
@@ -122,6 +130,10 @@ class FastSpeech2(nn.Module):
 
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
+                -1, max_src_len, -1
+            )
+        if self.emotion_emb is not None:
+            output = output + self.emotion_emb(emotions).unsqueeze(1).expand(
                 -1, max_src_len, -1
             )
 

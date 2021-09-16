@@ -6,7 +6,7 @@ from vc_tts_template.frontend.openjtalk import text_to_sequence
 
 
 @torch.no_grad()
-def synthesis(device, lab_file, speaker_dict, acoustic_model,
+def synthesis(device, lab_file, speaker_dict, emotion_dict, acoustic_model,
               acoustic_out_scaler, vocoder_model):
     textgrid = tgt.io.read_textgrid(lab_file)
     phones = []
@@ -33,11 +33,16 @@ def synthesis(device, lab_file, speaker_dict, acoustic_model,
         speakers = np.array([0])
     else:
         speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in ids])
+    if emotion_dict is None:
+        emotions = np.array([0])
+    else:
+        emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
     in_feats = np.array(text_to_sequence(phones), dtype=np.int64)
     src_lens = [in_feats.shape[0]]
     max_src_len = max(src_lens)
 
     speakers = torch.tensor(speakers, dtype=torch.long).unsqueeze(0).to(device)
+    emotions = torch.tensor(emotions, dtype=torch.long).unsqueeze(0).to(device)
     in_feats = torch.tensor(in_feats, dtype=torch.long).unsqueeze(0).to(device)
     src_lens = torch.tensor(src_lens, dtype=torch.long).to(device)
 
@@ -46,7 +51,8 @@ def synthesis(device, lab_file, speaker_dict, acoustic_model,
         speakers=speakers,
         texts=in_feats,
         src_lens=src_lens,
-        max_src_len=max_src_len
+        max_src_len=max_src_len,
+        emotions=emotions
     )
 
     mel_post = output[1]

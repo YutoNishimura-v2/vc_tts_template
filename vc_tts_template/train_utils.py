@@ -500,7 +500,6 @@ def setup(
     writers = {"train": writer_tr, "dev": writer_dv}
 
     # config ファイルを保存しておく
-    # Pathめっちゃ有能じゃん
     out_dir = Path(to_absolute_path(config.train.out_dir))  # type: ignore
     out_dir.mkdir(parents=True, exist_ok=True)
     with open(out_dir / "model.yaml", "w") as f:

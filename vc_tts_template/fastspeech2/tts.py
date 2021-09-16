@@ -101,7 +101,7 @@ Vocoder model: {wavenet_str}
         self.vocoder_model.to(device)
 
     @torch.no_grad()
-    def tts(self, text, speaker=None, tqdm=tqdm):
+    def tts(self, text, speaker=None, emotion=None, tqdm=tqdm):
         """Run TTS
 
         Args:
@@ -118,11 +118,16 @@ Vocoder model: {wavenet_str}
             speakers = np.array([0])
         else:
             speakers = np.array([self.acoustic_model.speakers[speaker]])
+        if emotion is None:
+            emotions = np.array([0])
+        else:
+            emotions = np.array([self.acoustic_model.emotions[emotion]])
         in_feats = np.array(text_to_sequence(phonemes))
         src_lens = [in_feats.shape[0]]
         max_src_len = max(src_lens)
 
         speakers = torch.tensor(speakers, dtype=torch.long).unsqueeze(0).to(self.device)
+        emotions = torch.tensor(emotions, dtype=torch.long).unsqueeze(0).to(self.device)
         in_feats = torch.tensor(in_feats, dtype=torch.long).unsqueeze(0).to(self.device)
         src_lens = torch.tensor(src_lens, dtype=torch.long).to(self.device)
 
@@ -131,7 +136,8 @@ Vocoder model: {wavenet_str}
             speakers=speakers,
             texts=in_feats,
             src_lens=src_lens,
-            max_src_len=max_src_len
+            max_src_len=max_src_len,
+            emotions=emotions
         )
 
         mel_post = output[1]

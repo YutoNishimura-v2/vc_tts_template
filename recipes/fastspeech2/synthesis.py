@@ -57,8 +57,8 @@ def my_app(config: DictConfig) -> None:
     # Run synthesis for each utt.
     for lab_file in optional_tqdm(config.tqdm, desc="Utterance")(lab_files):
         wav = synthesis(
-            device, lab_file, acoustic_config.netG.speakers, acoustic_model,
-            acoustic_out_scaler, vocoder_model
+            device, lab_file, acoustic_config.netG.speakers, acoustic_config.netG.emotions,
+            acoustic_model, acoustic_out_scaler, vocoder_model
         )
 
         wav = np.clip(wav, -1.0, 1.0)

@@ -54,7 +54,7 @@ train:
   # 注意: ./run.shのいるディレクトリがcwdです.
   vocoder_config: "conf/train_hifigan/model/hifigan.yaml"
   # 注意: ./run.shのいるディレクトリがcwdです.
-  vocoder_weight_path: "exp/jsut_sr22050_jsut_1/hifigan/best_loss.pth"
+  vocoder_weight_path: "exp/Long_dialogue_sr22050_Long_dialogue_1/hifigan/best_loss.pth"
   sampling_rate:
   mel_scaler_path:
   max_wav_value: 32768.0
@@ -81,5 +81,5 @@ train:
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
     # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
-    checkpoint:
-    optimizer_reset:
+    checkpoint: "exp/jsut_sr22050_jsut_1/fastspeech2/latest.pth"
+    optimizer_reset: True
