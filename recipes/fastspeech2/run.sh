@@ -40,8 +40,8 @@ fi
 expdir=exp/$expname
 # configを残しておく.
 mkdir -p $expdir
-cp ./config.yaml $expdir/
-cp -r conf $expdir
+mkdir -p $expdir/conf
+cp ./config.yaml $expdir
 
 if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     echo "stage 0: Data preparation"
@@ -55,10 +55,6 @@ if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     rm -f data/deveval.list
 fi
 
-# 自分で用意していたとしてもcopyしてlistを残しておく.
-mkdir -p $expdir/data
-cp -r data/*.list $expdir/data/
-
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     echo "stage 1: Feature generation for fastspeech2"
     for s in ${datasets[@]}; do
@@ -71,6 +67,9 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
             --pitch_phoneme_averaging $pitch_phoneme_averaging \
             --energy_phoneme_averaging $energy_phoneme_averaging
     done
+    # preprocess実行時にのみcopyするようにする.
+    mkdir -p $expdir/data
+    cp -r data/*.list $expdir/data/
 fi
 
 if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
@@ -129,6 +128,9 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
         train.out_dir=$expdir/${vocoder_model} \
         train.log_dir=tensorboard/${expname}_${vocoder_model} \
         train.nepochs=$hifigan_train_nepochs
+
+    # save config
+    cp -r conf/train_hifigan $expdir/conf
 fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
@@ -155,6 +157,9 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         model.netG.pitch_feature_level=$pitch_phoneme_averaging \
         model.netG.energy_feature_level=$energy_phoneme_averaging \
         model.netG.n_mel_channel=$n_mel_channels
+    
+    # save config
+    cp -r conf/train_fastspeech2 $expdir/conf
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
@@ -172,6 +177,8 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             vocoder.model_yaml=$vocoder_config \
             reverse=$reverse num_eval_utts=$num_eval_utts
     done
+    # save config
+    cp -r conf/synthesis $expdir/conf
 fi
 
 if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ]; then
