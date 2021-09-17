@@ -41,7 +41,7 @@ expdir=exp/$expname
 # configを残しておく.
 mkdir -p $expdir
 cp ./config.yaml $expdir/
-cp -r conf $expdir/conf
+cp -r conf $expdir
 
 if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     echo "stage 0: Data preparation"
@@ -162,6 +162,7 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
             in_dir=${lab_root} \
+            in_mel_dir=$dump_norm_dir/$s/out_fastspeech2/mel \
             out_dir=$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \

@@ -50,6 +50,7 @@ def my_app(config: DictConfig) -> None:
     utt_ids = load_utt_list(to_absolute_path(config.utt_list))
     if config.reverse:
         utt_ids = utt_ids[::-1]
+
     lab_files = [in_dir / f"{utt_id.strip()}.TextGrid" for utt_id in utt_ids]
     if config.num_eval_utts is not None and config.num_eval_utts > 0:
         lab_files = lab_files[: config.num_eval_utts]
@@ -70,6 +71,29 @@ def my_app(config: DictConfig) -> None:
             rate=config.sample_rate,
             data=(wav * 32767.0).astype(np.int16),
         )
+
+    # add reconstruct wav output
+    out_dir = out_dir / "reconstruct"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    if config.in_mel_dir is not None:
+        in_mel_dir = Path(to_absolute_path(config.in_mel_dir))
+        mel_files = [in_mel_dir / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
+
+        if config.num_eval_utts is not None and config.num_eval_utts > 0:
+            mel_files = mel_files[: config.num_eval_utts]
+
+        for mel_file in optional_tqdm(config.tqdm, desc="Utterance")(mel_files):
+            mel_org = np.load(mel_file)
+            mel_org = acoustic_out_scaler.inverse_transform(mel_org)  # type: ignore
+            mel_org = torch.Tensor(mel_org).unsqueeze(0).to(device)
+            wav = vocoder_model(mel_org.transpose(1, 2)).squeeze(1).cpu().data.numpy()[0]
+            utt_id = Path(mel_file).name.replace("-feats.npy", "")
+            out_wav_path = out_dir / f"{utt_id}.wav"
+            wavfile.write(
+                out_wav_path,
+                rate=config.sample_rate,
+                data=(wav * 32767.0).astype(np.int16),
+            )
 
 
 def entry():
