@@ -37,7 +37,7 @@ data:
   batch_size:
   group_size: 1
   sampling_rate:
-  n_cache_reuse: 1
+  n_cache_reuse: 0
   segment_size: 8192
   n_fft:
   num_mels:

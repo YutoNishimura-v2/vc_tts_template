@@ -25,6 +25,7 @@ class hifigan_Dataset(data_utils.Dataset):
         self._cache_ref_count = 0
         self.split = split
         self.segment_size = segment_size
+        # validationでは特にn_cashe_reuse = 0 推奨.
         self.n_cache_reuse = n_cashe_reuse
 
     def __getitem__(self, index):
