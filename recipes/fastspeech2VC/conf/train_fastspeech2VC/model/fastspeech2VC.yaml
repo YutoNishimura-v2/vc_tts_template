@@ -1,5 +1,5 @@
 netG:
-  _target_: vc_tts_template.fastspeech2VC.FastSpeech2VC
+  _target_: vc_tts_template.fastspeech2VC.fastspeech2VC
   n_mel_channel:
   # encoder_decoder
   attention_dim: 384

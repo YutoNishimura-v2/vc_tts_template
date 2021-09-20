@@ -11,10 +11,11 @@ from tqdm.auto import tqdm
 _urls = {
     "v0.2.0": "https://github.com/r9y9/ttslearn/releases/download/v0.2.0",
     "v0.2.1": "https://github.com/r9y9/ttslearn/releases/download/v0.2.1",
+    "org_v0.1.0": "https://github.com/YutoNishimura-v2/vc_tts_template/releases/download/v0.1.0"
 }
 
-DEFAULT_CACHE_DIR = join(os.environ["HOME"], ".cache", "ttslearn")
-CACHE_DIR = os.environ.get("TTSLEARN_CACHE_DIR", DEFAULT_CACHE_DIR)
+DEFAULT_CACHE_DIR = join(os.environ["HOME"], ".cache", "vc_tts_template")
+CACHE_DIR = os.environ.get("VC_TTS_TEMPLATE_CACHE_DIR", DEFAULT_CACHE_DIR)
 
 
 model_registry = {
@@ -64,8 +65,6 @@ model_registry = {
         "url": f"{_urls['v0.2.1']}/multspk_tacotron2_pwg_cv24k.tar.gz",
         "_target_": "ttslearn.contrib:Tacotron2PWGTTS",
     },
-    "fastspeech2": {
-    }
 }
 
 

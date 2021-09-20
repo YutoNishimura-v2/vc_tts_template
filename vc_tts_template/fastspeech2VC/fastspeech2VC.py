@@ -9,7 +9,7 @@ from vc_tts_template.fastspeech2VC.varianceadaptor import VarianceAdaptor
 from vc_tts_template.utils import make_pad_mask
 
 
-class FastSpeech2VC(nn.Module):
+class fastspeech2VC(nn.Module):
     """ FastSpeech2 """
 
     def __init__(
@@ -47,7 +47,7 @@ class FastSpeech2VC(nn.Module):
         speakers: Optional[Dict] = None,
         emotions: Optional[Dict] = None
     ):
-        super(FastSpeech2VC, self).__init__()
+        super(fastspeech2VC, self).__init__()
         self.reduction_factor = reduction_factor
         self.mel_num = n_mel_channel
 
