@@ -14,14 +14,14 @@ def pydub_to_np(audio: pydub.AudioSegment) -> Tuple[np.ndarray, int]:
             1 << (8 * audio.sample_width - 1)), audio.frame_rate
 
 
-def expand(values, durations):
+def expand(values, durations, reduction_factor):
     out = list()
     for value, d in zip(values, durations):
-        out += [value] * max(0, int(d))
+        out += [value] * (max(0, int(d))) * reduction_factor
     return np.array(out)
 
 
-def plot_mel_with_prosody(data, titles):
+def plot_mel_with_prosody(data, titles, reduction_factor=1, need_expand=True):
     fig, axes = plt.subplots(len(data), 1, squeeze=False)
     if titles is None:
         titles = [None for i in range(len(data))]
@@ -33,9 +33,10 @@ def plot_mel_with_prosody(data, titles):
 
     for i in range(len(data)):
         mel, pitch, energy, duration = data[i]
-        pitch = expand(pitch, duration)
-        energy = expand(energy, duration)
-        mel = mel[:, :np.sum(duration)]
+        if need_expand is True:
+            pitch = expand(pitch, duration, reduction_factor)
+            energy = expand(energy, duration, reduction_factor)
+        mel = mel[:, :np.sum(duration)*reduction_factor]
         axes[i][0].imshow(mel, origin="lower")
         axes[i][0].set_aspect(2.5, adjustable="box")
         axes[i][0].set_ylim(0, mel.shape[0])

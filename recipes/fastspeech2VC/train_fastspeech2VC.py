@@ -56,7 +56,7 @@ def fastspeech2VC_train_step(
 
 @torch.no_grad()
 def fastspeech2VC_eval_model(
-    phase, step, model, writer, batch, is_inference, vocoder_infer, sampling_rate
+    phase, step, model, writer, batch, is_inference, vocoder_infer, sampling_rate, reduction_factor
 ):
     # 最大3つまで
     N = min(len(batch[0]), 3)
@@ -102,7 +102,8 @@ def fastspeech2VC_eval_model(
             group = f"{phase}/teacher_forcing"
             mel_posts = [mel_post, pitch_gt, energy_gt, duration_gt]
 
-        fig = plot_mel_with_prosody([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"])
+        fig = plot_mel_with_prosody([mel_posts, mel_gts], ["out_after_postnet", "out_ground_truth"],
+                                    reduction_factor, False)
         writer.add_figure(f"{group}/{file_name}", fig, step)
         if is_inference:
             writer.add_audio(f"{group}/{file_name}_reconstruct", audio_recon/max(abs(audio_recon)), step, sampling_rate)
@@ -187,7 +188,8 @@ def my_app(config: DictConfig) -> None:
         max_wav_value=config.train.max_wav_value
     )
     eval_model = partial(
-        fastspeech2VC_eval_model, vocoder_infer=_vocoder_infer, sampling_rate=config.train.sampling_rate
+        fastspeech2VC_eval_model, vocoder_infer=_vocoder_infer, sampling_rate=config.train.sampling_rate,
+        reduction_factor=config.model.netG.reduction_factor
     )
 
     # 以下固定

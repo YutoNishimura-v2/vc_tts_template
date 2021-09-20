@@ -10,7 +10,7 @@ from omegaconf import DictConfig, OmegaConf
 from scipy.io import wavfile
 
 sys.path.append("../..")
-from vc_tts_template.fastspeech2.gen import synthesis
+from vc_tts_template.fastspeech2VC.gen import synthesis
 from vc_tts_template.utils import load_utt_list, optional_tqdm
 
 
@@ -79,9 +79,9 @@ def my_app(config: DictConfig) -> None:
     # add reconstruct wav output
     out_dir = out_dir / "reconstruct"
     out_dir.mkdir(parents=True, exist_ok=True)
-    if config.in_mel_dir is not None:
-        in_mel_dir = Path(to_absolute_path(config.in_mel_dir))
-        mel_files = [in_mel_dir / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
+    if config.out_mel_dir is not None:
+        out_mel_dir = Path(to_absolute_path(config.out_mel_dir))
+        mel_files = [out_mel_dir / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
 
         if config.num_eval_utts is not None and config.num_eval_utts > 0:
             mel_files = mel_files[: config.num_eval_utts]

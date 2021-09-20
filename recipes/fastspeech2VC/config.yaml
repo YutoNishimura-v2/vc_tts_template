@@ -1,8 +1,8 @@
 # General settings.
-spk: "jsut_jsss_1"
+spk: "jsut_jsss"
 
 # exp tag(for managing experiments)
-tag: "jsut_jsss_2"
+tag: "jsut_jsss_1"
 
 sample_rate: 22050
 

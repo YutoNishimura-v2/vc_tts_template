@@ -180,10 +180,10 @@ Vocoder model: {wavenet_str}
         else:
             s_emotions = np.array([self.acoustic_model.emotions[s_emotion]])
             t_emotions = np.array([self.acoustic_model.emotions[t_emotion]])
-        s_mels = [s_mel]
-        s_pitches = [s_pitch]
-        s_energies = [s_energy]
-        s_mel_lens = [s_mel.shape[0]]
+        s_mels = np.array([s_mel])
+        s_pitches = np.array([s_pitch])
+        s_energies = np.array([s_energy])
+        s_mel_lens = np.array([s_mel.shape[0]])
         max_s_mel_len = max(s_mel_lens)
 
         s_speakers = torch.tensor(s_speakers).long().to(self.device)

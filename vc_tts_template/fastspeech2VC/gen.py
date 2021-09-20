@@ -20,10 +20,10 @@ def synthesis(device, data, speaker_dict, emotion_dict, acoustic_model,
     else:
         s_emotions = np.array([emotion_dict[fname.split("_")[-2]] for fname in ids])
         t_emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
-    s_mels = [np.load(data[0])]
-    s_pitches = [np.load(data[1])]
-    s_energies = [np.load(data[2])]
-    s_mel_lens = [s_mels.shape[0]]
+    s_mels = np.array([np.load(data[0])])
+    s_pitches = np.array([np.load(data[1])])
+    s_energies = np.array([np.load(data[2])])
+    s_mel_lens = np.array([s_mels[0].shape[0]])
     max_s_mel_len = max(s_mel_lens)
 
     s_speakers = torch.tensor(s_speakers).long().to(device)

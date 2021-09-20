@@ -191,7 +191,7 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             out_dir=$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
-            acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
+            acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2VC_mel_scaler.joblib \
             acoustic.model_yaml=$expdir/${acoustic_model}/model.yaml \
             vocoder.checkpoint=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
             vocoder.model_yaml=$vocoder_config \
