@@ -1,0 +1,81 @@
+# @package _global_
+
+defaults:
+  - model:
+
+verbose: 100
+seed: 773
+
+# 1) none 2) tqdm
+tqdm:
+
+cudnn:
+  benchmark:
+  deterministic:
+
+# Multi-gpu
+data_parallel: false
+
+###########################################################
+#                DATA SETTING                             #
+###########################################################
+data:
+  # training set
+  train:
+    utt_list:
+    in_dir:
+    out_dir:
+
+  # development set
+  dev:
+    utt_list:
+    in_dir:
+    out_dir:
+
+  # data loader
+  num_workers: 20
+  batch_size:
+  group_size: 4
+
+###########################################################
+#                TRAIN SETTING                            #
+###########################################################
+train:
+  out_dir:
+  log_dir:
+
+  # steps can either be specified by steps or epochs
+  max_train_steps: -1
+  nepochs:
+  checkpoint_epoch_interval: 50
+  eval_epoch_interval: 10
+
+  vocoder_name:
+  vocoder_config:
+  vocoder_weight_path:
+  sampling_rate:
+  mel_scaler_path:
+  max_wav_value: 32768.0
+
+  optim:
+    optimizer:
+      name: Adam
+      params:
+        lr: 0.0625  # encoder_hidden ** (-0.5)
+        betas: [0.9, 0.98]
+        eps: 0.000000001
+        weight_decay: 0.0
+    lr_scheduler:
+      _target_: vc_tts_template.fastspeech2VC.optimizer.ScheduledOptim
+      warm_up_step: 4000
+      anneal_steps: [300000, 400000, 500000]
+      anneal_rate: 0.3
+  
+  criterion:
+    _target_: vc_tts_template.fastspeech2VC.loss.FastSpeech2VCLoss
+
+  pretrained:
+    # 注意: ./run.shのいるディレクトリがcwdです.
+    # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
+    checkpoint:
+    optimizer_reset:

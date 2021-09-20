@@ -190,10 +190,10 @@ def plot_attention(alignment: torch.Tensor) -> plt.figure:
     return fig
 
 
-def plot_mels(mels, titles):
+def plot_mels(mels, titles=None):
     """mel: shape=(time, dim)
     """
-    fig, axes = plt.subplots(len(mels), 1, squeeze=False)
+    fig, axes = plt.subplots(len(mels), 1, squeeze=False, figsize=(10, 10*len(mels)))
     if titles is None:
         titles = [None for i in range(len(mels))]
 
@@ -476,7 +476,8 @@ def setup(
     last_train_iter = 0
     if checkpoint is not None:
         # optimizerたちをresetするとしても, last_epochは引き継いでいた方が見やすい気がする.
-        last_epoch = checkpoint["last_epoch"]
+        if "last_epoch" in checkpoint.keys():  # 後方互換性のため.
+            last_epoch = checkpoint["last_epoch"]
         if "last_train_iter" in checkpoint.keys():  # 後方互換性のため.
             last_train_iter = checkpoint["last_train_iter"]
         if config.train.pretrained.optimizer_reset is True:  # type: ignore

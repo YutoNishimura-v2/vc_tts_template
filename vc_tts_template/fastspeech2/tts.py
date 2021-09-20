@@ -7,7 +7,6 @@ import pyopenjtalk
 import torch
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
-from tqdm import tqdm
 
 sys.path.append('..')
 from vc_tts_template.pretrained import retrieve_pretrained_model
@@ -101,7 +100,7 @@ Vocoder model: {wavenet_str}
         self.vocoder_model.to(device)
 
     @torch.no_grad()
-    def tts(self, text, speaker=None, emotion=None, tqdm=tqdm):
+    def tts(self, text, speaker=None, emotion=None):
         """Run TTS
 
         Args:

@@ -13,3 +13,4 @@ autopep8
 mypy
 tgt
 types-PyYAML
+pydub

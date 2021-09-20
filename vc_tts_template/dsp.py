@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 import librosa
 import numpy as np
@@ -291,7 +291,7 @@ def logmelspectrogram(
     clip: float = 1e-3,
     log_base: str = 'common',
     need_energy: bool = False,
-) -> Tuple[np.ndarray, np.ndarray]:
+):
     """Compute log-melspectrogram.
 
     Args:
