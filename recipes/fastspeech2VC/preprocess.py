@@ -120,7 +120,7 @@ def process_utterance(wav, sr, n_fft, hop_length, win_length,
     pitch = pw.stonemask(wav.astype(np.float64),
                          pitch, t, sr)
     if np.sum(pitch != 0) <= 1:
-        return None
+        return None, None, None
     mel_spectrogram, energy = logmelspectrogram(
         wav,
         sr,
@@ -324,11 +324,15 @@ def preprocess(
         n_mels, fmin, fmax, clip_thresh, log_base,
         is_continuous_pitch
     )
+    if src_pitch is None:
+        return src_wav_file, None
     tgt_mel, tgt_pitch, tgt_energy = process_utterance(
         tgt_wav, sr, n_fft, hop_length, win_length,
         n_mels, fmin, fmax, clip_thresh, log_base,
         is_continuous_pitch
     )
+    if tgt_pitch is None:
+        return None, tgt_wav_file
     duration = get_duration(utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
                             fmin, fmax, clip_thresh, log_base, reduction_factor)
     np.save(
@@ -366,6 +370,7 @@ def preprocess(
         duration.astype(np.int16),
         allow_pickle=False,
     )
+    return None, None
 
 
 if __name__ == "__main__":
@@ -399,6 +404,8 @@ if __name__ == "__main__":
     out_energy_dir.mkdir(parents=True, exist_ok=True)
     out_duration_dir.mkdir(parents=True, exist_ok=True)
 
+    failed_src_lst = []
+    failed_tgt_lst = []
     with ProcessPoolExecutor(args.n_jobs) as executor:
         futures = [
             executor.submit(
@@ -424,4 +431,13 @@ if __name__ == "__main__":
             for src_wav_file, tgt_wav_file in zip(src_wav_files, tgt_wav_files)
         ]
         for future in tqdm(futures):
-            future.result()
+            src_wav_file, tgt_wav_file = future.result()
+            if src_wav_file is not None:
+                failed_src_lst.append(src_wav_file)
+            if tgt_wav_file is not None:
+                failed_tgt_lst.append(tgt_wav_file)
+
+    with open(in_dir.parent / "failed_src_lst.txt", 'w') as f:
+        f.writelines(failed_src_lst)
+    with open(in_dir.parent / "failed_tgt_lst.txt", 'w') as f:
+        f.writelines(failed_tgt_lst)
