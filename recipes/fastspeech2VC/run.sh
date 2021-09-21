@@ -202,21 +202,6 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
 fi
 
 if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ]; then
-    echo "Create tar.gz to share experiments"
-    rm -rf tmp/exp
-    mkdir -p tmp/exp/$expname
-    rsync -avr $expdir/$acoustic_model tmp/exp/$expname/ --exclude "epoch*.pth"
-    rsync -avr $vocoder_weight_base_path tmp/exp/$expname/ --exclude "epoch*.pth"
-    rsync -avr $expdir/synthesis_${acoustic_model}_${vocoder_model} tmp/exp/$expname/ --exclude "epoch*.pth"
-    cd tmp
-    tar czvf fastspeech2VC_exp.tar.gz exp/
-    mv fastspeech2VC_exp.tar.gz ..
-    cd -
-    rm -rf tmp
-    echo "Please check fastspeech2VC_exp.tar.gz"
-fi
-
-if [ ${stage} -le 99 ] && [ ${stop_stage} -ge 99 ]; then
     echo "Pack models for VC"
     dst_dir=tts_models/${expname}_${acoustic_model}_${vocoder_model}
     mkdir -p $dst_dir
@@ -254,6 +239,23 @@ EOL
         $dst_dir/vocoder_model.pth
     cp $vocoder_weight_base_path/model.yaml $dst_dir/vocoder_model.yaml
 
+    tar czvf fastspeech2VC_exp.tar.gz $dst_dir
+
     echo "All the files are ready for VC!"
     echo "Please check the $dst_dir directory"
+fi
+
+if [ ${stage} -le 99 ] && [ ${stop_stage} -ge 99 ]; then
+    echo "Create tar.gz to share experiments"
+    rm -rf tmp/exp
+    mkdir -p tmp/exp/$expname
+    rsync -avr $expdir/$acoustic_model tmp/exp/$expname/ --exclude "epoch*.pth"
+    rsync -avr $vocoder_weight_base_path tmp/exp/$expname/ --exclude "epoch*.pth"
+    rsync -avr $expdir/synthesis_${acoustic_model}_${vocoder_model} tmp/exp/$expname/ --exclude "epoch*.pth"
+    cd tmp
+    tar czvf fastspeech2VC_exp.tar.gz exp/
+    mv fastspeech2VC_exp.tar.gz ..
+    cd -
+    rm -rf tmp
+    echo "Please check fastspeech2VC_exp.tar.gz"
 fi
