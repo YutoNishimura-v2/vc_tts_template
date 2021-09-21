@@ -433,9 +433,9 @@ if __name__ == "__main__":
         for future in tqdm(futures):
             src_wav_file, tgt_wav_file = future.result()
             if src_wav_file is not None:
-                failed_src_lst.append(str(src_wav_file))
+                failed_src_lst.append(str(src_wav_file)+'\n')
             if tgt_wav_file is not None:
-                failed_tgt_lst.append(str(tgt_wav_file))
+                failed_tgt_lst.append(str(tgt_wav_file)+'\n')
 
     with open(in_dir.parent / "failed_src_lst.txt", 'w') as f:
         f.writelines(failed_src_lst)

@@ -30,9 +30,9 @@ tgt_wav_root: "downloads/jsut_jsss_jvs/target"
 n_jobs: 16
 
 train_num: 44000
-deveval_num: 1258
+deveval_num: 1250
 dev_num: 1000
-eval_num: 258
+eval_num: 250
 
 ###########################################################
 #                FEATURE EXTRACTION SETTING               #
