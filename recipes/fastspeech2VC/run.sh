@@ -242,7 +242,7 @@ EOL
     # make tar.gz
     rm -rf tmp
     mkdir -p tmp/${export_model_name}
-    rsync -avr $dst_dir tmp/${export_model_name}
+    rsync -avr $dst_dir/* tmp/${export_model_name}
     cd tmp
     tar czvf ${export_model_name}.tar.gz ${export_model_name}
     mv ${export_model_name}.tar.gz ..
