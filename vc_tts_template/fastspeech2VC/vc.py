@@ -32,13 +32,16 @@ class FastSpeech2VC(object):
         >>> wav, sr = engine.tts("一貫学習にチャレンジしましょう！")
     """
 
-    def __init__(self, model_dir=None, device=None):
+    def __init__(self, model_dir=None, model_name=None, device=None):
         self.device = device
         if device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         if model_dir is None:
-            model_dir = retrieve_pretrained_model("fastspeech2VC")
+            if model_name is not None:
+                model_dir = retrieve_pretrained_model(model_name)
+            else:
+                model_dir = retrieve_pretrained_model("fastspeech2VC")
         if isinstance(model_dir, str):
             model_dir = Path(model_dir)
 
