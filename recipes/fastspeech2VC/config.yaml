@@ -6,6 +6,9 @@ tag: "jsut_jsss_jvs_1"
 
 sample_rate: 22050
 
+# pretrainとしてtar.gzにするときに利用したい名前
+export_model_name:
+
 # 1) none 2) tqdm
 # NOTE: Jupyterノートブックからrun.shを実行する場合は、none推奨
 tqdm: tqdm

@@ -239,7 +239,15 @@ EOL
         $dst_dir/vocoder_model.pth
     cp $vocoder_weight_base_path/model.yaml $dst_dir/vocoder_model.yaml
 
-    tar czvf fastspeech2VC_exp.tar.gz $dst_dir
+    # make tar.gz
+    rm -rf tmp
+    mkdir -p tmp/${export_model_name}
+    rsync -avr $dst_dir tmp/${export_model_name}
+    cd tmp
+    tar czvf ${export_model_name}.tar.gz ${export_model_name}
+    mv ${export_model_name}.tar.gz ..
+    cd -
+    rm -rf tmp
 
     echo "All the files are ready for VC!"
     echo "Please check the $dst_dir directory"
