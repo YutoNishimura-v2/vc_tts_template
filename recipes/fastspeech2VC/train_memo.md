@@ -31,3 +31,7 @@
     - jsut_jsss_jvs_1
         - spk: jsut_jsss_jvs
         - pretrain用.
+
+    - N2C_2
+        - spk: N2C
+        - pretrian: jsut_jsss_jvs_1
