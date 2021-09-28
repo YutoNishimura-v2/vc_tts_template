@@ -391,7 +391,7 @@ class VarianceARPredictor(nn.Module):
 
             # 次の時刻のデコーダの入力を更新
             if target is None:
-                prev_out = outs[-1][:, :, -1].squeeze(1)  # (B, 1)
+                prev_out = outs[-1][:, :, -1]  # (B, 1)
             else:
                 # Teacher forcing
                 prev_out = target[:, t]
