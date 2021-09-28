@@ -25,7 +25,8 @@ class VarianceAdaptor(nn.Module):
         stop_gradient_flow_p: bool,
         stop_gradient_flow_e: bool,
         reduction_factor: int,
-        pitch_AR: bool
+        pitch_AR: bool = False,
+        lstm_layers: int = 2,
     ):
         super(VarianceAdaptor, self).__init__()
         self.reduction_factor = reduction_factor
@@ -46,6 +47,16 @@ class VarianceAdaptor(nn.Module):
                 variance_predictor_layer_num_p,
                 variance_predictor_dropout,
                 reduction_factor
+            )
+        else:
+            self.pitch_predictor = VarianceARPredictor(  # type: ignore
+                encoder_hidden_dim,
+                variance_predictor_filter_size,
+                variance_predictor_kernel_size_p,
+                variance_predictor_layer_num_p,
+                variance_predictor_dropout,
+                reduction_factor,
+                lstm_layers
             )
         self.energy_predictor = VariancePredictor(
             encoder_hidden_dim,
@@ -111,18 +122,15 @@ class VarianceAdaptor(nn.Module):
             mel_mask = make_pad_mask(mel_len)
             max_len = max(mel_len.cpu().numpy())
 
-        if self.pitch_stop_gradient_flow is True:
-            pitch += x.detach()
-        else:
-            pitch += x
-
-        if self.energy_stop_gradient_flow is True:
-            pitch += x.detach()
-        else:
-            energy += x
+        pitch += x.detach() if self.pitch_stop_gradient_flow is True else x
+        energy += x.detach() if self.energy_stop_gradient_flow is True else x
 
         # pitch, energy: (B, T//r, d_enc)
-        pitch_prediction = self.pitch_predictor(pitch, mel_mask) * p_control
+        if self.pitch_AR is False:
+            pitch_prediction = self.pitch_predictor(pitch, mel_mask) * p_control
+        else:
+            pitch_prediction = self.pitch_predictor(pitch, mel_mask, pitch_target) * p_control
+
         energy_prediction = self.energy_predictor(energy, mel_mask) * e_control
 
         # pitchを, また次元増やしてhiddenに足す.
@@ -255,8 +263,132 @@ class VariancePredictor(nn.Module):
                 out = out.squeeze(-1)
                 out = out.masked_fill(mask, 0.0)
 
-        # out: (B, T, 1)
+        # out: (B, T)
         return out
+
+
+class VarianceARPredictor(nn.Module):
+    def __init__(
+        self,
+        encoder_hidden_dim: int,
+        variance_predictor_filter_size: int,
+        variance_predictor_kernel_size: int,
+        variance_predictor_layer_num: int,
+        variance_predictor_dropout: int,
+        reduction_factor: int = 1,
+        lstm_layers: int = 2,
+    ):
+        super(VarianceARPredictor, self).__init__()
+
+        self.input_size = encoder_hidden_dim
+        self.filter_size = variance_predictor_filter_size
+        self.kernel = variance_predictor_kernel_size
+        self.layer_num = variance_predictor_layer_num
+        self.dropout = variance_predictor_dropout
+        self.reduction_factor = reduction_factor
+
+        conv_layers = []
+
+        for i in range(self.layer_num):
+            if i == 0:
+                conv = Conv(
+                    self.input_size,
+                    self.filter_size,
+                    kernel_size=self.kernel,
+                    padding=(self.kernel - 1) // 2,  # same sizeに.
+                )
+            else:
+                conv = Conv(
+                    self.filter_size,
+                    self.filter_size,
+                    kernel_size=self.kernel,
+                    padding=(self.kernel - 1) // 2,  # same sizeに.
+                )
+            conv_layers += [conv, nn.ReLU(), nn.LayerNorm(self.filter_size),
+                            nn.Dropout(self.dropout)]
+
+        self.conv_layer = nn.Sequential(*conv_layers)
+
+        # 片方向 LSTM
+        self.lstm = nn.ModuleList()
+        for layer in range(lstm_layers):
+            lstm = nn.LSTMCell(
+                self.filter_size*2 if layer == 0 else self.filter_size,
+                self.filter_size,
+            )
+            self.lstm += [lstm]
+            self.lstm += [nn.Dropout(self.dropout)]
+
+        self.prenet = nn.Linear(1, self.filter_size)
+
+        self.linear_layer = nn.Linear(self.filter_size*2, self.reduction_factor)
+
+    def forward(self, encoder_output, mask, target=None):
+        # encoder_output: (B, T//r, d_enc)
+        # target: (B, T)
+
+        if (self.reduction_factor > 1) and (target is not None):
+            target = target[
+                :, self.reduction_factor - 1:: self.reduction_factor
+            ].unsqueeze(-1)
+        # target: (B, T//r)
+
+        encoder_output = self.conv_layer(encoder_output)
+
+        # LSTM の状態をゼロで初期化
+        h_list, c_list = [], []
+        for _ in range(len(self.lstm)):
+            h_list.append(self._zero_state(encoder_output))
+            c_list.append(self._zero_state(encoder_output))
+
+        # デコーダの最初の入力
+        go_frame = encoder_output.new_zeros(encoder_output.size(0), 1)
+        prev_out = go_frame
+        outs = []
+
+        # main loop
+        for t in range(encoder_output.size()[1]):
+            # Pre-Net
+            prenet_out = self.prenet(prev_out)
+
+            # LSTM
+            xs = torch.cat([encoder_output[:, t, :], prenet_out], dim=1)
+            h_list[0], c_list[0] = self.lstm[0](xs, (h_list[0], c_list[0]))
+            for i in range(1, len(self.lstm)):
+                h_list[i], c_list[i] = self.lstm[i](
+                    h_list[i - 1], (h_list[i], c_list[i])
+                )
+            hcs = torch.cat([h_list[-1], encoder_output[:, t, :]], dim=1)
+            outs.append(self.linear_layer(hcs).unsqueeze(1))
+
+            # 次の時刻のデコーダの入力を更新
+            if target is None:
+                prev_out = outs[-1][:, :, -1].squeeze(1)  # (B, 1)
+            else:
+                # Teacher forcing
+                prev_out = target[:, t]
+
+        outs = torch.cat(outs, dim=1)
+        # outs: (B, T//r, r)
+
+        if mask is not None:
+            if self.reduction_factor > 1:
+                outs = outs.masked_fill(
+                    mask.unsqueeze(-1).expand(mask.size(0), mask.size(1), self.reduction_factor), 0.0
+                )
+                outs = outs.contiguous().view(outs.size(0), -1, 1)
+                outs = outs.squeeze(-1)
+
+            else:
+                outs = outs.squeeze(-1)
+                outs = outs.masked_fill(mask, 0.0)
+
+        # outs: (B, T)
+        return outs
+
+    def _zero_state(self, hs):
+        init_hs = hs.new_zeros(hs.size(0), self.lstm[0].hidden_size)
+        return init_hs
 
 
 class Conv(nn.Module):
