@@ -25,6 +25,7 @@ class VarianceAdaptor(nn.Module):
         stop_gradient_flow_p: bool,
         stop_gradient_flow_e: bool,
         reduction_factor: int,
+        pitch_AR: bool
     ):
         super(VarianceAdaptor, self).__init__()
         self.reduction_factor = reduction_factor
@@ -37,14 +38,15 @@ class VarianceAdaptor(nn.Module):
             variance_predictor_layer_num_d,
             variance_predictor_dropout,
         )
-        self.pitch_predictor = VariancePredictor(
-            encoder_hidden_dim,
-            variance_predictor_filter_size,
-            variance_predictor_kernel_size_p,
-            variance_predictor_layer_num_p,
-            variance_predictor_dropout,
-            reduction_factor
-        )
+        if pitch_AR is False:
+            self.pitch_predictor = VariancePredictor(
+                encoder_hidden_dim,
+                variance_predictor_filter_size,
+                variance_predictor_kernel_size_p,
+                variance_predictor_layer_num_p,
+                variance_predictor_dropout,
+                reduction_factor
+            )
         self.energy_predictor = VariancePredictor(
             encoder_hidden_dim,
             variance_predictor_filter_size,
@@ -119,7 +121,7 @@ class VarianceAdaptor(nn.Module):
         else:
             energy += x
 
-        # pitch, energyを計算
+        # pitch, energy: (B, T//r, d_enc)
         pitch_prediction = self.pitch_predictor(pitch, mel_mask) * p_control
         energy_prediction = self.energy_predictor(energy, mel_mask) * e_control
 
@@ -235,11 +237,13 @@ class VariancePredictor(nn.Module):
 
         self.conv_layer = nn.Sequential(*conv_layers)
 
-        self.linear_layer = nn.Linear(self.conv_output_size, 1)
+        self.linear_layer = nn.Linear(self.conv_output_size, self.reduction_factor)
 
     def forward(self, encoder_output, mask):
+        # encoder_output: (B, T//r, d_enc)
         out = self.conv_layer(encoder_output)
         out = self.linear_layer(out)
+        # out: (B, T//r, r)
 
         if mask is not None:
             if self.reduction_factor > 1:
@@ -251,6 +255,7 @@ class VariancePredictor(nn.Module):
                 out = out.squeeze(-1)
                 out = out.masked_fill(mask, 0.0)
 
+        # out: (B, T, 1)
         return out
 
 

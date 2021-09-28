@@ -35,3 +35,8 @@
     - N2C_2
         - spk: N2C
         - pretrian: jsut_jsss_jvs_1
+
+    - N2C_3
+        - spk: N2C
+        - pretrain: なし
+        - VariancePridicterでreduction factorの実装ミスっていた説があるので実行しなおし.

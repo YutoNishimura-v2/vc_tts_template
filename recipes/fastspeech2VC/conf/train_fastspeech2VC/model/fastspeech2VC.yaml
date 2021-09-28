@@ -30,5 +30,6 @@ netG:
   reduction_factor:
 
   encoder_fix: False
+  pitch_AR: False
   speakers:
   emotions:
