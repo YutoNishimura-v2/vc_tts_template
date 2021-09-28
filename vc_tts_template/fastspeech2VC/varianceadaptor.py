@@ -30,6 +30,7 @@ class VarianceAdaptor(nn.Module):
     ):
         super(VarianceAdaptor, self).__init__()
         self.reduction_factor = reduction_factor
+        self.pitch_AR = pitch_AR
 
         # duration, pitch, energyで共通なのね.
         self.duration_predictor = VariancePredictor(
@@ -267,6 +268,33 @@ class VariancePredictor(nn.Module):
         return out
 
 
+class ZoneOutCell(nn.Module):
+    def __init__(self, cell, zoneout=0.1):
+        super().__init__()
+        self.cell = cell
+        self.hidden_size = cell.hidden_size
+        self.zoneout = zoneout
+
+    def forward(self, inputs, hidden):
+        next_hidden = self.cell(inputs, hidden)
+        next_hidden = self._zoneout(hidden, next_hidden, self.zoneout)
+        return next_hidden
+
+    def _zoneout(self, h, next_h, prob):
+        h_0, c_0 = h
+        h_1, c_1 = next_h
+        h_1 = self._apply_zoneout(h_0, h_1, prob)
+        c_1 = self._apply_zoneout(c_0, c_1, prob)
+        return h_1, c_1
+
+    def _apply_zoneout(self, h, next_h, prob):
+        if self.training:
+            mask = h.new(*h.size()).bernoulli_(prob)
+            return mask * h + (1 - mask) * next_h
+        else:
+            return prob * h + (1 - prob) * next_h
+
+
 class VarianceARPredictor(nn.Module):
     def __init__(
         self,
@@ -277,6 +305,7 @@ class VarianceARPredictor(nn.Module):
         variance_predictor_dropout: int,
         reduction_factor: int = 1,
         lstm_layers: int = 2,
+        zoneout: float = 0.1
     ):
         super(VarianceARPredictor, self).__init__()
 
@@ -316,8 +345,7 @@ class VarianceARPredictor(nn.Module):
                 self.filter_size*2 if layer == 0 else self.filter_size,
                 self.filter_size,
             )
-            self.lstm += [lstm]
-            self.lstm += [nn.Dropout(self.dropout)]
+            self.lstm += [ZoneOutCell(lstm, zoneout)]
 
         self.prenet = nn.Linear(1, self.filter_size)
 

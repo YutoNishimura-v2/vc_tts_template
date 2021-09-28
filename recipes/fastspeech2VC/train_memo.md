@@ -40,3 +40,8 @@
         - spk: N2C
         - pretrain: なし
         - VariancePridicterでreduction factorの実装ミスっていた説があるので実行しなおし.
+    
+    - N2C_4
+        - spk: N2C
+        - pretrain: なし
+        - pitchのAR化を実装した.
