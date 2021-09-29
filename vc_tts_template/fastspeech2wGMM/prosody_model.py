@@ -193,9 +193,7 @@ class ProsodyPredictor(nn.Module):
                     h_list[i - 1], h_list[i]
                 )
             hcs = torch.cat([h_list[-1], encoder_output[:, t, :]], dim=1)
-            pi_outs.append(
-                self.pi_linear(hcs).unsqueeze(1)
-            )
+            pi_outs.append(self.pi_linear(hcs).unsqueeze(1))
             sigma_outs.append(torch.exp(self.sigma_linear(hcs)).view(-1, 1, self.num_gaussians, self.d_out))
             mu_outs.append(self.mu_linear(hcs).view(-1, 1, self.num_gaussians, self.d_out))
 

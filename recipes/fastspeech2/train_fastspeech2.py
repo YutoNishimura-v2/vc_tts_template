@@ -124,8 +124,8 @@ def to_device(data, phase, device):
         energies,
         durations,
     ) = data
-
     speakers = torch.from_numpy(speakers).long().to(device)
+    emotions = torch.from_numpy(emotions).long().to(device)
     texts = torch.from_numpy(texts).long().to(device)
     src_lens = torch.from_numpy(src_lens).to(device)
     mels = torch.from_numpy(mels).float().to(device)
@@ -133,7 +133,6 @@ def to_device(data, phase, device):
     pitches = torch.from_numpy(pitches).float().to(device)
     energies = torch.from_numpy(energies).to(device)
     durations = torch.from_numpy(durations).long().to(device)
-    emotions = torch.from_numpy(emotions).long().to(device)
 
     return (
         ids,
