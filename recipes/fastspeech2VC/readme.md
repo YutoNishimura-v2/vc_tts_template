@@ -1,5 +1,9 @@
 # fastspeech2VC利用方法.
 
+- todo
+    - sent_durationはdata_preparationまで終了
+    - 次はRichProsodyと同じwGMMを実装
+
 ## 事前準備
 1. 利用したいコーパスのwavをどこかに置く.
     - srは変更する必要なし.
@@ -24,3 +28,6 @@
 
 
 ## memo
+- sent_durationは, 推論時はあってもなくてもよい.
+    - 入力しない場合は, GSTとしてふるまうように設計する.
+    - 実装自体は, wGMMと同様のやり方.

@@ -85,11 +85,12 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
         xrun python preprocess.py data/$s.list $src_wav_root $tgt_wav_root \
             $dump_org_dir/$s --n_jobs $n_jobs --sample_rate $sample_rate \
             --silence_thresh_h $silence_thresh_h --silence_thresh_t $silence_thresh_t \
-            --filter_length $filter_length \
+            --chunk_size $chunk_size --filter_length $filter_length \
             --hop_length $hop_length --win_length $win_length \
             --n_mel_channels $n_mel_channels --mel_fmin $mel_fmin --mel_fmax $mel_fmax \
             --clip $clip --log_base $log_base --is_continuous_pitch $is_continuous_pitch \
-            --reduction_factor $reduction_factor
+            --reduction_factor $reduction_factor  --sentence_duration $sentence_duration \
+            --min_silence_len $min_silence_len
     done
     # preprocess実行時にのみcopyするようにする.
     mkdir -p $expdir/data
@@ -114,11 +115,15 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
     for s in ${datasets[@]}; do
         for typ in "fastspeech2VC"; do
             for inout in "out" "in"; do
-                for feat in "mel" "pitch" "energy" "duration"; do
+                for feat in "mel" "pitch" "energy" "duration" "sent_duration"; do
                     if [ $feat == "duration" ]; then
                         if [ $inout == "in" ]; then
                             continue
                         fi
+                        cp -r $dump_org_dir/$s/${inout}_${typ}/${feat} $dump_norm_dir/$s/${inout}_${typ}
+                        continue
+                    fi
+                    if [ $feat == "sent_duration" ]; then
                         cp -r $dump_org_dir/$s/${inout}_${typ}/${feat} $dump_norm_dir/$s/${inout}_${typ}
                         continue
                     fi

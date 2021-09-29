@@ -1,8 +1,8 @@
 # General settings.
-spk: "N2C"
+spk: "N2C_2"
 
 # exp tag(for managing experiments)
-tag: "N2C_4"
+tag: "N2C_5"
 
 sample_rate: 22050
 
@@ -39,7 +39,8 @@ eval_num: 60
 ###########################################################
 # 一般的に, head > tailの方がよいです.
 silence_thresh_h: -50
-silence_thresh_t: -100
+silence_thresh_t: -80
+chunk_size: 50
 filter_length: 1024
 hop_length: 256
 win_length: 1024
@@ -50,6 +51,9 @@ clip: 0.00001
 log_base: "natural"
 is_continuous_pitch: 1
 reduction_factor: 3
+sentence_duration: 1
+# ↓use if sentence_duration > 0
+min_silence_len: 500
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################

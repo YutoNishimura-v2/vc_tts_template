@@ -15,6 +15,9 @@
     - jsut_jsss_jvs
         - 上に書いてあるコーパスすべてのVC. multi.
         - pretrain用.
+    
+    - N2C_2
+        - sent_durationを実装して再実行.
 
 - tag
     - jsut_jsss_1

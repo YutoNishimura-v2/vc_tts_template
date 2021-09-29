@@ -2,9 +2,8 @@
 - 目的: 今後, いろんなモデルを実装していくにあたり, 毎回dataloaderとかtrainとか書くのあほくさい.
 - なので, 使いまわし可能なコードを作ろう!!!
 
-## todo
-- short cutを作成する
-    - trian_hifiganに関して.
+## memo
+- [勾配計算を可視化したかったらtorchvizが楽かも](https://github.com/szagoruyko/pytorchviz)
 ## run.shの流れ
 
 - stage -1

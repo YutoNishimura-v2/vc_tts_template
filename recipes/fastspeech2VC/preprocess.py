@@ -15,8 +15,7 @@ from tqdm import tqdm
 
 sys.path.append("../..")
 from vc_tts_template.dsp import logmelspectrogram
-
-from utils import pydub_to_np
+from recipes.fastspeech2VC.utils import pydub_to_np
 
 
 def get_parser():
@@ -32,6 +31,7 @@ def get_parser():
     parser.add_argument("--sample_rate", type=int)
     parser.add_argument("--silence_thresh_h", type=int, help="silence thresh of head")
     parser.add_argument("--silence_thresh_t", type=int, help="silence thresh of tail")
+    parser.add_argument("--chunk_size", type=int, help="silence chunk size")
     parser.add_argument("--filter_length", type=int)
     parser.add_argument("--hop_length", type=int)
     parser.add_argument("--win_length", type=int)
@@ -42,6 +42,8 @@ def get_parser():
     parser.add_argument("--log_base", type=str)
     parser.add_argument("--is_continuous_pitch", type=int)
     parser.add_argument("--reduction_factor", type=int)
+    parser.add_argument("--sentence_duration", type=int)
+    parser.add_argument("--min_silence_len", type=int)
     return parser
 
 
@@ -62,7 +64,7 @@ def make_novoice_to_zero(audio: AudioSegment, silence_thresh: float, min_silence
     return audio_new
 
 
-def delete_novoice(input_path, silence_thresh_h, silence_thresh_t, chunk_size=50):
+def delete_novoice(input_path, silence_thresh_h, silence_thresh_t, chunk_size):
     """無音区間を先頭と末尾から削除します.
     Args:
       input_path: wavファイルへのpath
@@ -290,12 +292,72 @@ def get_duration(
     return duration
 
 
+def get_sentence_duration(
+    utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
+    fmin, fmax, clip_thresh, log_base, tgt_wav_path,
+    min_silence_len, silence_thresh
+):
+    src_mel, energy = logmelspectrogram(
+        src_wav, sr, n_fft, hop_length, win_length,
+        20, fmin, fmax, clip=clip_thresh, log_base=log_base,
+        need_energy=True
+    )
+    tgt_mel = logmelspectrogram(
+        tgt_wav, sr, n_fft, hop_length, win_length,
+        20, fmin, fmax, clip=clip_thresh, log_base=log_base,
+        need_energy=False
+    )
+    duration = calc_duration([tgt_mel, src_mel], utt_id, np.log(energy+1e-6) < -5.0)
+
+    t_audio = AudioSegment.from_wav(tgt_wav_path)
+
+    t_silences = np.array(
+        silence.detect_silence(t_audio, min_silence_len=min_silence_len, silence_thresh=silence_thresh)
+    )
+
+    src_sent_durations = []
+    tgt_sent_durations = []
+
+    t_silences = (t_silences / 1000 * sr // hop_length).astype(np.int16)
+
+    for i, (s_frame, _) in enumerate(t_silences):
+        if s_frame == 0:
+            continue
+        if len(tgt_sent_durations) == 0:
+            tgt_sent_durations.append(s_frame)
+        else:
+            tgt_sent_durations.append(s_frame - np.sum(tgt_sent_durations))
+
+        if i == (len(t_silences) - 1):
+            tgt_sent_durations.append(len(tgt_mel) - s_frame)
+
+    if len(tgt_sent_durations) == 0:
+        tgt_sent_durations = [len(tgt_mel)]
+    assert np.sum(tgt_sent_durations) == len(tgt_mel)
+
+    snt_sum = 0
+    s_duration_cum = duration.cumsum()
+    for i, snt_d in enumerate(tgt_sent_durations):
+        snt_sum += snt_d
+        snt_idx = np.argmax(s_duration_cum > snt_sum)
+        if i == (len(tgt_sent_durations) - 1):
+            snt_idx = len(src_mel)
+        if len(src_sent_durations) == 0:
+            src_sent_durations.append(snt_idx)
+        else:
+            src_sent_durations.append(snt_idx - np.sum(src_sent_durations))
+    assert np.sum(src_sent_durations) == len(src_mel)
+
+    return np.array(src_sent_durations), np.array(tgt_sent_durations)
+
+
 def preprocess(
     src_wav_file,
     tgt_wav_file,
     sr,
     silence_thresh_h,
     silence_thresh_t,
+    chunk_size,
     n_fft,
     hop_length,
     win_length,
@@ -306,13 +368,15 @@ def preprocess(
     log_base,
     is_continuous_pitch,
     reduction_factor,
+    sentence_duration,
+    min_silence_len,
     in_dir,
     out_dir,
 ):
     assert src_wav_file.stem == tgt_wav_file.stem
 
-    src_wav, sr_src = delete_novoice(src_wav_file, silence_thresh_h, silence_thresh_t)
-    tgt_wav, sr_tgt = delete_novoice(tgt_wav_file, silence_thresh_h, silence_thresh_t)
+    src_wav, sr_src = delete_novoice(src_wav_file, silence_thresh_h, silence_thresh_t, chunk_size)
+    tgt_wav, sr_tgt = delete_novoice(tgt_wav_file, silence_thresh_h, silence_thresh_t, chunk_size)
 
     src_wav = librosa.resample(src_wav, sr_src, sr)
     tgt_wav = librosa.resample(tgt_wav, sr_tgt, sr)
@@ -335,6 +399,7 @@ def preprocess(
         return None, tgt_wav_file
     duration = get_duration(utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
                             fmin, fmax, clip_thresh, log_base, reduction_factor)
+
     np.save(
         in_dir / "mel" / f"{utt_id}-feats.npy",
         src_mel.astype(np.float32),
@@ -370,6 +435,22 @@ def preprocess(
         duration.astype(np.int16),
         allow_pickle=False,
     )
+    if sentence_duration is True:
+        src_sent_durations, tgt_sent_durations = get_sentence_duration(
+            utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
+            fmin, fmax, clip_thresh, log_base, tgt_wav_file,
+            min_silence_len, silence_thresh_t
+        )
+        np.save(
+            in_dir / "sent_duration" / f"{utt_id}-feats.npy",
+            src_sent_durations.astype(np.int16),
+            allow_pickle=False
+        )
+        np.save(
+            out_dir / "sent_duration" / f"{utt_id}-feats.npy",
+            tgt_sent_durations.astype(np.int16),
+            allow_pickle=False,
+        )
     return None, None
 
 
@@ -388,10 +469,12 @@ if __name__ == "__main__":
     in_mel_dir = Path(args.out_dir) / "in_fastspeech2VC" / "mel"
     in_pitch_dir = Path(args.out_dir) / "in_fastspeech2VC" / "pitch"
     in_energy_dir = Path(args.out_dir) / "in_fastspeech2VC" / "energy"
+    in_sent_duration_dir = Path(args.out_dir) / "in_fastspeech2VC" / "sent_duration"
     out_mel_dir = Path(args.out_dir) / "out_fastspeech2VC" / "mel"
     out_pitch_dir = Path(args.out_dir) / "out_fastspeech2VC" / "pitch"
     out_energy_dir = Path(args.out_dir) / "out_fastspeech2VC" / "energy"
     out_duration_dir = Path(args.out_dir) / "out_fastspeech2VC" / "duration"
+    out_sent_duration_dir = Path(args.out_dir) / "out_fastspeech2VC" / "sent_duration"
 
     in_dir.mkdir(parents=True, exist_ok=True)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -399,10 +482,12 @@ if __name__ == "__main__":
     in_mel_dir.mkdir(parents=True, exist_ok=True)
     in_pitch_dir.mkdir(parents=True, exist_ok=True)
     in_energy_dir.mkdir(parents=True, exist_ok=True)
+    in_sent_duration_dir.mkdir(parents=True, exist_ok=True)
     out_mel_dir.mkdir(parents=True, exist_ok=True)
     out_pitch_dir.mkdir(parents=True, exist_ok=True)
     out_energy_dir.mkdir(parents=True, exist_ok=True)
     out_duration_dir.mkdir(parents=True, exist_ok=True)
+    out_sent_duration_dir.mkdir(parents=True, exist_ok=True)
 
     failed_src_lst = []
     failed_tgt_lst = []
@@ -415,6 +500,7 @@ if __name__ == "__main__":
                 args.sample_rate,
                 args.silence_thresh_h,
                 args.silence_thresh_t,
+                args.chunk_size,
                 args.filter_length,
                 args.hop_length,
                 args.win_length,
@@ -425,6 +511,8 @@ if __name__ == "__main__":
                 args.log_base,
                 args.is_continuous_pitch > 0,
                 args.reduction_factor,
+                args.sentence_duration > 0,
+                args.min_silence_len,
                 in_dir,
                 out_dir,
             )
