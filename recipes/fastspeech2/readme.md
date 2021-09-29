@@ -1,8 +1,4 @@
 # fastspeech2利用方法.
-- todo
-    - fastspeech2の出力melでhifiganをtrainingできるようにする?
-        - 必要になったら. length周りが面倒だったりするし.
-        - nars2sの方では実装しているので参考にする感じで.
 ## 事前準備
 1. 利用したいコーパスのwavをどこかに置く.
     - srは変更する必要なし.
@@ -29,33 +25,14 @@
     - spk: 全体の名前. preprocessed_data名にもなるため, データそのものの変更をするならここを変える.
     - tag: 毎度おなじみexp_name. 実験名の変更です. 訓練時.
 
+## 2021-09-29: fastspeech2wGMM追加
+### 仕様
+- devのlossは, 正解melは与えて, pitch, energyを与えないで計算されているが, 正解melはloss計算用の正解prosody embを計算するためだけに用いられて, 出力のmel自体はduration以外inference時と同じ設定で計算されている.
 
-## memo
-- preprocess.pyにおいて, 今回のように複数の特徴量を出したい場合は, フォルダの方で管理. ファイル名自体は, `ファイル名-feats.npy`を遵守. そうでないとfitscalerなどを使えない.
-    - 複数特徴量を使いたい場合, 選択肢はおそらく2つ.
-        - 1つのファイルにまとめる
-            - こうすることで, テンプレ通りの処理が可能になるが, 今回は難しそう.
-            なぜなら, durationは正規化したくないから.
-        - 複数ファイルをあきらめて作る
-            - この場合, その数だけフォルダができる.
-            - その分, datasetの使いまわしができない等の問題が発生してしまう.
-            - 基本の型は同じでいいが, 一部修正する必要あり. すべてcollate_fn内で.
-            - set_upの時に, originalのget_dataloaderを渡せば終わり.
-
-- preprocess.pyにて, speaker.json, stats.jsonの計算.
-    - eval, devを跨げるようにロード機能をつけることを考えたが, 
-    statsはtrainだけで計算するべきなきがする.
-    なので, 実装的に面倒なので, statsは各train/dev/evalで作成し, 実行時に用いるのはtrainのものということにする.
-    - ↑ そもそも, modelで使うものは, すべてyamlに書き込んでいないとだめ.
-    なので, やり方が間違っていて, confに直接書き込んでしまうのがよい.
-
-    - confに直接書き込むのも問題あり. パスを動的にできないし.
-    - そもそも, confは動的に書くべきではない.
-        - pitchを動的に決めてモデルに入れているのがまず問題.
-        - 決め打ちでいけ.
-
-- 上位のconfigで決めたところは空白にしておく. そうでないと二重に設定することになりバグの温床.
-
-
-- hifiganは, 出力melでfinetuningをせずに, 単にwavだけでfinetuningするようにする.
-    - その際に, srを気にしない入力受付にするようにするところだけ注意.
+### 使い方
+- configにおいて, 以下のモデル名を指定
+    - fastspeech2wGMM
+- train_fastspeech2 configにおいて, 以下のlossを指定
+    - vc_tts_template.fastspeech2wGMM.loss.FastSpeech2Loss
+    - betaを決定
+- 後は同様

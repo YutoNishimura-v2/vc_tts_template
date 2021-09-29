@@ -46,6 +46,8 @@ class ProsodyExtractor(nn.Module):
 
     def forward(self, mels, durations):
         # expected(B, T, d_mel)
+        if mels is None:
+            return None
         durations = durations.detach().cpu().numpy()  # detach
         output_sorted, src_lens_sorted, segment_nums, inv_sort_idx = self.mel2phone(mels, durations)
         outs = list()
@@ -123,7 +125,7 @@ class ProsodyPredictor(nn.Module):
         d_in=1,
         d_gru=1,  # dimention of gru
         d_out=1,  # output prosody emb size
-        conv_out_channels=1,
+        conv_out_channels=1,  # hidden channel before gru
         conv_kernel_size=1,
         conv_stride=1,
         conv_padding=None,
@@ -164,7 +166,7 @@ class ProsodyPredictor(nn.Module):
         self.d_out = d_out
         self.num_gaussians = num_gaussians
 
-    def forward(self, encoder_output, target_prosody=None):
+    def forward(self, encoder_output, target_prosody=None, is_inference=False):
         encoder_output = self.convnorms(encoder_output)
         # GRU の状態をゼロで初期化
         h_list = []
@@ -198,13 +200,14 @@ class ProsodyPredictor(nn.Module):
             mu_outs.append(self.mu_linear(hcs).view(-1, 1, self.num_gaussians, self.d_out))
 
             # 次の時刻のデコーダの入力を更新
-            if target_prosody is None:
+            if (is_inference is True) or (target_prosody is None):
                 prev_out = self.sample(
                     pi_outs[-1].squeeze(1), sigma_outs[-1].squeeze(1), mu_outs[-1].squeeze(1)
-                )  # (B, 1)
+                )  # (B, d_out)
             else:
                 # Teacher forcing
-                prev_out = target_prosody[:, t, :]
+                # prevent from backpropagation to prosody extractor
+                prev_out = target_prosody[:, t, :].detach()
             outs.append(prev_out.unsqueeze(1))
 
         outs = torch.cat(outs, dim=1)
@@ -221,7 +224,7 @@ class ProsodyPredictor(nn.Module):
         # pi: (B, num_gaussians)
         # sigma: (B, num_gaussians, d_out)
         # mu: (B, num_gaussians, d_out)
-        pis = OneHotCategorical(logits=pi).sample().unsqueeze(-1)
+        pis = OneHotCategorical(probs=pi).sample().unsqueeze(-1)
         # pis: (B, num_gaussians), one-hot.
         normal = Normal(loc=mu, scale=sigma).sample()
         samples = torch.sum(pis*normal, dim=1)
@@ -270,9 +273,9 @@ if __name__ == "__main__":
     sampler = ProsodyPredictor()
     # 3山. 2次元でどうなるかを見てみる.
     pi = torch.Tensor(
-        [[0.1, 0.1, 0.8],
-         [0.1, 0.8, 0.1],
-         [0.8, 0.1, 0.1]]
+        [[0.0, 0.2, 0.8],
+         [0.0, 0.9, 0.1],
+         [0.1, 0.8, 0.1]]
     )
     mu = torch.Tensor(
         [[[1, 0], [-1, 0], [0, 1]],

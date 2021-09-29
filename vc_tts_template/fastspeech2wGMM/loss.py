@@ -1,14 +1,16 @@
 import torch
+from torch.distributions.normal import Normal
 import torch.nn as nn
 
 
 class FastSpeech2Loss(nn.Module):
     """ FastSpeech2 Loss """
 
-    def __init__(self, pitch_feature_level, energy_feature_level):
+    def __init__(self, pitch_feature_level, energy_feature_level, beta):
         super(FastSpeech2Loss, self).__init__()
         self.pitch_feature_level = "phoneme_level" if pitch_feature_level > 0 else "frame_level"
         self.energy_feature_level = "phoneme_level" if energy_feature_level > 0 else "frame_level"
+        self.beta = beta
 
         self.mse_loss = nn.MSELoss()
         self.mae_loss = nn.L1Loss()
@@ -33,6 +35,10 @@ class FastSpeech2Loss(nn.Module):
             mel_masks,
             _,
             _,
+            prosody_target,
+            pi_outs,
+            mu_outs,
+            sigma_outs
         ) = predictions
         src_masks = ~src_masks
         mel_masks = ~mel_masks
@@ -75,7 +81,15 @@ class FastSpeech2Loss(nn.Module):
         energy_loss = self.mse_loss(energy_predictions, energy_targets)
         duration_loss = self.mse_loss(log_duration_predictions, log_duration_targets)
 
-        total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss
+        # mdn loss
+        normal_dist = Normal(loc=mu_outs, scale=sigma_outs)
+        loglik = normal_dist.log_prob(prosody_target.detach().unsqueeze(2).expand_as(normal_dist.loc))
+        # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
+        loglik = torch.sum(loglik, dim=-1)
+        probs = torch.sum(torch.exp(torch.log(pi_outs) + loglik), dim=-1)
+        prosody_loss = torch.mean(-torch.log(probs.masked_select(src_masks)+1e-6))
+
+        total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss + self.beta*prosody_loss
 
         loss_values = {
             "mel_loss": mel_loss.item(),
@@ -83,6 +97,7 @@ class FastSpeech2Loss(nn.Module):
             "pitch_loss": pitch_loss.item(),
             "energy_loss": energy_loss.item(),
             "duration_loss": duration_loss.item(),
+            "prosody_loss": prosody_loss.item(),
             "total_loss": total_loss.item()
         }
 

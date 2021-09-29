@@ -18,3 +18,7 @@
     - Long_dialogue_3
         - pretrainだけなしにして, それ以外は2と同じ.
         - lossはほぼ同じだけど, 音質は若干悪い感じ.
+    - Long_dialogue_4
+        - spk: Long_dialogue
+        - pretrain: None
+        - wGMM初稼働
