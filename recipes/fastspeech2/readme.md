@@ -36,3 +36,6 @@
     - vc_tts_template.fastspeech2wGMM.loss.FastSpeech2Loss
     - betaを決定
 - 後は同様
+
+### ttsの利用方法
+- fastspeech2のtts.pyを利用してください.
