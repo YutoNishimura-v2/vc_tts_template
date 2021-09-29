@@ -19,11 +19,12 @@ def decoder_init(m):
 
 
 class ZoneOutCell(nn.Module):
-    def __init__(self, cell, zoneout=0.1):
+    def __init__(self, cell, zoneout=0.1, gru=False):
         super().__init__()
         self.cell = cell
         self.hidden_size = cell.hidden_size
         self.zoneout = zoneout
+        self.gru = gru
 
     def forward(self, inputs, hidden):
         next_hidden = self.cell(inputs, hidden)
@@ -31,11 +32,15 @@ class ZoneOutCell(nn.Module):
         return next_hidden
 
     def _zoneout(self, h, next_h, prob):
-        h_0, c_0 = h
-        h_1, c_1 = next_h
-        h_1 = self._apply_zoneout(h_0, h_1, prob)
-        c_1 = self._apply_zoneout(c_0, c_1, prob)
-        return h_1, c_1
+        if self.gru is True:
+            next_h = self._apply_zoneout(h, next_h, prob)
+            return next_h
+        else:
+            h_0, c_0 = h
+            h_1, c_1 = next_h
+            h_1 = self._apply_zoneout(h_0, h_1, prob)
+            c_1 = self._apply_zoneout(c_0, c_1, prob)
+            return h_1, c_1
 
     def _apply_zoneout(self, h, next_h, prob):
         if self.training:
