@@ -24,6 +24,11 @@
             - y += tensor.Tensor([3]) # xのメモリに上書きされてしまう. そのため事故が起こる
             - y = y + tensor.Tensor([3])  # この時, yは新しく作られていて, もはや別物. xのメモリに影響も与えない
 
+- optuna
+    - [基本の流れ](https://qiita.com/studio_haneya/items/2dc3ba9d7cafa36ddffa#%E5%9F%BA%E6%9C%AC%E3%81%AE%E4%BD%BF%E3%81%84%E6%96%B9)
+    - [発展的な流れ](https://colab.research.google.com/github/pfnet-research/optuna-hands-on/blob/master/ja/02_Optuna_Advanced_Tutorial_ja.ipynb#scrollTo=bf0EFoaM6Q_Y)
+    - [suggest関数たち](https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html#optuna.trial.Trial.suggest_categorical)
+
 ## run.shの流れ
 
 - stage -1

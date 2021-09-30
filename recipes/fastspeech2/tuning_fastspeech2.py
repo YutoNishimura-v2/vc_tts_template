@@ -1,5 +1,3 @@
-# optunaを用いたハイパラ探索.
-# 参考: https://colab.research.google.com/github/pfnet-research/optuna-hands-on/blob/master/ja/02_Optuna_Advanced_Tutorial_ja.ipynb#scrollTo=gzlMnNB9tKH1
 import sys
 from functools import partial
 

@@ -184,7 +184,8 @@ fi
 if [ ${stage} -le 97 ] && [ ${stop_stage} -ge 97 ]; then
     echo "Tuning fastspeech2 by optuna"
     xrun python tuning_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
-        tuning=$tuning_config \
+        tuning=$tuning_config tuning.study_name=$expname\
+        tuning.storage=sqlite:///../../../${expdir}/${acoustic_model}/optuna_study.db \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
         data.train.in_dir=$dump_norm_dir/$train_set/in_fastspeech2/ \

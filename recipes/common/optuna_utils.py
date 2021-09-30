@@ -78,7 +78,6 @@ def optuna_setup(
     # モデルのインスタンス化
     if len(config.model.keys()) == 1:  # type: ignore
         model = get_model_with_trial(config.model.netG, config.tuning.model.netG, trial).to(device)  # type: ignore
-        logger.info(model)
         logger.info(
             "Number of trainable params: {:.3f} million".format(
                 num_trainable_params(model) / 1000000.0

@@ -2,8 +2,8 @@
 # suggest list: https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html#optuna.trial.Trial.suggest_loguniform
 
 # general setting
-study_name: "test"
-storage: "sqlite:///../optuna_study.db"
+study_name:
+storage:
 n_trials: 1
 sampler:
   name: TPESampler
