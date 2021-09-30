@@ -186,7 +186,7 @@ class ProsodyPredictor(nn.Module):
 
         if global_prosody is True:
             self.global_bi_gru = nn.GRU(
-                input_size=conv_out_channels, hidden_size=global_d_gru // 2, 
+                input_size=conv_out_channels, hidden_size=global_d_gru // 2,
                 num_layers=global_gru_layers, batch_first=True, bidirectional=True
             )
             self.g_pi_linear = nn.Sequential(
@@ -254,7 +254,7 @@ class ProsodyPredictor(nn.Module):
             else:
                 # Teacher forcing
                 # prevent from backpropagation to prosody extractor
-                prev_out = target_prosody[:, t, :].clone().detach()
+                prev_out = target_prosody[:, t, :].detach()
             outs.append(prev_out.unsqueeze(1))
 
         outs = torch.cat(outs, dim=1)

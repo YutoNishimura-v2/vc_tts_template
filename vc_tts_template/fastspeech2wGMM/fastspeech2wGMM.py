@@ -205,7 +205,6 @@ class FastSpeech2wGMM(nn.Module):
                 output, target_prosody=prosody_target, target_global_prosody=g_prosody_target,
                 is_inference=is_inference
             )
-
         if is_inference is True:
             output = output + self.prosody_linear(prosody_prediction)
         else:
