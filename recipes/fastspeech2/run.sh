@@ -181,7 +181,7 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     cp -r conf/synthesis $expdir/conf
 fi
 
-if [ ${stage} -le 97 ] && [ ${stop_stage} -ge 97 ]; then
+if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
     echo "Tuning fastspeech2 by optuna"
     xrun python tuning_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
         tuning=$tuning_config tuning.study_name=$expname\

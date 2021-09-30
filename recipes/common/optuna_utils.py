@@ -195,7 +195,7 @@ def _update_running_losses_(running_losses, loss_values):
 
 
 def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loaders,
-                      logger, trial, use_loss=-1, train_step=None, epoch_step=False):
+                      logger, trial, use_loss="total_loss", train_step=None, epoch_step=False):
     nepochs = config.train.nepochs
 
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs):
@@ -233,8 +233,9 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
                         group_size = len(batchs)
                     is_first = 0
 
-            ave_loss = running_losses[list(running_losses.keys())[use_loss]] / (len(data_loaders[phase]) * group_size)
-            trial.report(ave_loss, epoch)
+            if phase == "dev":
+                ave_loss = running_losses[use_loss] / (len(data_loaders[phase]) * group_size)
+                trial.report(ave_loss, epoch)
 
             if trial.should_prune():
                 raise optuna.TrialPruned()

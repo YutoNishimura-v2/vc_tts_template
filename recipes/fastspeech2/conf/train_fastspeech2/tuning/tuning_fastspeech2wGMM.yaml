@@ -4,13 +4,15 @@
 # general setting
 study_name:
 storage:
-n_trials: 1
+n_trials: 10
 sampler:
   name: TPESampler
   params:
 pruner:
   name: HyperbandPruner
   params:
+
+target_loss: postnet_mel_loss
 
 # optimizer
 optimizer:
