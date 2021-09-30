@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import torch.nn as nn
 
@@ -19,7 +19,7 @@ class FastSpeech2(nn.Module):
         encoder_num_layer: int,
         encoder_num_head: int,
         conv_filter_size: int,
-        conv_kernel_size: int,
+        conv_kernel_size: List[int],
         encoder_dropout: float,
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -70,6 +70,10 @@ class FastSpeech2(nn.Module):
             conv_filter_size,
             conv_kernel_size,
             decoder_dropout
+        )
+        self.decoder_linear = nn.Linear(
+            encoder_hidden_dim,
+            decoder_hidden_dim,
         )
         self.mel_linear = nn.Linear(
             decoder_hidden_dim,
@@ -160,7 +164,7 @@ class FastSpeech2(nn.Module):
             d_control,
         )
 
-        output, mel_masks = self.decoder(output, mel_masks)
+        output, mel_masks = self.decoder(self.decoder_linear(output), mel_masks)
         output = self.mel_linear(output)
 
         postnet_output = self.postnet(output) + output

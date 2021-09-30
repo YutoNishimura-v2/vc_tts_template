@@ -73,8 +73,12 @@ class fastspeech2VC(nn.Module):
             self.mel_num * self.reduction_factor,
             encoder_hidden_dim,
         )
-        self.mel_linear_2 = nn.Linear(
+        self.decoder_linear = nn.Linear(
             encoder_hidden_dim,
+            decoder_hidden_dim,
+        )
+        self.mel_linear_2 = nn.Linear(
+            decoder_hidden_dim,
             self.mel_num * self.reduction_factor,
         )
         self.postnet = PostNet(
@@ -181,7 +185,7 @@ class fastspeech2VC(nn.Module):
         if self.emotion_emb is not None:
             output = output + self.speaker_emb(t_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
 
-        output = self.decoder(output, t_mel_masks)
+        output = self.decoder(self.decoder_linear(output), t_mel_masks)
         output = self.mel_linear_2(output).contiguous().view(output.size(0), -1, self.mel_num)
 
         postnet_output = self.postnet(output) + output
