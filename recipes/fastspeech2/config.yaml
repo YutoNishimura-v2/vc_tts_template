@@ -2,7 +2,7 @@
 spk: "Long_dialogue"
 
 # exp tag(for managing experiments)
-tag: "Long_dialogue_6"
+tag: "Long_dialogue_97"
 
 sample_rate: 22050
 
@@ -63,6 +63,9 @@ fastspeech2_data_batch_size: 8
 ### hifigan ###
 hifigan_train_nepochs: 50
 hifigan_data_batch_size: 32
+
+### (optional) Optuna Tuning ###
+tuning_config: tuning_fastspeech2wGMM
 
 ###########################################################
 #                SYNTHESIS SETTING                        #

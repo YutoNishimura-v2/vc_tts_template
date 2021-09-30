@@ -1,0 +1,45 @@
+# for tuning using optuna
+# suggest list: https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html#optuna.trial.Trial.suggest_loguniform
+
+# general setting
+study_name: "test"
+storage: "sqlite:///../optuna_study.db"
+n_trials: 1
+sampler:
+  name: TPESampler
+  params:
+pruner:
+  name: HyperbandPruner
+  params:
+
+# optimizer
+optimizer:
+  lr:
+    suggest: suggest_loguniform
+    params:
+      low: 0.0001
+      high: 0.1
+# lr_scheduler
+lr_scheduler:
+# loss
+criterion:
+  beta:
+    suggest: suggest_uniform
+    params:
+      low: 0.001
+      high: 1.0
+  g_beta:
+    suggest: suggest_uniform
+    params:
+      low: 0.001
+      high: 1.0
+
+# model
+model:
+  netG:
+    num_gaussians:
+      suggest: suggest_int
+      params:
+        low: 2
+        high: 20
+        step: 2

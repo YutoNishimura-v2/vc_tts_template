@@ -181,6 +181,36 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     cp -r conf/synthesis $expdir/conf
 fi
 
+if [ ${stage} -le 97 ] && [ ${stop_stage} -ge 97 ]; then
+    echo "Tuning fastspeech2 by optuna"
+    xrun python tuning_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
+        tuning=$tuning_config \
+        cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
+        data.train.utt_list=data/train.list \
+        data.train.in_dir=$dump_norm_dir/$train_set/in_fastspeech2/ \
+        data.train.out_dir=$dump_norm_dir/$train_set/out_fastspeech2/ \
+        data.dev.utt_list=data/dev.list \
+        data.dev.in_dir=$dump_norm_dir/$dev_set/in_fastspeech2/ \
+        data.dev.out_dir=$dump_norm_dir/$dev_set/out_fastspeech2/ \
+        data.batch_size=$fastspeech2_data_batch_size \
+        train.out_dir=$expdir/${acoustic_model} \
+        train.log_dir=tensorboard/${expname}_${acoustic_model} \
+        train.nepochs=$fastspeech2_train_nepochs \
+        train.sampling_rate=$sample_rate \
+        train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
+        train.vocoder_name=$vocoder_model \
+        train.vocoder_config=$vocoder_config \
+        train.vocoder_weight_path=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
+        train.criterion.pitch_feature_level=$pitch_phoneme_averaging \
+        train.criterion.energy_feature_level=$energy_phoneme_averaging \
+        model.netG.pitch_feature_level=$pitch_phoneme_averaging \
+        model.netG.energy_feature_level=$energy_phoneme_averaging \
+        model.netG.n_mel_channel=$n_mel_channels
+    
+    # save config
+    cp -r conf/train_fastspeech2 $expdir/conf
+fi
+
 if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ]; then
     echo "Create tar.gz to share experiments"
     rm -rf tmp/exp

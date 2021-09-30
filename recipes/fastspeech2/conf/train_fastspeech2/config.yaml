@@ -2,6 +2,7 @@
 
 defaults:
   - model:
+  - tuning:
 
 verbose: 100
 seed: 773
