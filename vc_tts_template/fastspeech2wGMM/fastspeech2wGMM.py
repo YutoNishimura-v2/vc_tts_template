@@ -27,6 +27,8 @@ class FastSpeech2wGMM(nn.Module):
         prosody_emb_dim: int,
         extra_conv_kernel_size: int,
         extra_conv_n_layers: int,
+        extra_gru_n_layers: int,
+        extra_global_gru_n_layers: int,
         # prosody predictor
         gru_hidden_dim: int,
         gru_n_layers: int,
@@ -36,6 +38,9 @@ class FastSpeech2wGMM(nn.Module):
         pp_conv_dropout: float,
         pp_zoneout: float,
         num_gaussians: int,
+        global_gru_n_layers: int,
+        global_d_gru: int,
+        global_num_gaussians: int,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -51,7 +56,9 @@ class FastSpeech2wGMM(nn.Module):
         decoder_num_head: int,
         decoder_dropout: float,
         n_mel_channel: int,
+        # other
         encoder_fix: bool,
+        global_prosody: bool,
         stats: Dict,
         speakers: Optional[Dict] = None,
         emotions: Optional[Dict] = None
@@ -84,6 +91,9 @@ class FastSpeech2wGMM(nn.Module):
             prosody_emb_dim,
             conv_kernel_size=extra_conv_kernel_size,
             conv_n_layers=extra_conv_n_layers,
+            gru_n_layers=extra_gru_n_layers,
+            global_prosody=global_prosody,
+            global_gru_n_layers=extra_global_gru_n_layers,
         )
         self.prosody_predictor = ProsodyPredictor(
             encoder_hidden_dim,
@@ -95,7 +105,11 @@ class FastSpeech2wGMM(nn.Module):
             conv_dropout=pp_conv_dropout,
             gru_layers=gru_n_layers,
             zoneout=pp_zoneout,
-            num_gaussians=num_gaussians
+            num_gaussians=num_gaussians,
+            global_prosody=global_prosody,
+            global_gru_layers=global_gru_n_layers,
+            global_d_gru=global_d_gru,
+            global_num_gaussians=global_num_gaussians,
         )
         self.decoder = Decoder(
             max_seq_len,
@@ -105,6 +119,10 @@ class FastSpeech2wGMM(nn.Module):
             conv_filter_size,
             conv_kernel_size,
             decoder_dropout
+        )
+        self.prosody_linear = nn.Linear(
+            prosody_emb_dim,
+            encoder_hidden_dim,
         )
         self.mel_linear = nn.Linear(
             decoder_hidden_dim,
@@ -130,6 +148,7 @@ class FastSpeech2wGMM(nn.Module):
             )
 
         self.encoder_fix = encoder_fix
+        self.global_prosody = global_prosody
         self.speakers = speakers
         self.emotions = emotions
 
@@ -173,19 +192,24 @@ class FastSpeech2wGMM(nn.Module):
             output = output + self.emotion_emb(emotions).unsqueeze(1).expand(
                 -1, max_src_len, -1
             )
-
-        prosody_target = self.prosody_extractor(mels, d_targets)
-
         is_inference = True if p_targets is None else False
 
-        prosody_prediction, pi_outs, sigma_outs, mu_outs = self.prosody_predictor(
-            output, prosody_target, is_inference
-        )
+        if self.global_prosody is False:
+            prosody_target = self.prosody_extractor(mels, d_targets)
+            prosody_prediction, pi_outs, sigma_outs, mu_outs = self.prosody_predictor(
+                output, target_prosody=prosody_target, is_inference=is_inference
+            )
+        else:
+            prosody_target, g_prosody_target = self.prosody_extractor(mels, d_targets)
+            prosody_prediction, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu = self.prosody_predictor(
+                output, target_prosody=prosody_target, target_global_prosody=g_prosody_target,
+                is_inference=is_inference
+            )
 
         if is_inference is True:
-            output += prosody_prediction
+            output = output + self.prosody_linear(prosody_prediction)
         else:
-            output += prosody_target
+            output = output + self.prosody_linear(prosody_target)
         (
             output,
             p_predictions,
@@ -212,6 +236,27 @@ class FastSpeech2wGMM(nn.Module):
 
         postnet_output = self.postnet(output) + output
 
+        if self.global_prosody is True:
+            return (
+                output,
+                postnet_output,
+                p_predictions,
+                e_predictions,
+                log_d_predictions,
+                d_rounded,
+                src_masks,
+                mel_masks,
+                src_lens,
+                mel_lens,
+                prosody_target,
+                pi_outs,
+                mu_outs,
+                sigma_outs,
+                g_prosody_target,
+                g_pi,
+                g_mu,
+                g_sigma,
+            )
         return (
             output,
             postnet_output,
@@ -226,5 +271,5 @@ class FastSpeech2wGMM(nn.Module):
             prosody_target,
             pi_outs,
             mu_outs,
-            sigma_outs
+            sigma_outs,
         )

@@ -124,8 +124,8 @@ class VarianceAdaptor(nn.Module):
             mel_mask = make_pad_mask(mel_len)
             max_len = max(mel_len.cpu().numpy())
 
-        pitch += x.detach() if self.pitch_stop_gradient_flow is True else x
-        energy += x.detach() if self.energy_stop_gradient_flow is True else x
+        pitch = pitch + x.detach() if self.pitch_stop_gradient_flow is True else x
+        energy = energy + x.detach() if self.energy_stop_gradient_flow is True else x
 
         # pitch, energy: (B, T//r, d_enc)
         if self.pitch_AR is False:

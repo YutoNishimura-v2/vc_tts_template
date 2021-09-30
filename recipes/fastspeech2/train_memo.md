@@ -21,4 +21,12 @@
     - Long_dialogue_4
         - spk: Long_dialogue
         - pretrain: None
-        - wGMM初稼働
+        - wGMM初稼働. ミスって上書きしてしまった...。
+    - Long_dialogue_5
+        - spk: Long_dialogue
+        - pretrain: None
+        - wGMM実質初稼働. ミスって上書きしてしまった...。
+    - Long_dialogue_6
+        - spk: Long_dialogue
+        - pretrain: None
+        - wGMM+global prosody.

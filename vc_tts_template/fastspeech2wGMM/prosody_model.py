@@ -32,6 +32,9 @@ class ProsodyExtractor(nn.Module):
         conv_dilation=1,
         conv_bias=True,
         conv_n_layers=2,
+        gru_n_layers=1,
+        global_prosody=False,
+        global_gru_n_layers=1
     ):
         super().__init__()
         self.convnorms = ConvBNorms2d(
@@ -40,13 +43,21 @@ class ProsodyExtractor(nn.Module):
         )
         self.convnorms.apply(encoder_init)
         self.bi_gru = nn.GRU(
-            input_size=d_mel, hidden_size=d_out // 2, num_layers=1,
+            input_size=d_mel, hidden_size=d_out // 2, num_layers=gru_n_layers,
             batch_first=True, bidirectional=True
         )
+        if global_prosody is True:
+            self.global_bi_gru = nn.GRU(
+                input_size=d_out, hidden_size=d_out // 2, num_layers=global_gru_n_layers,
+                batch_first=True, bidirectional=True
+            )
+        self.global_prosody = global_prosody
 
     def forward(self, mels, durations):
         # expected(B, T, d_mel)
         if mels is None:
+            if self.global_prosody is True:
+                return None, None
             return None
         durations = durations.detach().cpu().numpy()  # detach
         output_sorted, src_lens_sorted, segment_nums, inv_sort_idx = self.mel2phone(mels, durations)
@@ -63,6 +74,12 @@ class ProsodyExtractor(nn.Module):
             outs.append(out[:, -1, :])  # use last time
         outs = torch.cat(outs, 0)
         out = self.phone2utter(outs[inv_sort_idx], segment_nums)
+
+        if self.global_prosody is True:
+            # global_emb: (B, d_out)
+            global_emb = self.global_bi_gru(out)[0][:, -1, :]
+            out = out + global_emb.unsqueeze(1).expand_as(out)
+            return out, global_emb
         return out
 
     def mel2phone(self, mels, durations):
@@ -136,6 +153,10 @@ class ProsodyPredictor(nn.Module):
         gru_layers=2,
         zoneout=0.1,
         num_gaussians=10,
+        global_prosody=False,
+        global_gru_layers=1,
+        global_d_gru=256,
+        global_num_gaussians=10,
     ) -> None:
         super().__init__()
         self.convnorms = ConvLNorms1d(
@@ -163,11 +184,37 @@ class ProsodyPredictor(nn.Module):
         self.sigma_linear = nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians)
         self.mu_linear = nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians)
 
+        if global_prosody is True:
+            self.global_bi_gru = nn.GRU(
+                input_size=conv_out_channels, hidden_size=global_d_gru // 2, 
+                num_layers=global_gru_layers, batch_first=True, bidirectional=True
+            )
+            self.g_pi_linear = nn.Sequential(
+                nn.Linear(global_d_gru, global_num_gaussians),
+                nn.Softmax(dim=1)
+            )
+            self.g_sigma_linear = nn.Linear(global_d_gru, d_out*global_num_gaussians)
+            self.g_mu_linear = nn.Linear(global_d_gru, d_out*global_num_gaussians)
+
         self.d_out = d_out
         self.num_gaussians = num_gaussians
+        self.global_prosody = global_prosody
+        self.global_num_gaussians = global_num_gaussians
 
-    def forward(self, encoder_output, target_prosody=None, is_inference=False):
+    def forward(self, encoder_output, target_prosody=None, target_global_prosody=None, is_inference=False):
         encoder_output = self.convnorms(encoder_output)
+
+        if self.global_prosody is True:
+            # hidden_global: (B, global_d_gru)
+            hidden_global = self.global_bi_gru(encoder_output)[0][:, -1, :]
+            g_pi = self.g_pi_linear(hidden_global)
+            g_sigma = torch.exp(self.g_sigma_linear(hidden_global)).view(-1, self.global_num_gaussians, self.d_out)
+            g_mu = self.g_mu_linear(hidden_global).view(-1, self.global_num_gaussians, self.d_out)
+            if target_global_prosody is None:
+                target_global_prosody = self.sample(g_pi, g_sigma, g_mu)
+            else:
+                target_global_prosody = target_global_prosody.detach()
+
         # GRU の状態をゼロで初期化
         h_list = []
         for _ in range(len(self.gru)):
@@ -183,6 +230,8 @@ class ProsodyPredictor(nn.Module):
 
         for t in range(encoder_output.size()[1]):
             # Pre-Net
+            if target_global_prosody is not None:
+                prev_out = prev_out + target_global_prosody
             prenet_out = self.prenet(prev_out)
 
             # LSTM
@@ -205,13 +254,15 @@ class ProsodyPredictor(nn.Module):
             else:
                 # Teacher forcing
                 # prevent from backpropagation to prosody extractor
-                prev_out = target_prosody[:, t, :].detach()
+                prev_out = target_prosody[:, t, :].clone().detach()
             outs.append(prev_out.unsqueeze(1))
 
         outs = torch.cat(outs, dim=1)
         pi_outs = torch.cat(pi_outs, dim=1)
         sigma_outs = torch.cat(sigma_outs, dim=1)
         mu_outs = torch.cat(mu_outs, dim=1)
+        if self.global_prosody is True:
+            return outs, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu
         return outs, pi_outs, sigma_outs, mu_outs
 
     def _zero_state(self, hs):

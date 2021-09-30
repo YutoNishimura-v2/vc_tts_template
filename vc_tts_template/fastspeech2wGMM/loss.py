@@ -6,11 +6,12 @@ from torch.distributions.normal import Normal
 class FastSpeech2Loss(nn.Module):
     """ FastSpeech2 Loss """
 
-    def __init__(self, pitch_feature_level, energy_feature_level, beta):
+    def __init__(self, pitch_feature_level, energy_feature_level, beta, g_beta=None):
         super(FastSpeech2Loss, self).__init__()
         self.pitch_feature_level = "phoneme_level" if pitch_feature_level > 0 else "frame_level"
         self.energy_feature_level = "phoneme_level" if energy_feature_level > 0 else "frame_level"
         self.beta = beta
+        self.g_beta = g_beta
 
         self.mse_loss = nn.MSELoss()
         self.mae_loss = nn.L1Loss()
@@ -39,7 +40,7 @@ class FastSpeech2Loss(nn.Module):
             pi_outs,
             mu_outs,
             sigma_outs
-        ) = predictions
+        ) = predictions[:14]
         src_masks = ~src_masks
         mel_masks = ~mel_masks
         log_duration_targets = torch.log(duration_targets.float() + 1)
@@ -90,16 +91,42 @@ class FastSpeech2Loss(nn.Module):
         prosody_loss = -torch.logsumexp(torch.log(pi_outs) + loglik, dim=-1)
         prosody_loss = torch.mean(prosody_loss.masked_select(src_masks))
 
-        total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss + self.beta*prosody_loss
+        if len(predictions[14:]) > 0:
+            # global embedding True
+            g_prosody_target, g_pi, g_mu, g_sigma = predictions[14:]
+            normal_dist = Normal(loc=g_mu, scale=g_sigma)
+            loglik = normal_dist.log_prob(g_prosody_target.detach().unsqueeze(1).expand_as(normal_dist.loc))
+            # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
+            loglik = torch.sum(loglik, dim=-1)
+            # logsumexpを使わないとunderflowする.
+            g_prosody_loss = -torch.logsumexp(torch.log(g_pi) + loglik, dim=-1)
+            g_prosody_loss = torch.mean(g_prosody_loss)
 
-        loss_values = {
-            "mel_loss": mel_loss.item(),
-            "postnet_mel_loss": postnet_mel_loss.item(),
-            "pitch_loss": pitch_loss.item(),
-            "energy_loss": energy_loss.item(),
-            "duration_loss": duration_loss.item(),
-            "prosody_loss": prosody_loss.item(),
-            "total_loss": total_loss.item()
-        }
+            total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss + \
+                self.beta*prosody_loss + self.g_beta*g_prosody_loss
+
+            loss_values = {
+                "mel_loss": mel_loss.item(),
+                "postnet_mel_loss": postnet_mel_loss.item(),
+                "pitch_loss": pitch_loss.item(),
+                "energy_loss": energy_loss.item(),
+                "duration_loss": duration_loss.item(),
+                "prosody_loss": prosody_loss.item(),
+                "global_prosody_loss": g_prosody_loss.item(),
+                "total_loss": total_loss.item()
+            }
+
+        else:
+            total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss + self.beta*prosody_loss
+
+            loss_values = {
+                "mel_loss": mel_loss.item(),
+                "postnet_mel_loss": postnet_mel_loss.item(),
+                "pitch_loss": pitch_loss.item(),
+                "energy_loss": energy_loss.item(),
+                "duration_loss": duration_loss.item(),
+                "prosody_loss": prosody_loss.item(),
+                "total_loss": total_loss.item()
+            }
 
         return total_loss, loss_values

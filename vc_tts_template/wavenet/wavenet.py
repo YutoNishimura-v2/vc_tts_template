@@ -102,7 +102,7 @@ class WaveNet(nn.Module):
         skips = 0
         for f in self.main_conv_layers:
             x, h = f(x, c)
-            skips += h
+            skips = skips + h
 
         # スキップ接続の和を入力として、出力を計算
         x = skips
@@ -162,7 +162,7 @@ class WaveNet(nn.Module):
             skips = 0
             for f in self.main_conv_layers:
                 x, h = f.incremental_forward(x, ct)
-                skips += h
+                skips = skips + h
             x = skips
             for f in self.last_conv_layers:
                 if hasattr(f, "incremental_forward"):

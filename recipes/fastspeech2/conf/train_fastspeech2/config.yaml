@@ -76,6 +76,7 @@ train:
     pitch_feature_level:
     energy_feature_level:
     beta: 0.02
+    g_beta: 0.02
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
