@@ -281,7 +281,7 @@ class VariancePredictor(nn.Module):
                             self.filter_size,
                             self.filter_size,
                             kernel_size=self.kernel,
-                            padding=1,
+                            padding=(self.kernel - 1) // 2,
                         ),
                     ),
                     ("relu_2", nn.ReLU()),

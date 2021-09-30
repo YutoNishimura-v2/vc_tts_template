@@ -30,3 +30,7 @@
         - spk: Long_dialogue
         - pretrain: None
         - wGMM+global prosody.
+    - Long_dialogue_7
+        - spk: Long_dialogue
+        - pretrain: None
+        - optunaでハイパラ探索を行う

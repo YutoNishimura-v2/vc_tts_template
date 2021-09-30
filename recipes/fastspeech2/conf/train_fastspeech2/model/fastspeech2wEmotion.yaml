@@ -6,7 +6,8 @@ netG:
   encoder_num_layer: 4
   encoder_num_head: 2
   conv_filter_size: 1024
-  conv_kernel_size: [9, 1]
+  conv_kernel_size_1: 9
+  conv_kernel_size_2: 1
   encoder_dropout: 0.2
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3

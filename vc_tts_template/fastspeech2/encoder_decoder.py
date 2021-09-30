@@ -1,3 +1,4 @@
+from typing import List
 import torch
 import torch.nn as nn
 import numpy as np
@@ -39,7 +40,7 @@ class Encoder(nn.Module):
         encoder_num_layer: int,
         encoder_num_head: int,
         conv_filter_size: int,
-        conv_kernel_size: int,
+        conv_kernel_size: List[int],
         encoder_dropout: float
     ):
         super(Encoder, self).__init__()
@@ -125,7 +126,7 @@ class Decoder(nn.Module):
         decoder_num_layer: int,
         decoder_num_head: int,
         conv_filter_size: int,
-        conv_kernel_size: int,
+        conv_kernel_size: List[int],
         decoder_dropout: float
     ):
         super(Decoder, self).__init__()

@@ -2,7 +2,7 @@
 spk: "Long_dialogue"
 
 # exp tag(for managing experiments)
-tag: "Long_dialogue_97"
+tag: "Long_dialogue_7"
 
 sample_rate: 22050
 
@@ -57,7 +57,7 @@ vocoder_weight_base_path: "exp/Long_dialogue_sr22050_Long_dialogue_1/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 10
+fastspeech2_train_nepochs: 100
 fastspeech2_data_batch_size: 8
 
 ### hifigan ###

@@ -21,7 +21,8 @@ class FastSpeech2wGMM(nn.Module):
         encoder_num_layer: int,
         encoder_num_head: int,
         conv_filter_size: int,
-        conv_kernel_size: int,
+        conv_kernel_size_1: int,
+        conv_kernel_size_2: int,
         encoder_dropout: float,
         # prosody extractor
         prosody_emb_dim: int,
@@ -71,7 +72,7 @@ class FastSpeech2wGMM(nn.Module):
             encoder_num_layer,
             encoder_num_head,
             conv_filter_size,
-            conv_kernel_size,
+            [conv_kernel_size_1, conv_kernel_size_2],
             encoder_dropout
         )
         self.variance_adaptor = VarianceAdaptor(
@@ -117,12 +118,16 @@ class FastSpeech2wGMM(nn.Module):
             decoder_num_layer,
             decoder_num_head,
             conv_filter_size,
-            conv_kernel_size,
+            [conv_kernel_size_1, conv_kernel_size_2],
             decoder_dropout
         )
         self.prosody_linear = nn.Linear(
             prosody_emb_dim,
             encoder_hidden_dim,
+        )
+        self.decoder_linear = nn.Linear(
+            encoder_hidden_dim,
+            decoder_hidden_dim,
         )
         self.mel_linear = nn.Linear(
             decoder_hidden_dim,
@@ -230,7 +235,7 @@ class FastSpeech2wGMM(nn.Module):
             d_control,
         )
 
-        output, mel_masks = self.decoder(output, mel_masks)
+        output, mel_masks = self.decoder(self.decoder_linear(output), mel_masks)
         output = self.mel_linear(output)
 
         postnet_output = self.postnet(output) + output

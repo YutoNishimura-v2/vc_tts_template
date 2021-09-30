@@ -183,6 +183,8 @@ fi
 
 if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
     echo "Tuning fastspeech2 by optuna"
+    mkdir -p $expdir/${acoustic_model}
+
     xrun python tuning_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
         tuning=$tuning_config tuning.study_name=$expname\
         tuning.storage=sqlite:///../../../${expdir}/${acoustic_model}/optuna_study.db \
@@ -209,7 +211,8 @@ if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
         model.netG.n_mel_channel=$n_mel_channels
     
     # save config
-    cp -r conf/train_fastspeech2 $expdir/conf
+    mkdir -p $expdir/conf/train_fastspeech2
+    cp -r conf/train_fastspeech2/tuning $expdir/conf/train_fastspeech2
 fi
 
 if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ]; then

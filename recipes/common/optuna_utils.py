@@ -14,7 +14,6 @@ from tqdm import tqdm
 sys.path.append("../..")
 from vc_tts_template.logger import getLogger
 from vc_tts_template.train_utils import (_get_data_loaders,
-                                         num_trainable_params,
                                          set_epochs_based_on_max_steps_,
                                          get_epochs_with_optional_tqdm)
 from vc_tts_template.utils import init_seed
@@ -34,17 +33,11 @@ def get_model_with_trial(model_config, tuning_config, trial):
     return hydra.utils.instantiate(model_config)
 
 
-def get_several_model_with_trial(config, device, logger, trial):
+def get_several_model_with_trial(config, device, trial):
     model_dict = {}
     tuning_config = config.tuning.model
     for model_name in config.model.keys():
         model = get_model_with_trial(config.model[model_name], tuning_config[model_name], trial).to(device)
-        logger.info(model)
-        logger.info(
-            "Number of trainable params of {}: {:.3f} million".format(
-                model_name, num_trainable_params(model) / 1000000.0
-            )
-        )
         if config.data_parallel:
             model = nn.DataParallel(model)
         model_dict[model_name] = model
@@ -78,17 +71,12 @@ def optuna_setup(
     # モデルのインスタンス化
     if len(config.model.keys()) == 1:  # type: ignore
         model = get_model_with_trial(config.model.netG, config.tuning.model.netG, trial).to(device)  # type: ignore
-        logger.info(
-            "Number of trainable params: {:.3f} million".format(
-                num_trainable_params(model) / 1000000.0
-            )
-        )
         # 複数 GPU 対応
         if config.data_parallel:  # type: ignore
             model = nn.DataParallel(model)
 
     else:
-        model = get_several_model_with_trial(config, device, logger, trial)
+        model = get_several_model_with_trial(config, device, trial)
 
     # 複数 GPU 対応
     if config.data_parallel:  # type: ignore
