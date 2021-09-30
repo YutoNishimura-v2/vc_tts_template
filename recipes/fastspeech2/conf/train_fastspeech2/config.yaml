@@ -75,7 +75,7 @@ train:
     _target_: vc_tts_template.fastspeech2wGMM.loss.FastSpeech2Loss
     pitch_feature_level:
     energy_feature_level:
-    beta: 0.5
+    beta: 0.02
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.

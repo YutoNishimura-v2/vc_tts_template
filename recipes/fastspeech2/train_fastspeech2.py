@@ -40,12 +40,6 @@ def fastspeech2_train_step(
 
     loss, loss_values = loss(batch, output)
 
-    from torchviz import make_dot
-    dot = make_dot(loss, params=dict(model.named_parameters()))
-    dot.format = "pdf"
-    dot.render("test")
-    q
-
     # Update
     if train:
         loss.backward()

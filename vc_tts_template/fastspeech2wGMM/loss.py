@@ -1,6 +1,6 @@
 import torch
-from torch.distributions.normal import Normal
 import torch.nn as nn
+from torch.distributions.normal import Normal
 
 
 class FastSpeech2Loss(nn.Module):
@@ -86,8 +86,9 @@ class FastSpeech2Loss(nn.Module):
         loglik = normal_dist.log_prob(prosody_target.detach().unsqueeze(2).expand_as(normal_dist.loc))
         # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
         loglik = torch.sum(loglik, dim=-1)
-        probs = torch.sum(torch.exp(torch.log(pi_outs) + loglik), dim=-1)
-        prosody_loss = torch.mean(-torch.log(probs.masked_select(src_masks)+1e-6))
+        # logsumexpを使わないとunderflowする.
+        prosody_loss = -torch.logsumexp(torch.log(pi_outs) + loglik, dim=-1)
+        prosody_loss = torch.mean(prosody_loss.masked_select(src_masks))
 
         total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss + self.beta*prosody_loss
 

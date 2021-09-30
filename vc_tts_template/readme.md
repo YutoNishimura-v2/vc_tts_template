@@ -67,6 +67,7 @@
     - save_checkpoint: 保存用関数. is_baseを使うことで, bestと名前を付けてくれる.
     - ensure_divisible_by: 与えられた特徴量の長さがNで割り切れない時, 削って返す. 正直, paddingしてほしいので使えない. 実際使われていない.
     - moving_average_: パラメータの移動平均を計算し, テスト用モデルに再代入してあげる. @wavenet
+    - plot_grad_flow: gradientを可視化してくれる. 最高.
     - plot_attention: attention weightを入れたらfigを返してくれる.
     - plot_mels: melに特化したわけではないが, 2次元の特徴量を複数渡したときに縦にくっつけて表示してくれる.
     - plot_2d_feats: 二次元の特徴量を図示してくれる.

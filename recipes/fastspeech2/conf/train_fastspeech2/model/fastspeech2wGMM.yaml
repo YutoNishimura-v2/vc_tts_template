@@ -11,14 +11,14 @@ netG:
   prosody_emb_dim: 256
   extra_conv_kernel_size: 3
   extra_conv_n_layers: 2
-  gru_hidden_dim: 256
+  gru_hidden_dim: 1024
   gru_n_layers: 2
   pp_conv_out_channels: 256
   pp_conv_kernel_size: 3
   pp_conv_n_layers: 2
   pp_conv_dropout: 0.2
   pp_zoneout: 0.1
-  num_gaussians: 20
+  num_gaussians: 10
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3
   variance_predictor_dropout: 0.5
