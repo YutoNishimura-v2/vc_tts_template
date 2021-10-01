@@ -37,3 +37,7 @@
         - spk: Long_dialogue
         - pretrain: None
         - optunaでハイパラ探索を行う
+    - JSUT_accent_1(@myPC)
+        - spk: JSUT_accent
+        - pretrain: None
+        - アクセント付きFastSpeech2初実行
