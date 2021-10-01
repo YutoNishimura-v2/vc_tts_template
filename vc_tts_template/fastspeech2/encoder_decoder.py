@@ -91,14 +91,14 @@ class Encoder(nn.Module):
         """
 
         enc_slf_attn_list = []
-        batch_size, max_len = src_seq.shape[0], src_seq.shape[1]
+        batch_size, max_len = mask.shape[0], mask.shape[1]
 
         slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
 
-        if not self.training and src_seq.shape[1] > self.max_seq_len:
+        if not self.training and max_len > self.max_seq_len:
             enc_output = self.src_word_emb(src_seq) + get_sinusoid_encoding_table(
-                src_seq.shape[1], self.d_model
-            )[: src_seq.shape[1], :].unsqueeze(0).expand(batch_size, -1, -1).to(
+                max_len, self.d_model
+            )[: max_len, :].unsqueeze(0).expand(batch_size, -1, -1).to(
                 src_seq.device
             )
         else:

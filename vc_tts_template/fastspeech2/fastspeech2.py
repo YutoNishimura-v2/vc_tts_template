@@ -104,6 +104,7 @@ class FastSpeech2(nn.Module):
         self.encoder_fix = encoder_fix
         self.speakers = speakers
         self.emotions = emotions
+        self.accent_info = accent_info
 
     def forward(
         self,
@@ -123,7 +124,8 @@ class FastSpeech2(nn.Module):
         e_control=1.0,
         d_control=1.0,
     ):
-        src_masks = make_pad_mask(src_lens, max_src_len)
+        divide_value = 2 if self.accent_info > 0 else 1
+        src_masks = make_pad_mask((src_lens / divide_value).long(), max_src_len // divide_value)
         # PAD前の, 元データが入っていない部分がTrueになっているmaskの取得
         # これは, attentionで, -infをfillするために使いたいので.
         mel_masks = (
@@ -131,7 +133,6 @@ class FastSpeech2(nn.Module):
             if mel_lens is not None
             else None
         )
-
         output = self.encoder(texts, src_masks)
 
         if self.encoder_fix is True:

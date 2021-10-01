@@ -141,6 +141,7 @@ class PostNet(nn.Module):
         x = x.contiguous().transpose(1, 2)
         return x
 
+
 class WordEncoder(nn.Module):
     def __init__(
         self,
@@ -158,7 +159,7 @@ class WordEncoder(nn.Module):
             self.src_accent_emb = nn.Embedding(
                 n_src_vocab, d_word_vec, padding_idx=padding_idx
             )
-        
+
         self.accent_info = accent_info
 
     def forward(self, src_seq):
