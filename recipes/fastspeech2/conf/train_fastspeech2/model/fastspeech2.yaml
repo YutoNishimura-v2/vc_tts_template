@@ -1,7 +1,7 @@
 netG:
   _target_: vc_tts_template.fastspeech2.FastSpeech2
   max_seq_len: 1000
-  num_vocab: 52
+  num_vocab: 53
   encoder_hidden_dim: 256
   encoder_num_layer: 4
   encoder_num_head: 2
@@ -26,3 +26,4 @@ netG:
   stats: {"pitch_min": 70, "pitch_max": 750, "energy_min": 10, "energy_max": 27}
   speakers:
   emotions:
+  accent_info:

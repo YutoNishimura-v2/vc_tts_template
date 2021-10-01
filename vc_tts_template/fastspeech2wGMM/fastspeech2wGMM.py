@@ -62,7 +62,8 @@ class FastSpeech2wGMM(nn.Module):
         global_prosody: bool,
         stats: Dict,
         speakers: Optional[Dict] = None,
-        emotions: Optional[Dict] = None
+        emotions: Optional[Dict] = None,
+        accent_info: int = 0,
     ):
         super(FastSpeech2wGMM, self).__init__()
         self.encoder = Encoder(
@@ -73,7 +74,8 @@ class FastSpeech2wGMM(nn.Module):
             encoder_num_head,
             conv_filter_size,
             [conv_kernel_size_1, conv_kernel_size_2],
-            encoder_dropout
+            encoder_dropout,
+            accent_info,
         )
         self.variance_adaptor = VarianceAdaptor(
             encoder_hidden_dim,

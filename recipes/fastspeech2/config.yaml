@@ -1,8 +1,8 @@
 # General settings.
-spk: "Long_dialogue"
+spk: "JSUT_accent"
 
 # exp tag(for managing experiments)
-tag: "Long_dialogue_7"
+tag: "JSUT_accent_1"
 
 sample_rate: 22050
 
@@ -21,14 +21,14 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-wav_root: "../../../dataset/out_Long_dialogue/Long_dialogue/wav/22050"
-lab_root: "../../../dataset/out_Long_dialogue/textgrid"
+wav_root: "./downloads/jsut_ver1.1/basic5000/wav"
+lab_root: "./downloads/jsut-label/labels/basic5000"
 
 n_jobs: 8
 
-train_num: 1002
-deveval_num: 200
-dev_num: 150
+train_num: 4750
+deveval_num: 250
+dev_num: 200
 eval_num: 50
 
 ###########################################################
@@ -44,11 +44,12 @@ clip: 0.00001
 log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
+accent_info: 1
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wGMM
+acoustic_model: fastspeech2
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
@@ -65,7 +66,7 @@ hifigan_train_nepochs: 50
 hifigan_data_batch_size: 32
 
 ### (optional) Optuna Tuning ###
-tuning_config: tuning_fastspeech2wGMM
+tuning_config:
 
 ###########################################################
 #                SYNTHESIS SETTING                        #

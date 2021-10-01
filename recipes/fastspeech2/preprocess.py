@@ -85,15 +85,56 @@ def get_alignment(tier, sr, hop_length):
     return phones, durations, start_time, end_time
 
 
+def get_alignmentwPP(PP, start_times, end_times, sr, hop_length):
+    phones = []
+    durations = []
+    start_time = 0
+    end_time = 0
+    end_idx = 0
+    idx = 0
+    for s, e in zip(start_times[:-1], end_times[:-1]):
+        # 一番最後のsilに対応する音素は不要
+        s *= 1e-7
+        e *= 1e-7
+        # Trim leading silences
+        if phones == []:
+            if idx == 0:  # "^"
+                idx += 1
+                continue
+            else:
+                start_time = s
+        # For ordinary phones
+        phones.append(PP[idx])
+        phones.append(PP[idx+1])
+        end_time = e
+        end_idx = len(phones)
+
+        durations.append(
+            int(
+                np.round(e * sr / hop_length)
+                - np.round(s * sr / hop_length)
+            )
+        )
+        idx += 2
+
+    # Trim tailing silences
+    phones = phones[:end_idx]
+    durations = durations[:end_idx//2]
+    assert len(phones) == len(durations) * 2
+    return phones, durations, start_time, end_time
+
+
 def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
                       n_mels, fmin, fmax, clip_thresh, log_base,
                       pitch_phoneme_averaging, energy_phoneme_averaging,
                       accent_info):
     if accent_info is True:
         labels = hts.load(lab_path)
-        PP = pp_symbols(labels.contexts)
-        print(PP)
-        a
+        PP = pp_symbols(labels.contexts, all_accent_info=accent_info)
+        assert len(PP) == len(labels.start_times) * 2 - 3
+        text, duration, start, end = get_alignmentwPP(
+            PP, labels.start_times, labels.end_times, sr, hop_length
+        )
     else:
         textgrid = tgt.io.read_textgrid(lab_path)
         text, duration, start, end = get_alignment(
@@ -192,6 +233,7 @@ def preprocess(
     log_base,
     pitch_phoneme_averaging,
     energy_phoneme_averaging,
+    accent_info,
     in_dir,
     out_dir,
 ):
@@ -210,7 +252,8 @@ def preprocess(
         clip_thresh,
         log_base,
         pitch_phoneme_averaging,
-        energy_phoneme_averaging
+        energy_phoneme_averaging,
+        accent_info,
     )
     text = np.array(text_to_sequence(text), dtype=np.int64)
 
@@ -253,7 +296,8 @@ if __name__ == "__main__":
         utt_ids = [utt_id.strip() for utt_id in f]
 
     wav_files = [Path(args.wav_root) / f"{utt_id}.wav" for utt_id in utt_ids]
-    lab_files = [Path(args.lab_root) / f"{utt_id}.TextGrid" for utt_id in utt_ids]
+    postfix = ".lab" if args.accent_info > 0 else ".TextGrid"
+    lab_files = [Path(args.lab_root) / f"{utt_id}{postfix}" for utt_id in utt_ids]
 
     in_dir = Path(args.out_dir) / "in_fastspeech2"
     out_dir = Path(args.out_dir) / "out_fastspeech2"

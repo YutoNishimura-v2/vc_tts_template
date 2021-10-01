@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from vc_tts_template.fastspeech2.layers import FFTBlock
+from vc_tts_template.fastspeech2.layers import FFTBlock, WordEncoder
 
 
 def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
@@ -41,7 +41,8 @@ class Encoder(nn.Module):
         encoder_num_head: int,
         conv_filter_size: int,
         conv_kernel_size: List[int],
-        encoder_dropout: float
+        encoder_dropout: float,
+        accent_info: int = 0,
     ):
         super(Encoder, self).__init__()
 
@@ -64,8 +65,8 @@ class Encoder(nn.Module):
         self.max_seq_len = max_seq_len
         self.d_model = d_model
 
-        self.src_word_emb = nn.Embedding(
-            n_src_vocab, d_word_vec, padding_idx=0
+        self.src_word_emb = WordEncoder(
+            n_src_vocab, d_word_vec, padding_idx=0, accent_info=accent_info
         )
 
         self.position_enc = nn.Parameter(

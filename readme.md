@@ -31,6 +31,16 @@
     - [dashboard](https://cyberagent.ai/optuna-dashboard-development)
         - `optuna-dashboard sqlite:///optuna_study.db`
 
+- librosaできない問題、解決
+    - 原因: pyenvが生き残って悪さをしていた...
+    - [pyenv uninstall方法](https://www.owlog.org/update-python-environment/)
+    - 関係ないけど、良さげな見つけたサイト
+    - [brew](https://zenn.dev/ryuu/articles/wsl2-homebrew)
+
+- pyauidoできない問題
+    - [解決策](https://qiita.com/musaprg/items/34c4c1e0e9eb8e8cc5a1)
+    - [その他入れておいたほうがよさそうなもの](https://linuxtect.com/the-error-command-gcc-failed-with-exit-status-1-error-and-solution/)
+
 ## run.shの流れ
 
 - stage -1

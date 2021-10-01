@@ -52,7 +52,7 @@ extra_symbols = [
     "^",  # 文の先頭を表す特殊記号 <SOS>
     "$",  # 文の末尾を表す特殊記号 <EOS> (通常)
     "?",  # 文の末尾を表す特殊記号 <EOS> (疑問系)
-    "_",  # ポーズ
+    "sp",  # ポーズ
     "#",  # アクセント句境界
     "[",  # ピッチの上がり位置
     "]",  # ピッチの下がり位置
@@ -61,7 +61,7 @@ extra_symbols = [
 _pad = "~"
 
 # NOTE: 0 をパディングを表す数値とする
-symbols = [_pad] + extra_symbols + phonemes
+symbols = [_pad] + extra_symbols + phonemes + ["_"]  # アクセント情報に変化なし
 
 
 _symbol_to_id = {s: i for i, s in enumerate(symbols)}
@@ -75,7 +75,7 @@ def numeric_feature_by_regex(regex, s):
     return int(match.group(1))
 
 
-def pp_symbols(labels, drop_unvoiced_vowels=True):
+def pp_symbols(labels, drop_unvoiced_vowels=True, all_accent_info=False):
     """Extract phoneme + prosoody symbol sequence from input full-context labels
 
     The algorithm is based on [Kurihara 2021] [1]_ with some tweaks.
@@ -83,6 +83,7 @@ def pp_symbols(labels, drop_unvoiced_vowels=True):
     Args:
         labels (HTSLabelFile): List of labels
         drop_unvoiced_vowels (bool): Drop unvoiced vowels. Defaults to True.
+        all_accent_info (bool): put accent info into each phoneme.
 
     Returns:
         list: List of phoneme + prosody symbols
@@ -111,7 +112,6 @@ def pp_symbols(labels, drop_unvoiced_vowels=True):
     # 各音素毎に順番に処理
     for n in range(N):
         lab_curr = labels[n]
-
         # 当該音素
         p3 = re.search(r"\-(.*?)\+", lab_curr).group(1)  # type: ignore
 
@@ -127,13 +127,16 @@ def pp_symbols(labels, drop_unvoiced_vowels=True):
             elif n == N - 1:
                 # 疑問系かどうか
                 e3 = numeric_feature_by_regex(r"!(\d+)_", lab_curr)
-                if e3 == 0:
-                    PP.append("$")
-                elif e3 == 1:
-                    PP.append("?")
+                e3 = "$" if e3 == 0 else "?"
+                if all_accent_info is True:
+                    PP[-1] = e3
+                else:
+                    PP.append(e3)
             continue
         elif p3 == "pau":
-            PP.append("_")
+            PP.append("sp")
+            if all_accent_info is True:
+                PP.append("_")
             continue
         else:
             PP.append(p3)
@@ -156,7 +159,8 @@ def pp_symbols(labels, drop_unvoiced_vowels=True):
         # ピッチの立ち上がり
         elif a2 == 1 and a2_next == 2:
             PP.append("[")
-
+        elif all_accent_info is True:
+            PP.append("_")
     return PP
 
 

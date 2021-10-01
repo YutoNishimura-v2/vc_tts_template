@@ -140,3 +140,37 @@ class PostNet(nn.Module):
 
         x = x.contiguous().transpose(1, 2)
         return x
+
+class WordEncoder(nn.Module):
+    def __init__(
+        self,
+        n_src_vocab,
+        d_word_vec,
+        padding_idx,
+        accent_info,
+    ) -> None:
+        super().__init__()
+
+        self.src_word_emb = nn.Embedding(
+            n_src_vocab, d_word_vec, padding_idx=padding_idx
+        )
+        if accent_info > 0:
+            self.src_accent_emb = nn.Embedding(
+                n_src_vocab, d_word_vec, padding_idx=padding_idx
+            )
+        
+        self.accent_info = accent_info
+
+    def forward(self, src_seq):
+        if self.accent_info < 1:
+            return self.src_word_emb(src_seq)
+        text_seq, accent_seq = self.src2txtaccent(src_seq)
+        text_emb = self.src_word_emb(text_seq)
+        accent_emb = self.src_accent_emb(accent_seq)
+
+        return text_emb + accent_emb
+
+    def src2txtaccent(self, x):
+        # expected: (B, len*2), len=the length of text
+        text, accent = torch.tensor_split(x.view(x.size(0), -1, 2), 2, dim=-1)
+        return text.squeeze(-1), accent.squeeze(-1)

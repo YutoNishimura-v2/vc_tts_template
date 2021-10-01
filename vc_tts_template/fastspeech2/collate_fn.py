@@ -99,7 +99,7 @@ def fastspeech2_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dic
     return data_loaders
 
 
-def reprocess(batch, idxs, speaker_dict, emotion_dict):
+def reprocess(batch, idxs, speaker_dict, emotion_dict, accent_info):
     file_names = [batch[idx][0] for idx in idxs]
     texts = [batch[idx][1] for idx in idxs]
     mels = [batch[idx][2] for idx in idxs]
@@ -119,7 +119,8 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
 
     # reprocessの内容をここに.
 
-    text_lens = np.array([text.shape[0] for text in texts])
+    dividing_value = 2 if accent_info is True else 1
+    text_lens = np.array([text.shape[0] // dividing_value for text in texts])
     mel_lens = np.array([mel.shape[0] for mel in mels])
 
     texts = pad_1d(texts)
@@ -144,7 +145,7 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     )
 
 
-def collate_fn_fastspeech2(batch, batch_size, speaker_dict=None, emotion_dict=None):
+def collate_fn_fastspeech2(batch, batch_size, speaker_dict=None, emotion_dict=None, accent_info=False):
     """Collate function for Tacotron.
     Args:
         batch (list): List of tuples of the form (inputs, targets).
@@ -165,6 +166,6 @@ def collate_fn_fastspeech2(batch, batch_size, speaker_dict=None, emotion_dict=No
 
     # 以下, reprocessへの引数が変更の余地あり.
     for idx in idx_arr:
-        output.append(reprocess(batch, idx, speaker_dict, emotion_dict))
+        output.append(reprocess(batch, idx, speaker_dict, emotion_dict, accent_info))
 
     return output
