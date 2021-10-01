@@ -43,11 +43,34 @@ mkdir -p $expdir
 mkdir -p $expdir/conf
 cp ./config.yaml $expdir
 
+if [ ${stage} -le -1 ] && [ ${stop_stage} -ge -1 ]; then
+    echo "stage -1: Data download"
+    echo "you can use this to add accent info"
+    mkdir -p downloads
+    if [ ! -d downloads/jsut_ver1 ]; then
+        cd downloads
+        curl -LO http://ss-takashi.sakura.ne.jp/corpus/jsut_ver1.1.zip
+        unzip -o jsut_ver1.1.zip
+        cd -
+    fi
+    if [ ! -d downloads/jsut-lab ]; then
+        cd downloads
+        curl -LO https://github.com/sarulab-speech/jsut-label/archive/v0.0.2.zip
+        unzip -o v0.0.2.zip
+        ln -s jsut-label-0.0.2 jsut-label
+        cd -
+    fi
+fi
+
 if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
     echo "stage 0: Data preparation"
     echo "train/dev/eval split"
     mkdir -p data
-    find $lab_root -name "*.TextGrid" -exec basename {} .TextGrid \; | shuf > data/utt_list.txt
+    if [ $accent_info -ge 1 ]; then
+        find $lab_root -name "*.lab" -exec basename {} .lab \; | shuf > data/utt_list.txt
+    else
+        find $lab_root -name "*.TextGrid" -exec basename {} .TextGrid \; | shuf > data/utt_list.txt
+    fi
     head -n $train_num data/utt_list.txt > data/train.list
     tail -$deveval_num data/utt_list.txt > data/deveval.list
     head -n $dev_num data/deveval.list > data/dev.list
@@ -65,7 +88,8 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
             --n_mel_channels $n_mel_channels --mel_fmin $mel_fmin --mel_fmax $mel_fmax \
             --clip $clip --log_base $log_base \
             --pitch_phoneme_averaging $pitch_phoneme_averaging \
-            --energy_phoneme_averaging $energy_phoneme_averaging
+            --energy_phoneme_averaging $energy_phoneme_averaging  \
+            --accent_info $accent_info
     done
     # preprocess実行時にのみcopyするようにする.
     mkdir -p $expdir/data
@@ -211,8 +235,7 @@ if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
         model.netG.n_mel_channel=$n_mel_channels
     
     # save config
-    mkdir -p $expdir/conf/train_fastspeech2
-    cp -r conf/train_fastspeech2/tuning $expdir/conf/train_fastspeech2
+    cp -r conf/train_fastspeech2 $expdir/conf
 fi
 
 if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ]; then

@@ -8,6 +8,7 @@ from typing import List, Dict
 import librosa
 import numpy as np
 import pyworld as pw
+from nnmnkwii.io import hts
 from scipy.io import wavfile
 import tgt
 from scipy.interpolate import interp1d
@@ -15,7 +16,7 @@ from tqdm import tqdm
 
 sys.path.append("../..")
 from vc_tts_template.dsp import logmelspectrogram
-from vc_tts_template.frontend.openjtalk import text_to_sequence
+from vc_tts_template.frontend.openjtalk import text_to_sequence, pp_symbols
 
 
 def get_parser():
@@ -39,6 +40,7 @@ def get_parser():
     parser.add_argument("--log_base", type=str)
     parser.add_argument("--pitch_phoneme_averaging", type=int)
     parser.add_argument("--energy_phoneme_averaging", type=int)
+    parser.add_argument("--accent_info", type=int)
     return parser
 
 
@@ -85,11 +87,18 @@ def get_alignment(tier, sr, hop_length):
 
 def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
                       n_mels, fmin, fmax, clip_thresh, log_base,
-                      pitch_phoneme_averaging, energy_phoneme_averaging):
-    textgrid = tgt.io.read_textgrid(lab_path)
-    text, duration, start, end = get_alignment(
-        textgrid.get_tier_by_name("phones"), sr, hop_length
-    )
+                      pitch_phoneme_averaging, energy_phoneme_averaging,
+                      accent_info):
+    if accent_info is True:
+        labels = hts.load(lab_path)
+        PP = pp_symbols(labels.contexts)
+        print(PP)
+        a
+    else:
+        textgrid = tgt.io.read_textgrid(lab_path)
+        text, duration, start, end = get_alignment(
+            textgrid.get_tier_by_name("phones"), sr, hop_length
+        )
     if start >= end:
         return None
     # Read and trim wav files
@@ -278,6 +287,7 @@ if __name__ == "__main__":
                 args.log_base,
                 args.pitch_phoneme_averaging > 0,
                 args.energy_phoneme_averaging > 0,
+                args.accent_info > 0,
                 in_dir,
                 out_dir,
             )
