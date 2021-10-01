@@ -24,9 +24,12 @@ def _objective(trial, config):
     model, optimizer, lr_scheduler, loss, data_loaders, logger = optuna_setup(
         config, device, collate_fn, trial, fastspeech2_get_data_loaders  # type: ignore
     )
+    _train_step = partial(
+        fastspeech2_train_step, trial=trial
+    )
     to_device_ = partial(to_device, device=device)
     last_loss = optuna_train_loop(config, to_device_, model, optimizer, lr_scheduler, loss, data_loaders,
-                                  logger, trial, use_loss=config.tuning.target_loss, train_step=fastspeech2_train_step)
+                                  logger, trial, use_loss=config.tuning.target_loss, train_step=_train_step)
 
     return last_loss
 

@@ -2,6 +2,7 @@ import sys
 from functools import partial
 
 import hydra
+import optuna
 import torch
 from omegaconf import DictConfig
 import matplotlib.pyplot as plt
@@ -21,7 +22,8 @@ def fastspeech2_train_step(
     train,
     loss,
     batch,
-    logger
+    logger,
+    trial=None,
 ):
     """dev時にはpredしたp, eで計算してほしいので, オリジナルのtrain_stepに.
     """
@@ -47,6 +49,8 @@ def fastspeech2_train_step(
         if not torch.isfinite(grad_norm):
             # こんなことあるんだ.
             logger.info("grad norm is NaN. Skip updating")
+            if trial is not None:
+                raise optuna.TrialPruned()
         else:
             optimizer.step()
         lr_scheduler.step()
