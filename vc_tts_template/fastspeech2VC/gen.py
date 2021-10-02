@@ -45,7 +45,6 @@ def synthesis(device, data, speaker_dict, emotion_dict, acoustic_model,
             s_snt_durations=s_snt_durations
         )
     else:
-        s_snt_durations = None
         output = acoustic_model(
             ids, s_speakers, t_speakers, s_emotions, t_emotions,
             s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies
