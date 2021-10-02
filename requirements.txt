@@ -1,3 +1,8 @@
+# before installing, you should install ↓
+# sudo apt-get install portaudio19-dev
+# sudo apt install ffmpeg
+# We recommend to use pytorch nightly version
+
 -f https://download.pytorch.org/whl/torch_stable.html
 torch==1.9.0+cu111
 -f https://download.pytorch.org/whl/torch_stable.html
