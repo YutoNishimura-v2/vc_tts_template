@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import hydra
 import joblib
@@ -54,13 +54,17 @@ def my_app(config: DictConfig) -> None:
     src_mel_files = [in_dir / "mel" / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
     src_pitch_files = [in_dir / "pitch" / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
     src_energy_files = [in_dir / "energy" / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
+    src_sent_duration_files = [in_dir / "sent_duration" / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
     if config.num_eval_utts is not None and config.num_eval_utts > 0:
         src_mel_files = src_mel_files[: config.num_eval_utts]
         src_pitch_files = src_pitch_files[: config.num_eval_utts]
         src_energy_files = src_energy_files[: config.num_eval_utts]
+        src_sent_duration_files = src_sent_duration_files[: config.num_eval_utts]
 
     # Run synthesis for each utt.
-    for data in optional_tqdm(config.tqdm, desc="Utterance")(zip(src_mel_files, src_pitch_files, src_energy_files)):
+    for data in optional_tqdm(config.tqdm, desc="Utterance")(
+        zip(src_mel_files, src_pitch_files, src_energy_files, src_sent_duration_files)
+    ):
         wav = synthesis(
             device, data, acoustic_config.netG.speakers, acoustic_config.netG.emotions,
             acoustic_model, acoustic_out_scaler, vocoder_model

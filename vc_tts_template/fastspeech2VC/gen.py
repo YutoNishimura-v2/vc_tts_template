@@ -23,6 +23,7 @@ def synthesis(device, data, speaker_dict, emotion_dict, acoustic_model,
     s_mels = np.array([np.load(data[0])])
     s_pitches = np.array([np.load(data[1])])
     s_energies = np.array([np.load(data[2])])
+
     s_mel_lens = np.array([s_mels[0].shape[0]])
     max_s_mel_len = max(s_mel_lens)
 
@@ -35,10 +36,20 @@ def synthesis(device, data, speaker_dict, emotion_dict, acoustic_model,
     s_pitches = torch.tensor(s_pitches).float().to(device)
     s_energies = torch.tensor(s_energies).float().to(device)
 
-    output = acoustic_model(
-        ids, s_speakers, t_speakers, s_emotions, t_emotions,
-        s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies
-    )
+    if data[3].exists():
+        s_snt_durations = np.array([np.load(data[3])])
+        s_snt_durations = torch.tensor(s_snt_durations).long().to(device)
+        output = acoustic_model(
+            ids, s_speakers, t_speakers, s_emotions, t_emotions,
+            s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies,
+            s_snt_durations=s_snt_durations
+        )
+    else:
+        s_snt_durations = None
+        output = acoustic_model(
+            ids, s_speakers, t_speakers, s_emotions, t_emotions,
+            s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies
+        )
 
     mel_post = output[1]
     mels = [acoustic_out_scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mel_post]  # type: ignore
