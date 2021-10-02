@@ -78,7 +78,7 @@ class FastSpeech2VCwGMMLoss(nn.Module):
         duration_loss = self.mse_loss(log_duration_predictions, log_duration_targets)
 
         # mdn loss
-        normal_dist = Normal(loc=mu_outs, scale=sigma_outs)
+        normal_dist = Normal(loc=mu_outs, scale=(sigma_outs+1e-8))
         loglik = normal_dist.log_prob(prosody_target.detach().unsqueeze(2).expand_as(normal_dist.loc))
         # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
         loglik = torch.sum(loglik, dim=-1)
@@ -89,7 +89,7 @@ class FastSpeech2VCwGMMLoss(nn.Module):
         if len(predictions[15:]) > 0:
             # global embedding True
             g_prosody_target, g_pi, g_mu, g_sigma = predictions[15:]
-            normal_dist = Normal(loc=g_mu, scale=g_sigma)
+            normal_dist = Normal(loc=g_mu, scale=(g_sigma+1e-8))
             loglik = normal_dist.log_prob(g_prosody_target.detach().unsqueeze(1).expand_as(normal_dist.loc))
             # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
             loglik = torch.sum(loglik, dim=-1)
