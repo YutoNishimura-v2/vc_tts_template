@@ -41,6 +41,11 @@
     - [解決策](https://qiita.com/musaprg/items/34c4c1e0e9eb8e8cc5a1)
     - [その他入れておいたほうがよさそうなもの](https://linuxtect.com/the-error-command-gcc-failed-with-exit-status-1-error-and-solution/)
 
+- NaN出続ける問題
+    - 候補: log, /, sqrt
+    - Normalの中でlogをとってしまっていることに注意
+        - なので, scaleは1e-8足して渡すべき
+            - torch.exp()は, -100程度で簡単に0になるので注意.
 ## run.shの流れ
 
 - stage -1
