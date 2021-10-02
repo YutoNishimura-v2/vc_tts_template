@@ -231,7 +231,7 @@ class fastspeech2VCwGMM(nn.Module):
             prosody_prediction_expanded, _ = self.prosody_length_regulator(prosody_prediction, s_snt_durations)
             output = output + self.prosody_linear(prosody_prediction_expanded)
         else:
-            prosody_target_expanded, x = self.prosody_length_regulator(prosody_target, s_snt_durations)
+            prosody_target_expanded, _ = self.prosody_length_regulator(prosody_target, s_snt_durations)
             output = output + self.prosody_linear(prosody_target_expanded)
         (
             output,
