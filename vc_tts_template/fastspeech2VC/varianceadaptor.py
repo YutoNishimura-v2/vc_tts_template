@@ -70,9 +70,9 @@ class VarianceAdaptor(nn.Module):
         )
         self.length_regulator = LengthRegulator()
         self.pitch_conv1d_1 = Conv_emb(self.reduction_factor, encoder_hidden_dim)
-        self.pitch_conv1d_2 = Conv_emb(self.reduction_factor, variance_predictor_filter_size)
+        self.pitch_conv1d_2 = Conv_emb(self.reduction_factor, encoder_hidden_dim)
         self.energy_conv1d_1 = Conv_emb(self.reduction_factor, encoder_hidden_dim)
-        self.energy_conv1d_2 = Conv_emb(self.reduction_factor, variance_predictor_filter_size)
+        self.energy_conv1d_2 = Conv_emb(self.reduction_factor, encoder_hidden_dim)
 
         self.pitch_stop_gradient_flow = stop_gradient_flow_p
         self.energy_stop_gradient_flow = stop_gradient_flow_e

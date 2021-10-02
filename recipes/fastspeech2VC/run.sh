@@ -181,7 +181,7 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         train.vocoder_config=$vocoder_config \
         train.vocoder_weight_path=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
         model.netG.n_mel_channel=$n_mel_channels \
-        model.netG.reduction_factor=$reduction_factor \
+        model.netG.reduction_factor=$reduction_factor
     
     # save config
     cp -r conf/train_fastspeech2VC $expdir/conf
@@ -215,22 +215,22 @@ if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
         tuning.storage=sqlite:///../../../${expdir}/${acoustic_model}/optuna_study.db \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
-        data.train.in_dir=$dump_norm_dir/$train_set/in_fastspeech2/ \
-        data.train.out_dir=$dump_norm_dir/$train_set/out_fastspeech2/ \
+        data.train.in_dir=$dump_norm_dir/$train_set/in_fastspeech2VC/ \
+        data.train.out_dir=$dump_norm_dir/$train_set/out_fastspeech2VC/ \
         data.dev.utt_list=data/dev.list \
-        data.dev.in_dir=$dump_norm_dir/$dev_set/in_fastspeech2/ \
-        data.dev.out_dir=$dump_norm_dir/$dev_set/out_fastspeech2/ \
+        data.dev.in_dir=$dump_norm_dir/$dev_set/in_fastspeech2VC/ \
+        data.dev.out_dir=$dump_norm_dir/$dev_set/out_fastspeech2VC/ \
         data.batch_size=$fastspeech2_data_batch_size \
         train.out_dir=$expdir/${acoustic_model} \
         train.log_dir=tensorboard/${expname}_${acoustic_model} \
         train.nepochs=$fastspeech2_train_nepochs \
         train.sampling_rate=$sample_rate \
-        train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
+        train.mel_scaler_path=$dump_norm_dir/out_fastspeech2VC_mel_scaler.joblib \
         train.vocoder_name=$vocoder_model \
         train.vocoder_config=$vocoder_config \
         train.vocoder_weight_path=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
         model.netG.n_mel_channel=$n_mel_channels \
-    
+        model.netG.reduction_factor=$reduction_factor
     # save config
     cp -r conf/train_fastspeech2VC $expdir/conf
 fi

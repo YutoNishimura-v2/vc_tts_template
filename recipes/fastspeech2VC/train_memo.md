@@ -52,4 +52,8 @@
     - N2C_5
         - spk: N2C_2
         - pretrain: なし
-        - pitchのAR化を実装した.
+        - wGMM
+    - N2C_6
+        - spk: N2C_2
+        - pretrain: なし
+        - wGMM, optuna
