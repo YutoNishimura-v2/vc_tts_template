@@ -83,7 +83,7 @@ class FastSpeech2Loss(nn.Module):
         duration_loss = self.mse_loss(log_duration_predictions, log_duration_targets)
 
         # mdn loss
-        normal_dist = Normal(loc=mu_outs, scale=sigma_outs)
+        normal_dist = Normal(loc=mu_outs, scale=(sigma_outs + 1e-8))
         loglik = normal_dist.log_prob(prosody_target.detach().unsqueeze(2).expand_as(normal_dist.loc))
         # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
         loglik = torch.sum(loglik, dim=-1)
