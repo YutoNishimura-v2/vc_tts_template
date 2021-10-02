@@ -9,13 +9,13 @@ import numpy as np
 import pyworld as pw
 from fastdtw import fastdtw
 from pydub import AudioSegment, silence
+
+sys.path.append("../..")
+from recipes.fastspeech2VC.utils import pydub_to_np
 from scipy.interpolate import interp1d
 from scipy.spatial.distance import cityblock
 from tqdm import tqdm
-
-sys.path.append("../..")
 from vc_tts_template.dsp import logmelspectrogram
-from recipes.fastspeech2VC.utils import pydub_to_np
 
 
 def get_parser():
@@ -273,7 +273,8 @@ def calc_duration(ts_src: List[np.ndarray], target_path: str, diagonal_index: np
 
 def get_duration(
     utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
-    fmin, fmax, clip_thresh, log_base, reduction_factor
+    fmin, fmax, clip_thresh, log_base, reduction_factor,
+    return_mel=False
 ):
     src_mel, energy = logmelspectrogram(
         src_wav, sr, n_fft, hop_length, win_length,
@@ -289,27 +290,28 @@ def get_duration(
     energy = reduction(energy, reduction_factor)
     target_mel = reduction(tgt_mel, reduction_factor)
     duration = calc_duration([target_mel, source_mel], utt_id, np.log(energy+1e-6) < -5.0)
+    if return_mel is True:
+        return duration, source_mel, target_mel
     return duration
 
 
 def get_sentence_duration(
     utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
-    fmin, fmax, clip_thresh, log_base, tgt_wav_path,
+    fmin, fmax, clip_thresh, log_base, reduction_factor,
     min_silence_len, silence_thresh
 ):
-    src_mel, energy = logmelspectrogram(
-        src_wav, sr, n_fft, hop_length, win_length,
-        20, fmin, fmax, clip=clip_thresh, log_base=log_base,
-        need_energy=True
-    )
-    tgt_mel = logmelspectrogram(
-        tgt_wav, sr, n_fft, hop_length, win_length,
-        20, fmin, fmax, clip=clip_thresh, log_base=log_base,
-        need_energy=False
-    )
-    duration = calc_duration([tgt_mel, src_mel], utt_id, np.log(energy+1e-6) < -5.0)
+    duration, src_mel, tgt_mel = get_duration(utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
+                                              fmin, fmax, clip_thresh, log_base, reduction_factor, return_mel=True
+                                              )
+    if tgt_wav.dtype in [np.float32, np.float64]:
+        tgt_wav = (tgt_wav * np.iinfo(np.int16).max).astype(np.int16)
 
-    t_audio = AudioSegment.from_wav(tgt_wav_path)
+    t_audio = AudioSegment(
+        tgt_wav.tobytes(),
+        sample_width=2,
+        frame_rate=sr,
+        channels=1
+    )
 
     t_silences = np.array(
         silence.detect_silence(t_audio, min_silence_len=min_silence_len, silence_thresh=silence_thresh)
@@ -318,7 +320,7 @@ def get_sentence_duration(
     src_sent_durations = []
     tgt_sent_durations = []
 
-    t_silences = (t_silences / 1000 * sr // hop_length).astype(np.int16)
+    t_silences = (t_silences / 1000 * sr // hop_length // reduction_factor).astype(np.int16)
 
     for i, (s_frame, _) in enumerate(t_silences):
         if s_frame == 0:
@@ -333,6 +335,11 @@ def get_sentence_duration(
 
     if len(tgt_sent_durations) == 0:
         tgt_sent_durations = [len(tgt_mel)]
+    assert (np.array(tgt_sent_durations) > 0).all(), f"""
+        tgt_sent_durations: {tgt_sent_durations}
+        t_silences: {t_silences}
+        tgt_mel_len: {len(tgt_mel)}
+    """
     assert np.sum(tgt_sent_durations) == len(tgt_mel)
 
     snt_sum = 0
@@ -346,6 +353,7 @@ def get_sentence_duration(
             src_sent_durations.append(snt_idx)
         else:
             src_sent_durations.append(snt_idx - np.sum(src_sent_durations))
+    assert (np.array(src_sent_durations) > 0).all(), src_sent_durations
     assert np.sum(src_sent_durations) == len(src_mel)
 
     return np.array(src_sent_durations), np.array(tgt_sent_durations)
@@ -438,7 +446,7 @@ def preprocess(
     if sentence_duration is True:
         src_sent_durations, tgt_sent_durations = get_sentence_duration(
             utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
-            fmin, fmax, clip_thresh, log_base, tgt_wav_file,
+            fmin, fmax, clip_thresh, log_base, reduction_factor,
             min_silence_len, silence_thresh_t
         )
         np.save(
@@ -491,6 +499,7 @@ if __name__ == "__main__":
 
     failed_src_lst = []
     failed_tgt_lst = []
+
     with ProcessPoolExecutor(args.n_jobs) as executor:
         futures = [
             executor.submit(

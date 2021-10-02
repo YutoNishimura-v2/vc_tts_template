@@ -1,15 +1,14 @@
 import sys
 
-import numpy as np
 import torch
 import torch.nn as nn
 from torch.distributions import Normal, OneHotCategorical
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 sys.path.append("../..")
-from vc_tts_template.fastspeech2wGMM.layers import ConvBNorms2d, ConvLNorms1d
+from vc_tts_template.fastspeech2wGMM.layers import ConvLNorms1d
 from vc_tts_template.tacotron.decoder import ZoneOutCell
-from vc_tts_template.utils import pad
+from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyExtractor
+from vc_tts_template.utils import make_pad_mask
 
 
 def encoder_init(m):
@@ -17,123 +16,6 @@ def encoder_init(m):
         nn.init.xavier_uniform_(m.weight, nn.init.calculate_gain("relu"))
     if isinstance(m, nn.Conv1d):
         nn.init.xavier_uniform_(m.weight, nn.init.calculate_gain("relu"))
-
-
-class ProsodyExtractor(nn.Module):
-    def __init__(
-        self,
-        d_mel=80,
-        d_out=128,
-        conv_in_channels=1,
-        conv_out_channels=1,
-        conv_kernel_size=1,
-        conv_stride=1,
-        conv_padding=None,
-        conv_dilation=1,
-        conv_bias=True,
-        conv_n_layers=2,
-        gru_n_layers=1,
-        global_prosody=False,
-        global_gru_n_layers=1
-    ):
-        super().__init__()
-        self.convnorms = ConvBNorms2d(
-            conv_in_channels, conv_out_channels, conv_kernel_size,
-            conv_stride, conv_padding, conv_dilation, conv_bias, conv_n_layers
-        )
-        self.convnorms.apply(encoder_init)
-        self.bi_gru = nn.GRU(
-            input_size=d_mel, hidden_size=d_out // 2, num_layers=gru_n_layers,
-            batch_first=True, bidirectional=True
-        )
-        if global_prosody is True:
-            self.global_bi_gru = nn.GRU(
-                input_size=d_out, hidden_size=d_out // 2, num_layers=global_gru_n_layers,
-                batch_first=True, bidirectional=True
-            )
-        self.global_prosody = global_prosody
-
-    def forward(self, mels, durations):
-        # expected(B, T, d_mel)
-        if mels is None:
-            if self.global_prosody is True:
-                return None, None
-            return None
-        durations = durations.detach().cpu().numpy()  # detach
-        output_sorted, src_lens_sorted, segment_nums, inv_sort_idx = self.mel2phone(mels, durations)
-        outs = list()
-        for output, src_lens in zip(output_sorted, src_lens_sorted):
-            # output: (B, T_n, d_mel). T_n: length of phoneme
-            # convolution
-            mel_hidden = self.convnorms(output.unsqueeze(1))
-            # Bi-GRU
-            mel_hidden = pack_padded_sequence(mel_hidden.squeeze(1), src_lens, batch_first=True)
-            out, _ = self.bi_gru(mel_hidden)
-            # out: (B, T_n, d_out)
-            out, _ = pad_packed_sequence(out, batch_first=True)
-            outs.append(out[:, -1, :])  # use last time
-        outs = torch.cat(outs, 0)
-        out = self.phone2utter(outs[inv_sort_idx], segment_nums)
-
-        if self.global_prosody is True:
-            # global_emb: (B, d_out)
-            global_emb = self.global_bi_gru(out)[0][:, -1, :]
-            out = out + global_emb.unsqueeze(1).expand_as(out)
-            return out, global_emb
-        return out
-
-    def mel2phone(self, mels, durations):
-        """
-        melをphone単位のsegmentに分割
-        長い順に降順ソートして, batch_sizeごとにまとめている
-        降順sortはpack_padded_sequenceの要請. batch_sizeごとにまとめたのはpadの量を削減するため
-        """
-        output = list()
-        src_lens = list()
-        segment_nums = list()
-        # devide mel into phone segments
-        for mel, duration in zip(mels, durations):
-            s_idx = 0
-            cnt = 0
-            for d in duration:
-                if d == 0:
-                    # d = 0 is only allowed for pad
-                    break
-                mel_seg = mel[s_idx: s_idx+d]
-                s_idx += d
-                cnt += 1
-                output.append(mel_seg)
-                src_lens.append(d)
-            segment_nums.append(cnt)
-
-        sort_idx = np.argsort(-np.array(src_lens))
-        inv_sort_idx = np.argsort(sort_idx)
-        # Regroup phoneme segments into batch sizes.
-        batch_size = mels.size(0)
-        output_sorted = list()
-        src_lens_sorted = list()
-        for i in range(len(output) // batch_size):
-            sort_seg = sort_idx[i*batch_size:(i+1)*batch_size]
-            if i == ((len(output) // batch_size) - 1):
-                # This is a way to avoid setting batch_size=1 when doing BN.
-                sort_seg = sort_idx[i*batch_size:]
-            output_seg = [output[idx] for idx in sort_seg]
-            src_lens_seg = [src_lens[idx] for idx in sort_seg]
-            output_seg = pad(output_seg)
-            output_sorted.append(output_seg)
-            src_lens_sorted.append(src_lens_seg)
-        return output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
-
-    def phone2utter(self, out, segment_nums):
-        """
-        音素ごとのmel segmentを, utteranceごとにまとめ直す
-        """
-        output = list()
-        s_idx = 0
-        for seg_num in segment_nums:
-            output.append(out[s_idx:s_idx+seg_num])
-            s_idx += seg_num
-        return pad(output)
 
 
 class ProsodyPredictor(nn.Module):
@@ -165,6 +47,14 @@ class ProsodyPredictor(nn.Module):
             conv_n_layers, conv_dropout
         )
         self.convnorms.apply(encoder_init)
+
+        self.prosody_extractor = ProsodyExtractor(
+            conv_out_channels, conv_out_channels,
+            conv_kernel_size=conv_kernel_size,
+            conv_n_layers=conv_n_layers,
+            gru_n_layers=gru_layers,
+            global_prosody=False,
+        )
 
         # 片方向 gru
         self.gru = nn.ModuleList()
@@ -201,8 +91,11 @@ class ProsodyPredictor(nn.Module):
         self.global_prosody = global_prosody
         self.global_num_gaussians = global_num_gaussians
 
-    def forward(self, encoder_output, target_prosody=None, target_global_prosody=None, is_inference=False):
+    def forward(self, encoder_output, snt_durations, target_prosody=None,
+                target_global_prosody=None, is_inference=False):
         encoder_output = self.convnorms(encoder_output)
+        # frame levelのmelを, sentence levelに
+        encoder_output = self.prosody_extractor(encoder_output, snt_durations)
 
         if self.global_prosody is True:
             # hidden_global: (B, global_d_gru)
@@ -261,13 +154,20 @@ class ProsodyPredictor(nn.Module):
         pi_outs = torch.cat(pi_outs, dim=1)
         sigma_outs = torch.cat(sigma_outs, dim=1)
         mu_outs = torch.cat(mu_outs, dim=1)
+
+        src_snt_mask = self.make_src_mask(snt_durations)
         if self.global_prosody is True:
-            return outs, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu
-        return outs, pi_outs, sigma_outs, mu_outs
+            return outs, pi_outs, sigma_outs, mu_outs, src_snt_mask, g_pi, g_sigma, g_mu
+        return outs, pi_outs, sigma_outs, mu_outs, src_snt_mask
 
     def _zero_state(self, hs):
         init_hs = hs.new_zeros(hs.size(0), self.gru[0].hidden_size)
         return init_hs
+
+    def make_src_mask(self, snt_durations):
+        # non 0の数をsentence数とする.
+        snt_nums = torch.sum(snt_durations > 0, dim=-1)
+        return make_pad_mask(snt_nums, torch.max(snt_nums))
 
     def sample(self, pi, sigma, mu):
         # pi: (B, num_gaussians)

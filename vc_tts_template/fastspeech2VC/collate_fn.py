@@ -21,18 +21,22 @@ class fastspeech2VC_Dataset(data_utils.Dataset):  # type: ignore
         in_mel_paths: List,
         in_pitch_paths: List,
         in_energy_paths: List,
+        in_sent_duration_dir: List,
         out_mel_paths: List,
         out_pitch_paths: List,
         out_energy_paths: List,
-        out_duration_paths: List
+        out_duration_paths: List,
+        out_sent_duration_dir: List
     ):
         self.in_mel_paths = in_mel_paths
         self.in_pitch_paths = in_pitch_paths
         self.in_energy_paths = in_energy_paths
+        self.in_sent_duration_dir = in_sent_duration_dir
         self.out_mel_paths = out_mel_paths
         self.out_pitch_paths = out_pitch_paths
         self.out_energy_paths = out_energy_paths
         self.out_duration_paths = out_duration_paths
+        self.out_sent_duration_dir = out_sent_duration_dir
 
     def __getitem__(self, idx: int):
         """Get a pair of input and target
@@ -48,10 +52,12 @@ class fastspeech2VC_Dataset(data_utils.Dataset):  # type: ignore
             np.load(self.in_mel_paths[idx]),
             np.load(self.in_pitch_paths[idx]),
             np.load(self.in_energy_paths[idx]),
+            np.load(self.in_sent_duration_dir[idx]) if self.in_sent_duration_dir[idx].exists() else None,
             np.load(self.out_mel_paths[idx]),
             np.load(self.out_pitch_paths[idx]),
             np.load(self.out_energy_paths[idx]),
             np.load(self.out_duration_paths[idx]),
+            np.load(self.out_sent_duration_dir[idx]) if self.out_sent_duration_dir[idx].exists() else None,
         )
 
     def __len__(self):
@@ -83,19 +89,23 @@ def fastspeech2VC_get_data_loaders(data_config: Dict, collate_fn: Callable) -> D
         in_mel_paths = [in_dir / "mel" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         in_pitch_paths = [in_dir / "pitch" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         in_energy_paths = [in_dir / "energy" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
+        in_sent_duration_dir = [in_dir / "sent_duration" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_mel_paths = [out_dir / "mel" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_pitch_paths = [out_dir / "pitch" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_energy_paths = [out_dir / "energy" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_duration_paths = [out_dir / "duration" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
+        out_sent_duration_dir = [out_dir / "sent_duration" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
 
         dataset = fastspeech2VC_Dataset(
             in_mel_paths,
             in_pitch_paths,
             in_energy_paths,
+            in_sent_duration_dir,
             out_mel_paths,
             out_pitch_paths,
             out_energy_paths,
             out_duration_paths,
+            out_sent_duration_dir,
         )
         data_loaders[phase] = data_utils.DataLoader(
             dataset,
@@ -114,10 +124,10 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     s_mels = [batch[idx][1] for idx in idxs]
     s_pitches = [batch[idx][2] for idx in idxs]
     s_energies = [batch[idx][3] for idx in idxs]
-    t_mels = [batch[idx][4] for idx in idxs]
-    t_pitches = [batch[idx][5] for idx in idxs]
-    t_energies = [batch[idx][6] for idx in idxs]
-    t_durations = [batch[idx][7] for idx in idxs]
+    t_mels = [batch[idx][5] for idx in idxs]
+    t_pitches = [batch[idx][6] for idx in idxs]
+    t_energies = [batch[idx][7] for idx in idxs]
+    t_durations = [batch[idx][8] for idx in idxs]
 
     if speaker_dict is not None:
         s_speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in file_names])
@@ -145,6 +155,13 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     t_energies = pad_1d(t_energies)
     t_durations = pad_1d(t_durations)
 
+    if batch[0][4] is not None:
+        s_snt_durations = pad_1d([batch[idx][4] for idx in idxs])
+        t_snt_durations = pad_1d([batch[idx][9] for idx in idxs])
+    else:
+        s_snt_durations = None
+        t_snt_durations = None
+
     return (
         ids,
         s_speakers,
@@ -161,7 +178,9 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         max(t_mel_lens),
         t_pitches,
         t_energies,
-        t_durations
+        t_durations,
+        s_snt_durations,
+        t_snt_durations,
     )
 
 
