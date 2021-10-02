@@ -294,7 +294,7 @@ def get_duration(
 
 def get_sentence_duration(
     utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
-    fmin, fmax, clip_thresh, log_base, tgt_wav_path,
+    fmin, fmax, clip_thresh, log_base,
     min_silence_len, silence_thresh
 ):
     src_mel, energy = logmelspectrogram(
@@ -309,7 +309,15 @@ def get_sentence_duration(
     )
     duration = calc_duration([tgt_mel, src_mel], utt_id, np.log(energy+1e-6) < -5.0)
 
-    t_audio = AudioSegment.from_wav(tgt_wav_path)
+    if tgt_wav.dtype in [np.float32, np.float64]:
+        tgt_wav = (tgt_wav * np.iinfo(np.int16).max).astype(np.int16)
+
+    t_audio = AudioSegment(
+        tgt_wav.tobytes(),
+        sample_width=2,
+        frame_rate=sr,
+        channels=1
+    )
 
     t_silences = np.array(
         silence.detect_silence(t_audio, min_silence_len=min_silence_len, silence_thresh=silence_thresh)
@@ -333,6 +341,11 @@ def get_sentence_duration(
 
     if len(tgt_sent_durations) == 0:
         tgt_sent_durations = [len(tgt_mel)]
+    assert (np.array(tgt_sent_durations) > 0).all(), f"""
+        tgt_sent_durations: {tgt_sent_durations}
+        t_silences: {t_silences}
+        tgt_mel_len: {len(tgt_mel)}
+    """
     assert np.sum(tgt_sent_durations) == len(tgt_mel)
 
     snt_sum = 0
@@ -346,6 +359,7 @@ def get_sentence_duration(
             src_sent_durations.append(snt_idx)
         else:
             src_sent_durations.append(snt_idx - np.sum(src_sent_durations))
+    assert (np.array(src_sent_durations) > 0).all(), src_sent_durations
     assert np.sum(src_sent_durations) == len(src_mel)
 
     return np.array(src_sent_durations), np.array(tgt_sent_durations)
@@ -438,7 +452,7 @@ def preprocess(
     if sentence_duration is True:
         src_sent_durations, tgt_sent_durations = get_sentence_duration(
             utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
-            fmin, fmax, clip_thresh, log_base, tgt_wav_file,
+            fmin, fmax, clip_thresh, log_base,
             min_silence_len, silence_thresh_t
         )
         np.save(
@@ -491,6 +505,7 @@ if __name__ == "__main__":
 
     failed_src_lst = []
     failed_tgt_lst = []
+
     with ProcessPoolExecutor(args.n_jobs) as executor:
         futures = [
             executor.submit(

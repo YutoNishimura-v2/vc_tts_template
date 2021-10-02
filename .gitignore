@@ -8,3 +8,4 @@ ttslearn/
 tts_models/
 *.pth.tar
 *.pth
+dataset/

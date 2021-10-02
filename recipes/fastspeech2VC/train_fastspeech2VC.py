@@ -33,12 +33,24 @@ def fastspeech2VC_train_step(
     if train is True:
         output = model(*batch)
     else:
-        output = model(
-            *batch[:13],
-            t_pitches=None,
-            t_energies=None,
-            t_durations=batch[15],
-        )
+        if len(batch) == 16:
+            # fastspeech2VC
+            output = model(
+                *batch[:13],
+                t_pitches=None,
+                t_energies=None,
+                t_durations=batch[15],
+            )
+        elif len(batch) == 18:
+            # fastspeech2VCwGMM
+            output = model(
+                *batch[:13],
+                t_pitches=None,
+                t_energies=None,
+                t_durations=batch[15],
+                s_snt_durations=batch[16],
+                t_snt_durations=batch[17],
+            )
 
     loss, loss_values = loss(batch, output)
 
@@ -67,15 +79,29 @@ def fastspeech2VC_eval_model(
 
     if is_inference:
         # pitch, energyとして正解データを与えない.
-        output = model(
-            *batch[:10],
-            t_mels=None,
-            t_mel_lens=None,
-            max_t_mel_len=None,
-            t_pitches=None,
-            t_energies=None,
-            t_durations=None,
-        )
+        if len(batch) == 16:
+            # fastspeech2VC
+            output = model(
+                *batch[:10],
+                t_mels=None,
+                t_mel_lens=None,
+                max_t_mel_len=None,
+                t_pitches=None,
+                t_energies=None,
+                t_durations=None,
+            )
+        elif len(batch) == 18:
+            # fastspeech2VCwGMM
+            output = model(
+                *batch[:10],
+                t_mels=None,
+                t_mel_lens=None,
+                max_t_mel_len=None,
+                t_pitches=None,
+                t_energies=None,
+                t_durations=None,
+                s_snt_durations=batch[16],
+            )
     else:
         output = model(*batch)
 
@@ -132,7 +158,9 @@ def to_device(data, phase, device):
         max_mel_len,
         t_pitches,
         t_energies,
-        t_durations
+        t_durations,
+        s_snt_durations,
+        t_snt_durations,
     ) = data
 
     s_speakers = torch.from_numpy(s_speakers).long().to(device)
@@ -148,7 +176,29 @@ def to_device(data, phase, device):
     t_pitches = torch.from_numpy(t_pitches).float().to(device)
     t_energies = torch.from_numpy(t_energies).float().to(device)
     t_durations = torch.from_numpy(t_durations).long().to(device)
-
+    if s_snt_durations is not None:
+        s_snt_durations = torch.from_numpy(s_snt_durations).long().to(device)
+        t_snt_durations = torch.from_numpy(t_snt_durations).long().to(device)
+        return (
+            ids,
+            s_speakers,
+            t_speakers,
+            s_emotions,
+            t_emotions,
+            s_mels,
+            s_mel_lens,
+            max_src_len,
+            s_pitches,
+            s_energies,
+            t_mels,
+            t_mel_lens,
+            max_mel_len,
+            t_pitches,
+            t_energies,
+            t_durations,
+            s_snt_durations,
+            t_snt_durations,
+        )
     return (
         ids,
         s_speakers,
@@ -165,7 +215,7 @@ def to_device(data, phase, device):
         max_mel_len,
         t_pitches,
         t_energies,
-        t_durations
+        t_durations,
     )
 
 
@@ -176,7 +226,7 @@ def my_app(config: DictConfig) -> None:
     # 以下自由
     collate_fn = partial(
         collate_fn_fastspeech2VC, batch_size=config.data.batch_size,
-        speaker_dict=config.model.netG.speakers, emotion_dict=config.model.netG.emotions
+        speaker_dict=config.model.netG.speakers, emotion_dict=config.model.netG.emotions,
     )
 
     model, optimizer, lr_scheduler, loss, data_loaders, writers, logger, last_epoch, last_train_iter = setup(

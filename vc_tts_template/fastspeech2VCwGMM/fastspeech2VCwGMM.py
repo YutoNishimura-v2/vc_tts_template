@@ -146,6 +146,7 @@ class fastspeech2VCwGMM(nn.Module):
                 encoder_hidden_dim,
             )
         self.encoder_fix = encoder_fix
+        self.global_prosody = global_prosody
         self.speakers = speakers
         self.emotions = emotions
 
@@ -179,6 +180,9 @@ class fastspeech2VCwGMM(nn.Module):
             if t_mel_lens is not None
             else None
         )
+        if s_snt_durations is None:
+            s_snt_durations = torch.Tensor([s_mel.size(0) for s_mel in s_mels]).long()
+
         if self.reduction_factor > 1:
             max_s_mel_len = max_s_mel_len // self.reduction_factor
             s_mel_lens = torch.trunc(s_mel_lens / self.reduction_factor)
