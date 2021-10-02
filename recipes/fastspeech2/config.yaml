@@ -44,6 +44,7 @@ clip: 0.00001
 log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
+accent_info: 0
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################

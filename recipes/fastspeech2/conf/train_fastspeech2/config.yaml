@@ -37,6 +37,7 @@ data:
   num_workers: 20
   batch_size:
   group_size: 4
+  accent_info:
 
 ###########################################################
 #                TRAIN SETTING                            #
