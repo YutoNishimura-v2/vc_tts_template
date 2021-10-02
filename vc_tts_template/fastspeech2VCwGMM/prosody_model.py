@@ -8,6 +8,7 @@ sys.path.append("../..")
 from vc_tts_template.fastspeech2wGMM.layers import ConvLNorms1d
 from vc_tts_template.tacotron.decoder import ZoneOutCell
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyExtractor
+from vc_tts_template.utils import make_pad_mask
 
 
 def encoder_init(m):
@@ -153,13 +154,20 @@ class ProsodyPredictor(nn.Module):
         pi_outs = torch.cat(pi_outs, dim=1)
         sigma_outs = torch.cat(sigma_outs, dim=1)
         mu_outs = torch.cat(mu_outs, dim=1)
+
+        src_snt_mask = self.make_src_mask(snt_durations)
         if self.global_prosody is True:
-            return outs, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu
-        return outs, pi_outs, sigma_outs, mu_outs
+            return outs, pi_outs, sigma_outs, mu_outs, src_snt_mask, g_pi, g_sigma, g_mu
+        return outs, pi_outs, sigma_outs, mu_outs, src_snt_mask
 
     def _zero_state(self, hs):
         init_hs = hs.new_zeros(hs.size(0), self.gru[0].hidden_size)
         return init_hs
+
+    def make_src_mask(self, snt_durations):
+        # non 0の数をsentence数とする.
+        snt_nums = torch.sum(snt_durations > 0, dim=-1)
+        return make_pad_mask(snt_nums, torch.max(snt_nums))
 
     def sample(self, pi, sigma, mu):
         # pi: (B, num_gaussians)

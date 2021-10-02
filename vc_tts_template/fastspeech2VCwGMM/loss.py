@@ -21,7 +21,7 @@ class FastSpeech2VCwGMMLoss(nn.Module):
             pitch_targets,
             energy_targets,
             duration_targets,
-        ) = inputs[10:]
+        ) = inputs[10:16]
         (
             mel_predictions,
             postnet_mel_predictions,
@@ -37,7 +37,8 @@ class FastSpeech2VCwGMMLoss(nn.Module):
             pi_outs,
             mu_outs,
             sigma_outs,
-        ) = predictions[:14]
+            snt_mask,
+        ) = predictions[:15]
 
         src_masks = ~src_masks
         mel_masks = ~mel_masks
@@ -83,11 +84,11 @@ class FastSpeech2VCwGMMLoss(nn.Module):
         loglik = torch.sum(loglik, dim=-1)
         # logsumexpを使わないとunderflowする.
         prosody_loss = -torch.logsumexp(torch.log(pi_outs+1e-8) + loglik, dim=-1)
-        prosody_loss = torch.mean(prosody_loss.masked_select(src_masks))
+        prosody_loss = torch.mean(prosody_loss.masked_select(~snt_mask))
 
-        if len(predictions[14:]) > 0:
+        if len(predictions[15:]) > 0:
             # global embedding True
-            g_prosody_target, g_pi, g_mu, g_sigma = predictions[14:]
+            g_prosody_target, g_pi, g_mu, g_sigma = predictions[15:]
             normal_dist = Normal(loc=g_mu, scale=g_sigma)
             loglik = normal_dist.log_prob(g_prosody_target.detach().unsqueeze(1).expand_as(normal_dist.loc))
             # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.

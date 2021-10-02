@@ -5,7 +5,7 @@ import torch
 
 from vc_tts_template.fastspeech2VC.encoder_decoder import Encoder, Decoder
 from vc_tts_template.fastspeech2VC.layers import PostNet
-from vc_tts_template.fastspeech2VC.varianceadaptor import VarianceAdaptor
+from vc_tts_template.fastspeech2VC.varianceadaptor import VarianceAdaptor, LengthRegulator
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyExtractor
 from vc_tts_template.fastspeech2VCwGMM.prosody_model import ProsodyPredictor
 from vc_tts_template.utils import make_pad_mask
@@ -119,6 +119,11 @@ class fastspeech2VCwGMM(nn.Module):
             self.mel_num * self.reduction_factor,
             encoder_hidden_dim,
         )
+        self.prosody_linear = nn.Linear(
+            prosody_emb_dim,
+            encoder_hidden_dim,
+        )
+        self.prosody_length_regulator = LengthRegulator()
         self.decoder_linear = nn.Linear(
             encoder_hidden_dim,
             decoder_hidden_dim,
@@ -193,6 +198,7 @@ class fastspeech2VCwGMM(nn.Module):
                 max_t_mel_len = max_t_mel_len // self.reduction_factor
                 t_mel_lens = torch.trunc(t_mel_lens / self.reduction_factor)
                 t_mel_masks = make_pad_mask(t_mel_lens, max_t_mel_len)
+                t_mels = t_mels[:, ::self.reduction_factor, :]
 
         output = self.mel_linear_1(
             s_mels.contiguous().view(s_mels.size(0), -1, self.mel_num * self.reduction_factor)
@@ -212,19 +218,21 @@ class fastspeech2VCwGMM(nn.Module):
 
         if self.global_prosody is False:
             prosody_target = self.prosody_extractor(t_mels, t_snt_durations)
-            prosody_prediction, pi_outs, sigma_outs, mu_outs = self.prosody_predictor(
+            prosody_prediction, pi_outs, sigma_outs, mu_outs, snt_mask = self.prosody_predictor(
                 output, s_snt_durations, target_prosody=prosody_target, is_inference=is_inference
             )
         else:
             prosody_target, g_prosody_target = self.prosody_extractor(t_mels, t_snt_durations)
-            prosody_prediction, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu = self.prosody_predictor(
+            prosody_prediction, pi_outs, sigma_outs, mu_outs, snt_mask, g_pi, g_sigma, g_mu = self.prosody_predictor(
                 output, s_snt_durations, target_prosody=prosody_target, target_global_prosody=g_prosody_target,
                 is_inference=is_inference
             )
         if is_inference is True:
-            output = output + self.prosody_linear(prosody_prediction)
+            prosody_prediction_expanded, _ = self.prosody_length_regulator(prosody_prediction, s_snt_durations)
+            output = output + self.prosody_linear(prosody_prediction_expanded)
         else:
-            output = output + self.prosody_linear(prosody_target)
+            prosody_target_expanded, x = self.prosody_length_regulator(prosody_target, s_snt_durations)
+            output = output + self.prosody_linear(prosody_target_expanded)
         (
             output,
             p_predictions,
@@ -278,6 +286,7 @@ class fastspeech2VCwGMM(nn.Module):
                 pi_outs,
                 mu_outs,
                 sigma_outs,
+                snt_mask,
                 g_prosody_target,
                 g_pi,
                 g_mu,
@@ -298,4 +307,5 @@ class fastspeech2VCwGMM(nn.Module):
             pi_outs,
             mu_outs,
             sigma_outs,
+            snt_mask,
         )
