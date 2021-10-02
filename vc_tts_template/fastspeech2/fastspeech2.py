@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import torch.nn as nn
 
@@ -19,7 +19,8 @@ class FastSpeech2(nn.Module):
         encoder_num_layer: int,
         encoder_num_head: int,
         conv_filter_size: int,
-        conv_kernel_size: List[int],
+        conv_kernel_size_1: int,
+        conv_kernel_size_2: int,
         encoder_dropout: float,
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -37,7 +38,8 @@ class FastSpeech2(nn.Module):
         encoder_fix: bool,
         stats: Dict,
         speakers: Optional[Dict] = None,
-        emotions: Optional[Dict] = None
+        emotions: Optional[Dict] = None,
+        accent_info: int = 0,
     ):
         super(FastSpeech2, self).__init__()
         self.encoder = Encoder(
@@ -47,8 +49,9 @@ class FastSpeech2(nn.Module):
             encoder_num_layer,
             encoder_num_head,
             conv_filter_size,
-            conv_kernel_size,
-            encoder_dropout
+            [conv_kernel_size_1, conv_kernel_size_2],
+            encoder_dropout,
+            accent_info,
         )
         self.variance_adaptor = VarianceAdaptor(
             encoder_hidden_dim,
@@ -68,7 +71,7 @@ class FastSpeech2(nn.Module):
             decoder_num_layer,
             decoder_num_head,
             conv_filter_size,
-            conv_kernel_size,
+            [conv_kernel_size_1, conv_kernel_size_2],
             decoder_dropout
         )
         self.decoder_linear = nn.Linear(
@@ -101,6 +104,7 @@ class FastSpeech2(nn.Module):
         self.encoder_fix = encoder_fix
         self.speakers = speakers
         self.emotions = emotions
+        self.accent_info = accent_info
 
     def forward(
         self,
@@ -120,7 +124,8 @@ class FastSpeech2(nn.Module):
         e_control=1.0,
         d_control=1.0,
     ):
-        src_masks = make_pad_mask(src_lens, max_src_len)
+        divide_value = 2 if self.accent_info > 0 else 1
+        src_masks = make_pad_mask((src_lens / divide_value).long(), max_src_len // divide_value)
         # PAD前の, 元データが入っていない部分がTrueになっているmaskの取得
         # これは, attentionで, -infをfillするために使いたいので.
         mel_masks = (
@@ -128,7 +133,6 @@ class FastSpeech2(nn.Module):
             if mel_lens is not None
             else None
         )
-
         output = self.encoder(texts, src_masks)
 
         if self.encoder_fix is True:

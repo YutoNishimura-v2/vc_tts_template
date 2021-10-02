@@ -199,7 +199,7 @@ class LengthRegulator(nn.Module):
 
         return out
 
-    def forward(self, x, duration, max_len):
+    def forward(self, x, duration, max_len=None):
         # durationがpredictか, targetのdurationです.
         output, mel_len = self.LR(x, duration, max_len)
         return output, mel_len

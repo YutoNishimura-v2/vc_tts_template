@@ -62,7 +62,8 @@ class FastSpeech2wGMM(nn.Module):
         global_prosody: bool,
         stats: Dict,
         speakers: Optional[Dict] = None,
-        emotions: Optional[Dict] = None
+        emotions: Optional[Dict] = None,
+        accent_info: int = 0,
     ):
         super(FastSpeech2wGMM, self).__init__()
         self.encoder = Encoder(
@@ -73,7 +74,8 @@ class FastSpeech2wGMM(nn.Module):
             encoder_num_head,
             conv_filter_size,
             [conv_kernel_size_1, conv_kernel_size_2],
-            encoder_dropout
+            encoder_dropout,
+            accent_info,
         )
         self.variance_adaptor = VarianceAdaptor(
             encoder_hidden_dim,
@@ -156,6 +158,7 @@ class FastSpeech2wGMM(nn.Module):
         self.global_prosody = global_prosody
         self.speakers = speakers
         self.emotions = emotions
+        self.accent_info = accent_info
 
     def forward(
         self,
@@ -175,7 +178,8 @@ class FastSpeech2wGMM(nn.Module):
         e_control=1.0,
         d_control=1.0,
     ):
-        src_masks = make_pad_mask(src_lens, max_src_len)
+        divide_value = 2 if self.accent_info > 0 else 1
+        src_masks = make_pad_mask((src_lens / divide_value).long(), max_src_len // divide_value)
         # PAD前の, 元データが入っていない部分がTrueになっているmaskの取得
         # これは, attentionで, -infをfillするために使いたいので.
         mel_masks = (

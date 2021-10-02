@@ -136,6 +136,7 @@ Vocoder model: {wavenet_str}
            wav, wav_sr,
            s_speaker=None, t_speaker=None,
            s_emotion=None, t_emotion=None,
+           s_sent_durations=None,
            ):
         """Run VC
 
@@ -198,10 +199,19 @@ Vocoder model: {wavenet_str}
         s_pitches = torch.tensor(s_pitches).float().to(self.device)
         s_energies = torch.tensor(s_energies).float().to(self.device)
 
-        output = self.acoustic_model(
-            None, s_speakers, t_speakers, s_emotions, t_emotions,
-            s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies
-        )
+        if s_sent_durations is not None:
+            s_sent_durations = np.array(s_sent_durations)
+            s_sent_durations = torch.tensor(s_sent_durations).long().to(self.device)
+            output = self.acoustic_model(
+                None, s_speakers, t_speakers, s_emotions, t_emotions,
+                s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies,
+                s_snt_durations=s_sent_durations
+            )
+        else:
+            output = self.acoustic_model(
+                None, s_speakers, t_speakers, s_emotions, t_emotions,
+                s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies
+            )
 
         mel_post = output[1]
         mels = [self.acoustic_out_scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mel_post]  # type: ignore

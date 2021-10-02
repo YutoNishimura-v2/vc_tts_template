@@ -26,3 +26,4 @@ netG:
   stats: {"pitch_min": 70, "pitch_max": 750, "energy_min": 10, "energy_max": 27}
   speakers:
   emotions: {"joy": 0, "calm": 1, "sorrow": 2, "anger": 3}
+  accent_info:

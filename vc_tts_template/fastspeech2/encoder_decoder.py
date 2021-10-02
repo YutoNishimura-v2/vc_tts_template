@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from vc_tts_template.fastspeech2.layers import FFTBlock
+from vc_tts_template.fastspeech2.layers import FFTBlock, WordEncoder
 
 
 def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
@@ -41,7 +41,8 @@ class Encoder(nn.Module):
         encoder_num_head: int,
         conv_filter_size: int,
         conv_kernel_size: List[int],
-        encoder_dropout: float
+        encoder_dropout: float,
+        accent_info: int = 0,
     ):
         super(Encoder, self).__init__()
 
@@ -64,8 +65,8 @@ class Encoder(nn.Module):
         self.max_seq_len = max_seq_len
         self.d_model = d_model
 
-        self.src_word_emb = nn.Embedding(
-            n_src_vocab, d_word_vec, padding_idx=0
+        self.src_word_emb = WordEncoder(
+            n_src_vocab, d_word_vec, padding_idx=0, accent_info=accent_info
         )
 
         self.position_enc = nn.Parameter(
@@ -90,14 +91,14 @@ class Encoder(nn.Module):
         """
 
         enc_slf_attn_list = []
-        batch_size, max_len = src_seq.shape[0], src_seq.shape[1]
+        batch_size, max_len = mask.shape[0], mask.shape[1]
 
         slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
 
-        if not self.training and src_seq.shape[1] > self.max_seq_len:
+        if not self.training and max_len > self.max_seq_len:
             enc_output = self.src_word_emb(src_seq) + get_sinusoid_encoding_table(
-                src_seq.shape[1], self.d_model
-            )[: src_seq.shape[1], :].unsqueeze(0).expand(batch_size, -1, -1).to(
+                max_len, self.d_model
+            )[: max_len, :].unsqueeze(0).expand(batch_size, -1, -1).to(
                 src_seq.device
             )
         else:

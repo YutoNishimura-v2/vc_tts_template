@@ -1,10 +1,11 @@
 import logging
-from pathlib import Path
-from typing import Callable, Dict, List, Optional, Tuple, Iterable
 import shutil
+from pathlib import Path
+from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
-import joblib
 import hydra
+import joblib
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
@@ -13,10 +14,10 @@ from hydra.utils import to_absolute_path
 from omegaconf import OmegaConf
 from torch.utils import data as data_utils
 from torch.utils.tensorboard import SummaryWriter
-import matplotlib.pyplot as plt
 
 from vc_tts_template.logger import getLogger
-from vc_tts_template.utils import init_seed, load_utt_list, adaptive_load_state_dict
+from vc_tts_template.utils import (adaptive_load_state_dict, init_seed,
+                                   load_utt_list)
 
 
 def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int, last_epoch: int = 0) -> Iterable:

@@ -168,6 +168,7 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         data.dev.in_dir=$dump_norm_dir/$dev_set/in_fastspeech2/ \
         data.dev.out_dir=$dump_norm_dir/$dev_set/out_fastspeech2/ \
         data.batch_size=$fastspeech2_data_batch_size \
+        data.accent_info=$accent_info \
         train.out_dir=$expdir/${acoustic_model} \
         train.log_dir=tensorboard/${expname}_${acoustic_model} \
         train.nepochs=$fastspeech2_train_nepochs \
@@ -180,7 +181,8 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         train.criterion.energy_feature_level=$energy_phoneme_averaging \
         model.netG.pitch_feature_level=$pitch_phoneme_averaging \
         model.netG.energy_feature_level=$energy_phoneme_averaging \
-        model.netG.n_mel_channel=$n_mel_channels
+        model.netG.n_mel_channel=$n_mel_channels \
+        model.netG.accent_info=$accent_info
     
     # save config
     cp -r conf/train_fastspeech2 $expdir/conf
@@ -220,6 +222,7 @@ if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
         data.dev.in_dir=$dump_norm_dir/$dev_set/in_fastspeech2/ \
         data.dev.out_dir=$dump_norm_dir/$dev_set/out_fastspeech2/ \
         data.batch_size=$fastspeech2_data_batch_size \
+        data.accent_info=$accent_info \
         train.out_dir=$expdir/${acoustic_model} \
         train.log_dir=tensorboard/${expname}_${acoustic_model} \
         train.nepochs=$fastspeech2_train_nepochs \
@@ -232,7 +235,8 @@ if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
         train.criterion.energy_feature_level=$energy_phoneme_averaging \
         model.netG.pitch_feature_level=$pitch_phoneme_averaging \
         model.netG.energy_feature_level=$energy_phoneme_averaging \
-        model.netG.n_mel_channel=$n_mel_channels
+        model.netG.n_mel_channel=$n_mel_channels \
+        model.netG.accent_info=$accent_info
     
     # save config
     cp -r conf/train_fastspeech2 $expdir/conf

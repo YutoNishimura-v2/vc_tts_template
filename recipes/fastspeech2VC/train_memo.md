@@ -48,3 +48,8 @@
         - spk: N2C
         - pretrain: なし
         - pitchのAR化を実装した.
+    
+    - N2C_5
+        - spk: N2C_2
+        - pretrain: なし
+        - pitchのAR化を実装した.

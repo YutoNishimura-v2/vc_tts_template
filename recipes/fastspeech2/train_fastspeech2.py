@@ -161,7 +161,7 @@ def my_app(config: DictConfig) -> None:
     # 以下自由
     collate_fn = partial(
         collate_fn_fastspeech2, batch_size=config.data.batch_size,
-        speaker_dict=config.model.netG.speakers, emotion_dict=config.model.netG.emotions
+        speaker_dict=config.model.netG.speakers, emotion_dict=config.model.netG.emotions,
     )
 
     model, optimizer, lr_scheduler, loss, data_loaders, writers, logger, last_epoch, last_train_iter = setup(

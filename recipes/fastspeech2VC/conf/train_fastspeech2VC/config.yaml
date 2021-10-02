@@ -72,7 +72,9 @@ train:
       anneal_rate: 0.3
   
   criterion:
-    _target_: vc_tts_template.fastspeech2VC.loss.FastSpeech2VCLoss
+    _target_: vc_tts_template.fastspeech2VCwGMM.loss.FastSpeech2VCwGMMLoss
+    beta: 0.02
+    g_beta: 0.02
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
