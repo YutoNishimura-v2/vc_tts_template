@@ -156,7 +156,6 @@ def _update_running_losses_(running_losses, loss_values):
 def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loaders,
                       logger, trial, use_loss="total_loss", train_step=None, epoch_step=False):
     nepochs = config.train.nepochs
-    trial.set_user_attr("EPOCH", 0)
     scaler = torch.cuda.amp.GradScaler()
 
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs):
@@ -186,6 +185,7 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
                         batch,
                         logger,
                         scaler,
+                        epoch,
                     )
                     # lossを一気に足してためておく. 賢い.
                     _update_running_losses_(running_losses, loss_values)
@@ -204,6 +204,5 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
 
             if epoch_step is True:
                 lr_scheduler.step()
-        trial.user_attrs["EPOCH"] = epoch
 
     return ave_loss
