@@ -69,7 +69,7 @@ def fastspeech2VC_train_step(
         if not torch.isfinite(grad_norm):
             # こんなことあるんだ.
             logger.info("grad norm is NaN. Skip updating")
-            if (trial is not None) and (epoch >= 1):
+            if (trial is not None) and (epoch >= 2):
                 raise optuna.TrialPruned()
         else:
             scaler.step(optimizer)
