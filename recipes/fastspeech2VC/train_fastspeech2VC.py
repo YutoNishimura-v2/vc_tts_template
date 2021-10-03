@@ -1,5 +1,6 @@
 import sys
 from functools import partial
+import warnings
 
 import hydra
 import torch
@@ -10,9 +11,11 @@ import matplotlib.pyplot as plt
 sys.path.append("../..")
 from vc_tts_template.fastspeech2VC.collate_fn import (
     collate_fn_fastspeech2VC, fastspeech2VC_get_data_loaders)
-from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer
+from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer, free_tensors_memory
 from recipes.common.train_loop import train_loop
 from recipes.fastspeech2VC.utils import plot_mel_with_prosody
+
+warnings.simplefilter('ignore', UserWarning)
 
 
 def fastspeech2VC_train_step(
@@ -23,6 +26,7 @@ def fastspeech2VC_train_step(
     loss,
     batch,
     logger,
+    scaler,
     trial=None,
 ):
     """dev時にはpredしたp, eで計算してほしいので, オリジナルのtrain_stepに.
@@ -30,41 +34,45 @@ def fastspeech2VC_train_step(
     optimizer.zero_grad()
 
     # Run forwaard
-    if train is True:
-        output = model(*batch)
-    else:
-        if len(batch) == 16:
-            # fastspeech2VC
-            output = model(
-                *batch[:13],
-                t_pitches=None,
-                t_energies=None,
-                t_durations=batch[15],
-            )
-        elif len(batch) == 18:
-            # fastspeech2VCwGMM
-            output = model(
-                *batch[:13],
-                t_pitches=None,
-                t_energies=None,
-                t_durations=batch[15],
-                s_snt_durations=batch[16],
-                t_snt_durations=batch[17],
-            )
+    with torch.cuda.amp.autocast():
+        if train is True:
+            output = model(*batch)
+        else:
+            if len(batch) == 16:
+                # fastspeech2VC
+                output = model(
+                    *batch[:13],
+                    t_pitches=None,
+                    t_energies=None,
+                    t_durations=batch[15],
+                )
+            elif len(batch) == 18:
+                # fastspeech2VCwGMM
+                output = model(
+                    *batch[:13],
+                    t_pitches=None,
+                    t_energies=None,
+                    t_durations=batch[15],
+                    s_snt_durations=batch[16],
+                    t_snt_durations=batch[17],
+                )
 
-    loss, loss_values = loss(batch, output)
+        loss, loss_values = loss(batch, output)
 
     # Update
     if train:
-        loss.backward()
+        scaler.scale(loss).backward()
+        free_tensors_memory([loss])
+        scaler.unscale_(optimizer)
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         if not torch.isfinite(grad_norm):
             # こんなことあるんだ.
             logger.info("grad norm is NaN. Skip updating")
-            if trial is not None:
+            if (trial is not None) and (trial.user_attrs["EPOCH"] >= 1):
                 raise optuna.TrialPruned()
         else:
-            optimizer.step()
+            scaler.step(optimizer)
+        scaler.update()
         lr_scheduler.step()
 
     return loss_values

@@ -4,7 +4,8 @@ from tqdm import tqdm
 from pathlib import Path
 from vc_tts_template.train_utils import (
     get_epochs_with_optional_tqdm,
-    save_checkpoint
+    save_checkpoint,
+    free_tensors_memory
 )
 
 
@@ -15,24 +16,29 @@ def _train_step(
     train,
     loss,
     batch,
-    logger
+    logger,
+    scaler,
 ):
     optimizer.zero_grad()
 
     # Run forwaard
-    output = model(*batch)
+    with torch.cuda.amp.autocast():
+        output = model(*batch)
 
-    loss, loss_values = loss(batch, output)
+        loss, loss_values = loss(batch, output)
 
     # Update
     if train:
-        loss.backward()
+        scaler.scale(loss).backward()
+        free_tensors_memory([loss])
+        scaler.unscale_(optimizer)
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         if not torch.isfinite(grad_norm):
             # こんなことあるんだ.
             logger.info("grad norm is NaN. Skip updating")
         else:
-            optimizer.step()
+            scaler.step(optimizer)
+        scaler.update()
         lr_scheduler.step()
 
     return loss_values
@@ -52,6 +58,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
     best_loss = torch.finfo(torch.float32).max
     train_iter = last_train_iter + 1
     nepochs = config.train.nepochs
+    scaler = torch.cuda.amp.GradScaler()
 
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs, last_epoch=last_epoch):
         for phase in data_loaders.keys():
@@ -78,7 +85,8 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                         train,
                         loss,
                         batch,
-                        logger
+                        logger,
+                        scaler,
                     )
                     if train:
                         for key, val in loss_values.items():

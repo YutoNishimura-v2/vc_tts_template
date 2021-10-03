@@ -1,5 +1,6 @@
 import sys
 from functools import partial
+import warnings
 
 import hydra
 import optuna
@@ -10,9 +11,11 @@ import matplotlib.pyplot as plt
 sys.path.append("../..")
 from vc_tts_template.fastspeech2.collate_fn import (
     collate_fn_fastspeech2, fastspeech2_get_data_loaders)
-from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer
+from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer, free_tensors_memory
 from recipes.common.train_loop import train_loop
 from recipes.fastspeech2.utils import plot_mel_with_prosody
+
+warnings.simplefilter('ignore', UserWarning)
 
 
 def fastspeech2_train_step(
@@ -23,6 +26,7 @@ def fastspeech2_train_step(
     loss,
     batch,
     logger,
+    scaler,
     trial=None,
 ):
     """dev時にはpredしたp, eで計算してほしいので, オリジナルのtrain_stepに.
@@ -30,29 +34,33 @@ def fastspeech2_train_step(
     optimizer.zero_grad()
 
     # Run forwaard
-    if train is True:
-        output = model(*batch)
-    else:
-        output = model(
-            *batch[:9],
-            p_targets=None,
-            e_targets=None,
-            d_targets=batch[11],
-        )
+    with torch.cuda.amp.autocast():
+        if train is True:
+            output = model(*batch)
+        else:
+            output = model(
+                *batch[:9],
+                p_targets=None,
+                e_targets=None,
+                d_targets=batch[11],
+            )
 
-    loss, loss_values = loss(batch, output)
+        loss, loss_values = loss(batch, output)
 
     # Update
     if train:
-        loss.backward()
+        scaler.scale(loss).backward()
+        free_tensors_memory([loss])
+        scaler.unscale_(optimizer)
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         if not torch.isfinite(grad_norm):
             # こんなことあるんだ.
             logger.info("grad norm is NaN. Skip updating")
-            if trial is not None:
+            if (trial is not None) and (trial.user_attrs["EPOCH"] >= 1):
                 raise optuna.TrialPruned()
         else:
-            optimizer.step()
+            scaler.step(optimizer)
+        scaler.update()
         lr_scheduler.step()
 
     return loss_values
@@ -128,15 +136,15 @@ def to_device(data, phase, device):
         energies,
         durations,
     ) = data
-    speakers = torch.from_numpy(speakers).long().to(device)
-    emotions = torch.from_numpy(emotions).long().to(device)
-    texts = torch.from_numpy(texts).long().to(device)
-    src_lens = torch.from_numpy(src_lens).to(device)
-    mels = torch.from_numpy(mels).float().to(device)
-    mel_lens = torch.from_numpy(mel_lens).to(device)
-    pitches = torch.from_numpy(pitches).float().to(device)
-    energies = torch.from_numpy(energies).to(device)
-    durations = torch.from_numpy(durations).long().to(device)
+    speakers = torch.from_numpy(speakers).long().to(device, non_blocking=True)
+    emotions = torch.from_numpy(emotions).long().to(device, non_blocking=True)
+    texts = torch.from_numpy(texts).long().to(device, non_blocking=True)
+    src_lens = torch.from_numpy(src_lens).to(device, non_blocking=True)
+    mels = torch.from_numpy(mels).float().to(device, non_blocking=True)
+    mel_lens = torch.from_numpy(mel_lens).to(device, non_blocking=True)
+    pitches = torch.from_numpy(pitches).float().to(device, non_blocking=True)
+    energies = torch.from_numpy(energies).to(device, non_blocking=True)
+    durations = torch.from_numpy(durations).long().to(device, non_blocking=True)
 
     return (
         ids,

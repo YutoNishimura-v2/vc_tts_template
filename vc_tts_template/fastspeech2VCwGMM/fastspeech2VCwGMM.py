@@ -9,6 +9,7 @@ from vc_tts_template.fastspeech2VC.varianceadaptor import VarianceAdaptor, Lengt
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyExtractor
 from vc_tts_template.fastspeech2VCwGMM.prosody_model import ProsodyPredictor
 from vc_tts_template.utils import make_pad_mask
+from vc_tts_template.train_utils import free_tensors_memory
 
 
 class fastspeech2VCwGMM(nn.Module):
@@ -203,6 +204,7 @@ class fastspeech2VCwGMM(nn.Module):
         output = self.mel_linear_1(
             s_mels.contiguous().view(s_mels.size(0), -1, self.mel_num * self.reduction_factor)
         )
+        free_tensors_memory([s_mels])
 
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(s_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
@@ -230,9 +232,11 @@ class fastspeech2VCwGMM(nn.Module):
         if is_inference is True:
             prosody_prediction_expanded, _ = self.prosody_length_regulator(prosody_prediction, s_snt_durations)
             output = output + self.prosody_linear(prosody_prediction_expanded)
+            free_tensors_memory([prosody_prediction, prosody_prediction_expanded, s_snt_durations])
         else:
             prosody_target_expanded, _ = self.prosody_length_regulator(prosody_target, s_snt_durations)
             output = output + self.prosody_linear(prosody_target_expanded)
+            free_tensors_memory([prosody_prediction, prosody_target_expanded, s_snt_durations])
         (
             output,
             p_predictions,

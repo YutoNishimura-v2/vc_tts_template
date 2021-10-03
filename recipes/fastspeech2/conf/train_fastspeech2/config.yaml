@@ -34,7 +34,7 @@ data:
     out_dir:
 
   # data loader
-  num_workers: 20
+  num_workers: 5
   batch_size:
   group_size: 4
   accent_info:

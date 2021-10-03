@@ -9,6 +9,7 @@ from vc_tts_template.fastspeech2wGMM.layers import ConvLNorms1d
 from vc_tts_template.tacotron.decoder import ZoneOutCell
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyExtractor
 from vc_tts_template.utils import make_pad_mask
+from vc_tts_template.train_utils import free_tensors_memory
 
 
 def encoder_init(m):
@@ -103,6 +104,7 @@ class ProsodyPredictor(nn.Module):
             g_pi = self.g_pi_linear(hidden_global)
             g_sigma = torch.exp(self.g_sigma_linear(hidden_global)).view(-1, self.global_num_gaussians, self.d_out)
             g_mu = self.g_mu_linear(hidden_global).view(-1, self.global_num_gaussians, self.d_out)
+            free_tensors_memory([hidden_global])
             if target_global_prosody is None:
                 target_global_prosody = self.sample(g_pi, g_sigma, g_mu)
             else:
@@ -138,6 +140,7 @@ class ProsodyPredictor(nn.Module):
             pi_outs.append(self.pi_linear(hcs).unsqueeze(1))
             sigma_outs.append(torch.exp(self.sigma_linear(hcs)).view(-1, 1, self.num_gaussians, self.d_out))
             mu_outs.append(self.mu_linear(hcs).view(-1, 1, self.num_gaussians, self.d_out))
+            free_tensors_memory(hcs)
 
             # 次の時刻のデコーダの入力を更新
             if (is_inference is True) or (target_prosody is None):
@@ -149,7 +152,7 @@ class ProsodyPredictor(nn.Module):
                 # prevent from backpropagation to prosody extractor
                 prev_out = target_prosody[:, t, :].detach()
             outs.append(prev_out.unsqueeze(1))
-
+        free_tensors_memory(h_list)
         outs = torch.cat(outs, dim=1)
         pi_outs = torch.cat(pi_outs, dim=1)
         sigma_outs = torch.cat(sigma_outs, dim=1)
@@ -175,7 +178,7 @@ class ProsodyPredictor(nn.Module):
         # mu: (B, num_gaussians, d_out)
         pis = OneHotCategorical(probs=pi).sample().unsqueeze(-1)
         # pis: (B, num_gaussians), one-hot.
-        normal = Normal(loc=mu, scale=(sigma+1e-8)).sample()
+        normal = Normal(loc=mu, scale=(sigma+1e-3)).sample()
         samples = torch.sum(pis*normal, dim=1)
         return samples
 

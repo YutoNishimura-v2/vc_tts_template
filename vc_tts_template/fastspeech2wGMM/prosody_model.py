@@ -10,6 +10,7 @@ sys.path.append("../..")
 from vc_tts_template.fastspeech2wGMM.layers import ConvBNorms2d, ConvLNorms1d
 from vc_tts_template.tacotron.decoder import ZoneOutCell
 from vc_tts_template.utils import pad
+from vc_tts_template.train_utils import free_tensors_memory
 
 
 def encoder_init(m):
@@ -61,6 +62,7 @@ class ProsodyExtractor(nn.Module):
             return None
         durations = durations.detach().cpu().numpy()  # detach
         output_sorted, src_lens_sorted, segment_nums, inv_sort_idx = self.mel2phone(mels, durations)
+        free_tensors_memory([durations])
         outs = list()
         for output, src_lens in zip(output_sorted, src_lens_sorted):
             # output: (B, T_n, d_mel). T_n: length of phoneme
@@ -72,8 +74,10 @@ class ProsodyExtractor(nn.Module):
             # out: (B, T_n, d_out)
             out, _ = pad_packed_sequence(out, batch_first=True)
             outs.append(out[:, -1, :])  # use last time
+        free_tensors_memory([output_sorted, src_lens_sorted])
         outs = torch.cat(outs, 0)
         out = self.phone2utter(outs[inv_sort_idx], segment_nums)
+        free_tensors_memory([outs])
 
         if self.global_prosody is True:
             # global_emb: (B, d_out)
@@ -122,6 +126,7 @@ class ProsodyExtractor(nn.Module):
             output_seg = pad(output_seg)
             output_sorted.append(output_seg)
             src_lens_sorted.append(src_lens_seg)
+        free_tensors_memory([output])
         return output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
 
     def phone2utter(self, out, segment_nums):
@@ -275,7 +280,7 @@ class ProsodyPredictor(nn.Module):
         # mu: (B, num_gaussians, d_out)
         pis = OneHotCategorical(probs=pi).sample().unsqueeze(-1)
         # pis: (B, num_gaussians), one-hot.
-        normal = Normal(loc=mu, scale=(sigma+1e-8)).sample()
+        normal = Normal(loc=mu, scale=(sigma+1e-3)).sample()
         samples = torch.sum(pis*normal, dim=1)
         return samples
 

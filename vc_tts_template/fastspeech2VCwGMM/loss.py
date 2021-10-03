@@ -57,7 +57,6 @@ class FastSpeech2VCwGMMLoss(nn.Module):
 
         pitch_predictions = pitch_predictions.masked_select(mel_masks)
         pitch_targets = pitch_targets.masked_select(mel_masks)
-
         energy_predictions = energy_predictions.masked_select(mel_masks)
         energy_targets = energy_targets.masked_select(mel_masks)
 
@@ -76,25 +75,24 @@ class FastSpeech2VCwGMMLoss(nn.Module):
         pitch_loss = self.mse_loss(pitch_predictions, pitch_targets)
         energy_loss = self.mse_loss(energy_predictions, energy_targets)
         duration_loss = self.mse_loss(log_duration_predictions, log_duration_targets)
-
         # mdn loss
-        normal_dist = Normal(loc=mu_outs, scale=(sigma_outs+1e-8))
+        normal_dist = Normal(loc=mu_outs, scale=(sigma_outs+1e-3))
         loglik = normal_dist.log_prob(prosody_target.detach().unsqueeze(2).expand_as(normal_dist.loc))
         # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
         loglik = torch.sum(loglik, dim=-1)
         # logsumexpを使わないとunderflowする.
-        prosody_loss = -torch.logsumexp(torch.log(pi_outs+1e-8) + loglik, dim=-1)
+        prosody_loss = -torch.logsumexp(torch.log(pi_outs+1e-7) + loglik, dim=-1)
         prosody_loss = torch.mean(prosody_loss.masked_select(~snt_mask))
 
         if len(predictions[15:]) > 0:
             # global embedding True
             g_prosody_target, g_pi, g_mu, g_sigma = predictions[15:]
-            normal_dist = Normal(loc=g_mu, scale=(g_sigma+1e-8))
+            normal_dist = Normal(loc=g_mu, scale=(g_sigma+1e-3))
             loglik = normal_dist.log_prob(g_prosody_target.detach().unsqueeze(1).expand_as(normal_dist.loc))
             # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
             loglik = torch.sum(loglik, dim=-1)
             # logsumexpを使わないとunderflowする.
-            g_prosody_loss = -torch.logsumexp(torch.log(g_pi+1e-8) + loglik, dim=-1)
+            g_prosody_loss = -torch.logsumexp(torch.log(g_pi+1e-7) + loglik, dim=-1)
             g_prosody_loss = torch.mean(g_prosody_loss)
 
             total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss + \

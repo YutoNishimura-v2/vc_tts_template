@@ -20,6 +20,12 @@ from vc_tts_template.utils import (adaptive_load_state_dict, init_seed,
                                    load_utt_list)
 
 
+def free_tensors_memory(x: List[torch.Tensor]):
+    for x_ in x:
+        del x_
+    torch.cuda.empty_cache()
+
+
 def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int, last_epoch: int = 0) -> Iterable:
     """Get epochs with optional progress bar.
 
@@ -189,8 +195,9 @@ def plot_grad_flow(named_parameters, fig_name="", save_cnt=1):
         if(p.requires_grad) and ("bias" not in n):
             layers.append(n)
             ave_grads.append(p.grad.abs().mean().cpu().numpy())
+
     if plot_cnt == 1:
-        plt.figure(figsize=(30, 10))
+        plt.figure(figsize=(50, 10))
     plt.plot(ave_grads, alpha=0.3, color="b")
     plt.hlines(0, 0, len(ave_grads)+1, linewidth=1, color="k")
     plt.xticks(range(0, len(ave_grads), 1), layers, rotation="vertical")

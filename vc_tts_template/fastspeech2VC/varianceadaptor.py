@@ -124,8 +124,8 @@ class VarianceAdaptor(nn.Module):
             mel_mask = make_pad_mask(mel_len)
             max_len = max(mel_len.cpu().numpy())
 
-        pitch = pitch + x.detach() if self.pitch_stop_gradient_flow is True else x
-        energy = energy + x.detach() if self.energy_stop_gradient_flow is True else x
+        pitch = pitch + x.detach() if self.pitch_stop_gradient_flow is True else pitch + x
+        energy = energy + x.detach() if self.energy_stop_gradient_flow is True else energy + x
 
         # pitch, energy: (B, T//r, d_enc)
         if self.pitch_AR is False:
@@ -134,7 +134,6 @@ class VarianceAdaptor(nn.Module):
             pitch_prediction = self.pitch_predictor(pitch, mel_mask, pitch_target) * p_control
 
         energy_prediction = self.energy_predictor(energy, mel_mask) * e_control
-
         # pitchを, また次元増やしてhiddenに足す.
         if pitch_target is not None:
             pitch = self.reshape_with_reduction_factor(pitch_target, max_len)

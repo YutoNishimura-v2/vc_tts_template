@@ -118,7 +118,7 @@ class RelativeMultiHeadAttention(nn.Module):
 
         if mask is not None:
             mask = mask.unsqueeze(1)
-            score.masked_fill_(mask, -1e9)
+            score.masked_fill_(mask, -1e+4)
 
         attn_map = F.softmax(score, -1)
         attn = self.dropout(attn_map)
