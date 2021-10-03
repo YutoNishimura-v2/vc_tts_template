@@ -140,7 +140,7 @@ class ProsodyPredictor(nn.Module):
             pi_outs.append(self.pi_linear(hcs).unsqueeze(1))
             sigma_outs.append(torch.exp(self.sigma_linear(hcs)).view(-1, 1, self.num_gaussians, self.d_out))
             mu_outs.append(self.mu_linear(hcs).view(-1, 1, self.num_gaussians, self.d_out))
-            free_tensors_memory(hcs)
+            free_tensors_memory([hcs])
 
             # 次の時刻のデコーダの入力を更新
             if (is_inference is True) or (target_prosody is None):
