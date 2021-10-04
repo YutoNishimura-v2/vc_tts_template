@@ -100,11 +100,12 @@ Vocoder model: {wavenet_str}
         self.vocoder_model.to(device)
 
     @torch.no_grad()
-    def tts(self, text, speaker=None, emotion=None):
+    def tts(self, text, accents=None, speaker=None, emotion=None):
         """Run TTS
 
         Args:
             text (str): Input text
+            accents (str): Accents corresponding to text
             speaker (str): you can select speaker if you train with it.
             tqdm (object, optional): tqdm object. Defaults to None.
 
@@ -121,6 +122,18 @@ Vocoder model: {wavenet_str}
             emotions = np.array([0])
         else:
             emotions = np.array([self.acoustic_model.emotions[emotion]])
+
+        if accents is not None:
+            if len(accents) != len(phonemes):
+                raise ValueError(
+                    f"""Error! アクセントの文字列は、音素に一致するようにしてください。\n
+                    今テキストの音素は以下の通りです。\n
+                    {phonemes}
+                    """
+                )
+            phonemes = [
+                p + acc for p, acc in zip(phonemes, accents)
+            ]
         in_feats = np.array(text_to_sequence(phonemes))
         src_lens = [in_feats.shape[0]]
         max_src_len = max(src_lens)

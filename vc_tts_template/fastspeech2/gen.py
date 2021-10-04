@@ -1,34 +1,12 @@
 import numpy as np
 import torch
 from pathlib import Path
-import tgt
-from vc_tts_template.frontend.openjtalk import text_to_sequence
 
 
 @torch.no_grad()
 def synthesis(device, lab_file, speaker_dict, emotion_dict, acoustic_model,
               acoustic_out_scaler, vocoder_model):
-    textgrid = tgt.io.read_textgrid(lab_file)
-    phones = []
-    sil_phones = ["sil", "sp", "spn", 'silB', 'silE', '']
-    for t in textgrid.get_tier_by_name("phones")._objects:
-        p = t.text
-        # Trim leading silences
-        if phones == []:
-            if p in sil_phones:
-                continue
-
-        if p not in sil_phones:
-            # For ordinary phones
-            phones.append(p)
-            end_idx = len(phones)
-        else:
-            # For silent phones
-            phones.append('sp')
-    # Trim tailing silences
-    phones = phones[:end_idx]
-
-    ids = [Path(lab_file).name.replace(".TextGrid", "")]
+    ids = [Path(lab_file).name.replace("-feats.npy", "")]
     if speaker_dict is None:
         speakers = np.array([0])
     else:
@@ -37,7 +15,7 @@ def synthesis(device, lab_file, speaker_dict, emotion_dict, acoustic_model,
         emotions = np.array([0])
     else:
         emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
-    in_feats = np.array(text_to_sequence(phones), dtype=np.int64)
+    in_feats = np.array([np.load(lab_file)])
     src_lens = [in_feats.shape[0]]
     max_src_len = max(src_lens)
 

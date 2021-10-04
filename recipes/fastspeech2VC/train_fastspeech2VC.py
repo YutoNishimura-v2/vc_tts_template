@@ -64,12 +64,13 @@ def fastspeech2VC_train_step(
     # Update
     if train:
         scaler.scale(loss).backward()
-        free_tensors_memory([loss])
+        # free_tensors_memory([loss])
         scaler.unscale_(optimizer)
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         if not torch.isfinite(grad_norm):
             logger.info("grad norm is NaN. Skip updating")
             if (trial is not None) and (epoch >= 2):
+                print(loss)
                 plot_grad_flow(model.named_parameters(), f"_{time.time()}")
                 raise optuna.TrialPruned()
         else:

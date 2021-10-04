@@ -192,7 +192,7 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     echo "stage 5: Synthesis waveforms by hifigan"
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
-            in_dir=${lab_root} \
+            in_dir=$dump_norm_dir/$s/in_fastspeech2 \
             in_mel_dir=$dump_norm_dir/$s/out_fastspeech2/mel \
             out_dir=$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s \
             sample_rate=$sample_rate \
