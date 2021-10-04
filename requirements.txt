@@ -21,3 +21,4 @@ types-PyYAML
 pydub
 pyaudio
 optuna
+sentence-transformers
