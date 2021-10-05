@@ -59,24 +59,27 @@ class check_grad_flow():
             self.logger.warning(
                 "Maybe the losses is NaN!! check log"
             )
-            for k, v in loss_values.items():
-                self.logger.info(
-                    f"steps: {self.num_step}, {k}: {v}"
-                )
+            self._report_dict(loss_values, add_step=True)
             if trial is False:
                 raise ValueError("loss value error")
             else:
                 raise optuna.TrialPruned()
 
-        for n, p in self.model_params.items():
-            self.logger.debug(
-                f"{n}: {p}"
-            )
-
+        self._report_dict(loss_values, add_step=True)
+        self._report_dict(self.model_params)
         self._reset()
 
     def _reset(self):
         self.model_params = {}
+
+    def _report_dict(self, dict_, add_step=False):
+        if dict_ is not None:
+            for k, v in dict_.items():
+                if add_step is True:
+                    k = f"steps: {self.num_step}, " + k
+                self.logger.info(
+                    f"{k}: {v}"
+                )
 
 
 def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int, last_epoch: int = 0) -> Iterable:
