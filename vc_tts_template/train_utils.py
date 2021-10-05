@@ -72,14 +72,15 @@ class check_grad_flow():
     def _reset(self):
         self.model_params = {}
 
-    def _report_dict(self, dict_, add_step=False):
+    def _report_dict(self, dict_, add_step=False, mode="debug"):
         if dict_ is not None:
             for k, v in dict_.items():
                 if add_step is True:
                     k = f"steps: {self.num_step}, " + k
-                self.logger.info(
-                    f"{k}: {v}"
-                )
+                if mode == "debug":
+                    self.logger.debug(f"{k}: {v}")
+                else:
+                    self.logger.info(f"{k}: {v}")
 
 
 def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int, last_epoch: int = 0) -> Iterable:

@@ -11,7 +11,7 @@ _initialized: Dict[str, bool] = {}
 def getLogger(
     verbose: int = 0,
     filename: Optional[str] = None,
-    name: str = "ttslearn",
+    name: str = "vc_tts_template",
     add_stream_handler: bool = True,
 ) -> Logger:
     """Get a logger instance.
