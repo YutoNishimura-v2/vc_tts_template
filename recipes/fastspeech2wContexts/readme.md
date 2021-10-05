@@ -1,5 +1,6 @@
-# fastspeech2利用方法.
+# fastspeech2wContexts利用方法.
 ## 事前準備
+0. wav, textgridのファイル名の先頭に、「話者名_」というprefixを付けてください。
 1. 利用したいコーパスのwavをどこかに置く.
     - srは変更する必要なし.
     - `./run.sh`を実行する場所からの相対パスを指定する.
@@ -7,19 +8,31 @@
 2. 利用したいコーパスのtextgridをどこかに置く.
     - 例: "../../../dataset/out_JSUT/textgrid"
     - textgridのファイルを基準にファイルリストを作成します.
-3. 終わり. ./run.shを実行していってください.
+3. 実際に発話生成を行いたい話者の音声ファイル名の書かれたlistを作成し、`data`以下に配置してください.
+    - 注意点
+    - train/dev/evalの3つに分割してください。
+    - 同一対話が同じ分割内に入るようにしてください。それを守らないと、リークが発生します。
+4. 対話情報を記録したtextファイルを用意します。以下の形式で書いてください。
+適当な場所に配置した後、1,2同様`./run.sh`からの相対パスを指定してください。
 
-**注意**
-- multi-speakerにしたい場合は, ファイル名の前に話者名を「_」を付けて追加すること.
-    - 例: `JSUT_BASIC5000_0001.wav`
-    - そして, netGのspeakersに事前に用意したspeakerのdictionalyを追加すること.
+Example
+```
+Teacher_LD01-Dialogue-01-Teacher-Turn-02_joy:1:2
+Student_LD01-Dialogue-01-Teacher-Turn-03_joy:1:3
+Teacher_LD01-Dialogue-01-Teacher-Turn-04_joy:1:4
+```
+
+それぞれ、  
+(ファイル名):(対話ID):(対話内ID)  
+になります。
+
+
+## 追加機能
 - emotion embを付けたい場合は, ファイル名の**後**に感情を「_」をつけて追加.
     - 例: `JSUT_BASIC5000_0001_悲しみ.wav`
     - そして, fastspeech2wEmotionのnetGのemotionsに事前に用意したspeakerのdictionalyを追加すること.
 
-- statsに関しては, dump以下に全データ通してのそれをjsonとして吐きだすので, それを参考に入力. 
-
-- train/dev/eval splitは毎回shuffleしている. 実験を完全再現したいのであれば, stage 0は実行せず, gitに入っているものをそのまま利用すること.
+- statsに関しては, dump以下に全データ通してのそれをjsonとして吐きだすので, それを参考に入力しましょう。
 
 - 実験名管理について
     - spk: 全体の名前. preprocessed_data名にもなるため, データそのものの変更をするならここを変える.

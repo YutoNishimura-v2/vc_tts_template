@@ -5,7 +5,8 @@ from pathlib import Path
 from vc_tts_template.train_utils import (
     get_epochs_with_optional_tqdm,
     save_checkpoint,
-    free_tensors_memory
+    free_tensors_memory,
+    check_grad_flow
 )
 
 
@@ -18,6 +19,7 @@ def _train_step(
     batch,
     logger,
     scaler,
+    grad_checker,
 ):
     optimizer.zero_grad()
 
@@ -30,14 +32,18 @@ def _train_step(
     # Update
     if train:
         scaler.scale(loss).backward()
+        grad_checker.set_params(model.named_parameters())
         free_tensors_memory([loss])
         scaler.unscale_(optimizer)
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         if not torch.isfinite(grad_norm):
-            # こんなことあるんだ.
-            logger.info("grad norm is NaN. Skip updating")
-        else:
-            scaler.step(optimizer)
+            grad_checker.report()
+            if scaler.is_enabled() is True:
+                logger.info("grad norm is NaN. Will Skip updating")
+            else:
+                logger.error("grad norm is NaN. check your model grad flow.")
+                raise ValueError("Please check log.")
+        scaler.step(optimizer)
         scaler.update()
         lr_scheduler.step()
 
@@ -59,6 +65,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
     train_iter = last_train_iter + 1
     nepochs = config.train.nepochs
     scaler = torch.cuda.amp.GradScaler()
+    grad_checker = check_grad_flow(logger=logger)
 
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs, last_epoch=last_epoch):
         for phase in data_loaders.keys():
@@ -87,6 +94,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                         batch,
                         logger,
                         scaler,
+                        grad_checker,
                     )
                     if train:
                         for key, val in loss_values.items():

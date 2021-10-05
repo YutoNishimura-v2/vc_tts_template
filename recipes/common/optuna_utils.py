@@ -15,7 +15,8 @@ sys.path.append("../..")
 from vc_tts_template.logger import getLogger
 from vc_tts_template.train_utils import (_get_data_loaders,
                                          set_epochs_based_on_max_steps_,
-                                         get_epochs_with_optional_tqdm)
+                                         get_epochs_with_optional_tqdm,
+                                         check_grad_flow)
 from vc_tts_template.utils import init_seed
 from recipes.common.train_loop import _train_step
 
@@ -157,6 +158,7 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
                       logger, trial, use_loss="total_loss", train_step=None, epoch_step=False):
     nepochs = config.train.nepochs
     scaler = torch.cuda.amp.GradScaler()
+    grad_checker = check_grad_flow(logger=logger)
 
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs):
         for phase in data_loaders.keys():
@@ -185,7 +187,7 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
                         batch,
                         logger,
                         scaler,
-                        epoch,
+                        grad_checker,
                     )
                     # lossを一気に足してためておく. 賢い.
                     _update_running_losses_(running_losses, loss_values)

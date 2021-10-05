@@ -26,6 +26,32 @@ def free_tensors_memory(x: List[torch.Tensor]):
     torch.cuda.empty_cache()
 
 
+class check_grad_flow():
+    def __init__(self, logger) -> None:
+        self.model_params: Dict[str, np.ndarray] = {}
+        self.logger = logger
+        self.num_step = 0
+
+    def set_params(self, named_parameters):
+        self.num_step += 1
+        for n, p in named_parameters:
+            if(p.requires_grad) and ("bias" not in n):
+                p = p.grad.abs().mean().cpu().numpy()
+                if (p is None) or (p == np.inf):
+                    n = f"steps: {self.num_step}, param_name: " + n
+                    self.model_params[n] = p
+
+    def report(self):
+        for n, p in self.model_params.items():
+            self.logger.debug(
+                f"{n}: {p}"
+            )
+        self._reset()
+
+    def _reset(self):
+        self.model_params = {}
+
+
 def get_epochs_with_optional_tqdm(tqdm_mode: str, nepochs: int, last_epoch: int = 0) -> Iterable:
     """Get epochs with optional progress bar.
 

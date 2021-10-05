@@ -1,18 +1,15 @@
 import sys
 from functools import partial
 import warnings
-import time
 
 import hydra
 import torch
-import optuna
 from omegaconf import DictConfig
 import matplotlib.pyplot as plt
-
 sys.path.append("../..")
 from vc_tts_template.fastspeech2VC.collate_fn import (
     collate_fn_fastspeech2VC, fastspeech2VC_get_data_loaders)
-from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer, free_tensors_memory, plot_grad_flow
+from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer, free_tensors_memory
 from recipes.common.train_loop import train_loop
 from recipes.fastspeech2VC.utils import plot_mel_with_prosody
 
@@ -28,8 +25,7 @@ def fastspeech2VC_train_step(
     batch,
     logger,
     scaler,
-    epoch=None,
-    trial=None,
+    grad_checker,
 ):
     """dev時にはpredしたp, eで計算してほしいので, オリジナルのtrain_stepに.
     """
@@ -60,21 +56,21 @@ def fastspeech2VC_train_step(
                 )
 
         loss, loss_values = loss(batch, output)
-
     # Update
     if train:
         scaler.scale(loss).backward()
+        grad_checker.set_params(model.named_parameters())
         free_tensors_memory([loss])
         scaler.unscale_(optimizer)
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         if not torch.isfinite(grad_norm):
-            logger.info("grad norm is NaN. Skip updating")
-            if (trial is not None) and (epoch >= 2):
-                logger.info(f"loss_values: {loss_values}")
-                plot_grad_flow(model.named_parameters(), f"_{time.time()}")
-                raise optuna.TrialPruned()
-        else:
-            scaler.step(optimizer)
+            grad_checker.report()
+            if scaler.is_enabled() is True:
+                logger.info("grad norm is NaN. Will Skip updating")
+            else:
+                logger.error("grad norm is NaN. check your model grad flow.")
+                raise ValueError("Please check log.")
+        scaler.step(optimizer)
         scaler.update()
         lr_scheduler.step()
 

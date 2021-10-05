@@ -61,6 +61,8 @@
     - getLogger: fileの場所とかを指定してloggerを返してくれる関数.
 
 - train_utils.py
+    - free_tensors_memory: 不要になった変数を解放します.
+    - check_grad_flow: gradがinfになったやつを記録しておいて, log吐くやつ
     - get_epochs_with_optional_tqdm: epoch数を指定して, tqdmか否かを選べば, 1から始まるepochのイテレータを返す.
     - num_trainable_params: モデルを渡したら, パラメタ数を返してくれる
     - set_epochs_based_on_max_steps_: max_step指定した訓練回数をepochのそれに変換する.

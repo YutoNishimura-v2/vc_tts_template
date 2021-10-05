@@ -46,6 +46,32 @@
     - Normalの中でlogをとってしまっていることに注意
         - なので, scaleは1e-8足して渡すべき
             - torch.exp()は, -100程度で簡単に0になるので注意.
+        
+    - 20211004: 本格検討
+        - とりあえず、勾配監視としては、infになってしまった部分を素直に取り出すのが一番. 以下に実装例を残しておく。
+        - これ以外の方法は厳しそうであった。plot_gradや、それを改造して時系列ごとにgrad変化をplotするなどをしてみようとしたが、数が多すぎて無理だったり。
+        - とりあえずこれを使って一度途中でNaNになりprunedされる現象を観測しよう！
+
+実装例
+```
+    tmp_params = {}
+    # Update
+    if train:
+        scaler.scale(loss).backward()
+        for n, p in model.named_parameters():
+            grad_v = p.grad.abs().mean().cpu().numpy()
+            if grad_v == np.inf:
+                tmp_params[n] = grad_v
+        free_tensors_memory([loss])
+        scaler.unscale_(optimizer)
+        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        if not torch.isfinite(grad_norm):
+            logger.info("grad norm is NaN. Skip updating")
+            for n, p in tmp_params.items():
+                logger.info(f"{n}: {p}")
+```
+
+
 ## run.shの流れ
 
 - stage -1

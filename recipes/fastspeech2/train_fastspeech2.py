@@ -3,7 +3,6 @@ from functools import partial
 import warnings
 
 import hydra
-import optuna
 import torch
 from omegaconf import DictConfig
 import matplotlib.pyplot as plt
@@ -27,7 +26,7 @@ def fastspeech2_train_step(
     batch,
     logger,
     scaler,
-    trial=None,
+    grad_checker,
 ):
     """dev時にはpredしたp, eで計算してほしいので, オリジナルのtrain_stepに.
     """
@@ -50,16 +49,18 @@ def fastspeech2_train_step(
     # Update
     if train:
         scaler.scale(loss).backward()
+        grad_checker.set_params(model.named_parameters())
         free_tensors_memory([loss])
         scaler.unscale_(optimizer)
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         if not torch.isfinite(grad_norm):
-            # こんなことあるんだ.
-            logger.info("grad norm is NaN. Skip updating")
-            if (trial is not None) and (trial.user_attrs["EPOCH"] >= 1):
-                raise optuna.TrialPruned()
-        else:
-            scaler.step(optimizer)
+            grad_checker.report()
+            if scaler.is_enabled() is True:
+                logger.info("grad norm is NaN. Will Skip updating")
+            else:
+                logger.error("grad norm is NaN. check your model grad flow.")
+                raise ValueError("Please check log.")
+        scaler.step(optimizer)
         scaler.update()
         lr_scheduler.step()
 
