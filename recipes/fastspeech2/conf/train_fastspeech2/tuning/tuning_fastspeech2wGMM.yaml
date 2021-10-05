@@ -16,19 +16,8 @@ target_loss: ["postnet_mel_loss", "pitch_loss"]
 
 # optimizer
 optimizer:
-  lr:
-    suggest: suggest_loguniform
-    params:
-      low: 0.0001
-      high: 0.1
 # lr_scheduler
 lr_scheduler:
-  warm_up_step:
-    suggest: suggest_int
-    params:
-      low: 1000
-      high: 10000
-      step: 1000
 # loss
 criterion:
   beta:
