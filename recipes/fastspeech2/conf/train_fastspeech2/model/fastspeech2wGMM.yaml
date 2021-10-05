@@ -17,7 +17,7 @@ netG:
   extra_gru_n_layers: 2
   extra_global_gru_n_layers: 2
   # prosody predictor
-  gru_hidden_dim: 256
+  gru_hidden_dim: 512
   gru_n_layers: 2
   pp_conv_out_channels: 256
   pp_conv_kernel_size: 3
@@ -26,7 +26,7 @@ netG:
   pp_zoneout: 0.1
   num_gaussians: 10
   global_gru_n_layers: 2
-  global_d_gru: 256
+  global_d_gru: 512
   global_num_gaussians: 10
   # variance predictor
   variance_predictor_filter_size: 256

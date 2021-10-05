@@ -41,3 +41,7 @@
         - spk: JSUT_accent
         - pretrain: None
         - アクセント付きFastSpeech2初実行
+    - Long_dialogue_8
+        - spk: Long_dialogue
+        - pretrain: None
+        - optunaでハイパラ探索を行う. 別パラメタ。アドバイスを受けて大分変数を減らした.

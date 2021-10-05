@@ -10,6 +10,7 @@ import torch.optim as optim
 from hydra.utils import to_absolute_path
 from omegaconf import OmegaConf
 from tqdm import tqdm
+import numpy as np
 
 sys.path.append("../..")
 from vc_tts_template.logger import getLogger
@@ -199,7 +200,11 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
                     is_first = 0
 
             if phase == "dev":
-                ave_loss = running_losses[use_loss] / (len(data_loaders[phase]) * group_size)
+                if type(use_loss) == list:
+                    target_loss = np.sum([running_losses[loss_] for loss_ in use_loss])
+                else:
+                    target_loss = running_losses[use_loss]
+                ave_loss = target_loss / (len(data_loaders[phase]) * group_size)
                 trial.report(ave_loss, epoch)
 
             if trial.should_prune():
