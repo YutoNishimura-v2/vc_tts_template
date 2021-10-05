@@ -3,6 +3,7 @@ import shutil
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
+import optuna
 import hydra
 import joblib
 import matplotlib.pyplot as plt
@@ -27,25 +28,51 @@ def free_tensors_memory(x: List[torch.Tensor]):
 
 
 class check_grad_flow():
-    def __init__(self, logger) -> None:
+    """AMP実装の為に, grad_infのparamを特定できるようにするクラス
+    仮定(設計)
+        - (train step内) grad norm が NaNとなっていいのは, AMP時だけ.
+            それ以外はモデルのバグなのでraise error
+        - (self.report内) paramsが記録されていないのにreport呼び出し(つまりgrad norm is None)は,
+            lossにNaNがあったということ.
+            - これに関しては, AMPだとしてもよろしくないので, raise error.
+            - 但し, optuna中であれば, パラメタが悪い(lossが発散に向かっているということ)なので, pruned
+            - optunaだとしても致命的なエラーの可能性は十分あるため, warningでlog報告.
+                発見次第確認した方が良さそう.
+    """
+    def __init__(self, logger, only_inf_grad=True) -> None:
         self.model_params: Dict[str, np.ndarray] = {}
         self.logger = logger
         self.num_step = 0
+        self.only_inf_grad = only_inf_grad
 
     def set_params(self, named_parameters):
         self.num_step += 1
         for n, p in named_parameters:
             if p.requires_grad is True:
                 p = p.grad.abs().mean().cpu().numpy()
-                if (p is None) or (p == np.inf):
+                if (self.only_inf_grad is False) or (p == np.inf):
                     n = f"steps: {self.num_step}, param_name: " + n
                     self.model_params[n] = p
 
-    def report(self):
+    def report(self, loss_values=None, trial=False):
+        if (len(self.model_params) == 0) and (loss_values is not None):
+            self.logger.warning(
+                "Maybe the losses is NaN!! check log"
+            )
+            for k, v in loss_values.items():
+                self.logger.info(
+                    f"steps: {self.num_step}, {k}: {v}"
+                )
+            if trial is False:
+                raise ValueError("loss value error")
+            else:
+                raise optuna.TrialPruned()
+
         for n, p in self.model_params.items():
             self.logger.debug(
                 f"{n}: {p}"
             )
+
         self._reset()
 
     def _reset(self):

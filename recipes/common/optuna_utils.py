@@ -188,6 +188,7 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
                         logger,
                         scaler,
                         grad_checker,
+                        trial=True
                     )
                     # lossを一気に足してためておく. 賢い.
                     _update_running_losses_(running_losses, loss_values)

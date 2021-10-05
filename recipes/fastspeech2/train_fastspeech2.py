@@ -27,6 +27,7 @@ def fastspeech2_train_step(
     logger,
     scaler,
     grad_checker,
+    trial=False,
 ):
     """dev時にはpredしたp, eで計算してほしいので, オリジナルのtrain_stepに.
     """
@@ -54,7 +55,7 @@ def fastspeech2_train_step(
         scaler.unscale_(optimizer)
         grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         if not torch.isfinite(grad_norm):
-            grad_checker.report()
+            grad_checker.report(loss_values, trial)
             if scaler.is_enabled() is True:
                 logger.info("grad norm is NaN. Will Skip updating")
             else:
