@@ -35,7 +35,7 @@ class check_grad_flow():
     def set_params(self, named_parameters):
         self.num_step += 1
         for n, p in named_parameters:
-            if(p.requires_grad) and ("bias" not in n):
+            if p.requires_grad is True:
                 p = p.grad.abs().mean().cpu().numpy()
                 if (p is None) or (p == np.inf):
                     n = f"steps: {self.num_step}, param_name: " + n
