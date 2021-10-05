@@ -65,7 +65,7 @@ class check_grad_flow():
             else:
                 raise optuna.TrialPruned()
 
-        self._report_dict(loss_values, add_step=True)
+        self._report_dict(loss_values)
         self._report_dict(self.model_params)
         self._reset()
 
