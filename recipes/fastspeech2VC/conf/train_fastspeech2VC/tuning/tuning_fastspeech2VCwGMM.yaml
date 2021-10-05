@@ -12,7 +12,7 @@ pruner:
   name: HyperbandPruner
   params:
 
-target_loss: postnet_mel_loss
+target_loss: ["postnet_mel_loss"]
 
 # optimizer
 optimizer:

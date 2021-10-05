@@ -156,7 +156,7 @@ def _update_running_losses_(running_losses, loss_values):
 
 
 def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loaders,
-                      logger, trial, use_loss="total_loss", train_step=None, epoch_step=False):
+                      logger, trial, use_loss=["total_loss"], train_step=None, epoch_step=False):
     nepochs = config.train.nepochs
     scaler = torch.cuda.amp.GradScaler()
     grad_checker = check_grad_flow(logger=logger)
@@ -200,10 +200,7 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
                     is_first = 0
 
             if phase == "dev":
-                if type(use_loss) == list:
-                    target_loss = np.sum([running_losses[loss_] for loss_ in use_loss])
-                else:
-                    target_loss = running_losses[use_loss]
+                target_loss = np.sum([running_losses[loss_] for loss_ in use_loss])
                 ave_loss = target_loss / (len(data_loaders[phase]) * group_size)
                 trial.report(ave_loss, epoch)
 
