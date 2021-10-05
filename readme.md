@@ -1,7 +1,10 @@
-# モデルコード一般化プロジェクト
+# モデルコード一般化プロジェクト(作成中)
 - 目的: 今後, いろんなモデルを実装していくにあたり, 毎回dataloaderとかtrainとか書くのあほくさい.
 - なので, 使いまわし可能なコードを作ろう!!!
 
+
+## 謝辞
+こちらのコードは、[ttslearn](https://github.com/r9y9/ttslearn)をベースにして作られています。hifiganに関しては、[こちら](https://github.com/jik876/hifi-gan)、fastspeech2に関しては、[こちら](https://github.com/ming024/FastSpeech2)がベースです。
 ## todo
 - check_grad: 10回くらい？連続でNaNを出すようなパラメタがある場合はraiseしてもいいかもしれない. あまりにひどい場合実装してみる.
 

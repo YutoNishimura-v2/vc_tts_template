@@ -9,7 +9,7 @@ sampler:
   name: TPESampler
   params:
 pruner:
-  name: HyperbandPruner
+  name: MedianPruner
   params:
 
 target_loss: ["postnet_mel_loss", "pitch_loss"]
@@ -41,15 +41,13 @@ model:
         choices: [64, 128, 256, 512]
     # prosody predictor
     num_gaussians:
-      suggest: suggest_int
+      suggest: suggest_categorical
       params:
-        low: 1
-        high: 20
+        choices: [1,3,5,7,10,15,20]
     global_num_gaussians:
-      suggest: suggest_int
+      suggest: suggest_categorical
       params:
-        low: 1
-        high: 20
+        choices: [1,3,5,7,10,15,20]
     global_prosody:
       suggest: suggest_categorical
       params:

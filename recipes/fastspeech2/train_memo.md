@@ -45,3 +45,8 @@
         - spk: Long_dialogue
         - pretrain: None
         - optunaでハイパラ探索を行う. 別パラメタ。アドバイスを受けて大分変数を減らした.
+    - Long_dialogue_9
+        - spk: Long_dialogue
+        - pretrain: None
+        - optunaでハイパラ探索を行う. 別パラメタ。
+            - prunerを変えてnum_gaussianをカテゴリ―にした.
