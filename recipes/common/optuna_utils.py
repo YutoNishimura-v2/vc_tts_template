@@ -159,7 +159,7 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
                       logger, trial, use_loss=["total_loss"], train_step=None, epoch_step=False):
     nepochs = config.train.nepochs
     scaler = torch.cuda.amp.GradScaler()
-    grad_checker = check_grad_flow(logger=logger)
+    grad_checker = check_grad_flow(logger=logger, only_inf_grad=True)
 
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs):
         for phase in data_loaders.keys():
