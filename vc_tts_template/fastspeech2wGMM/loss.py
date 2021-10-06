@@ -36,11 +36,8 @@ class FastSpeech2Loss(nn.Module):
             mel_masks,
             _,
             _,
-            prosody_target,
-            pi_outs,
-            mu_outs,
-            sigma_outs
-        ) = predictions[:14]
+            prosody_features
+        ) = predictions
         src_masks = ~src_masks
         mel_masks = ~mel_masks
         log_duration_targets = torch.log(duration_targets.float() + 1)
@@ -81,7 +78,10 @@ class FastSpeech2Loss(nn.Module):
         pitch_loss = self.mse_loss(pitch_predictions, pitch_targets)
         energy_loss = self.mse_loss(energy_predictions, energy_targets)
         duration_loss = self.mse_loss(log_duration_predictions, log_duration_targets)
+
         # mdn loss
+        prosody_target, pi_outs, sigma_outs, mu_outs = prosody_features[:4]
+
         normal_dist = Normal(loc=mu_outs, scale=(sigma_outs + 1e-3))
         loglik = normal_dist.log_prob(prosody_target.detach().unsqueeze(2).expand_as(normal_dist.loc))
         # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
@@ -90,9 +90,9 @@ class FastSpeech2Loss(nn.Module):
         prosody_loss = -torch.logsumexp(torch.log(pi_outs+1e-7) + loglik, dim=-1)
         prosody_loss = torch.mean(prosody_loss.masked_select(src_masks))
 
-        if len(predictions[14:]) > 0:
+        if len(prosody_features) > 4:
             # global embedding True
-            g_prosody_target, g_pi, g_mu, g_sigma = predictions[14:]
+            g_prosody_target, g_pi, g_sigma, g_mu = prosody_features[4:]
             normal_dist = Normal(loc=g_mu, scale=(g_sigma+1e-3))
             loglik = normal_dist.log_prob(g_prosody_target.detach().unsqueeze(1).expand_as(normal_dist.loc))
             # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.

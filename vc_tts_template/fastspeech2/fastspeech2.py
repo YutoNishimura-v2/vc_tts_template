@@ -138,11 +138,23 @@ class FastSpeech2(nn.Module):
         self,
         texts,
         src_masks,
+        max_src_len,
+        speakers,
+        emotions,
     ):
         output = self.encoder(texts, src_masks)
 
         if self.encoder_fix is True:
             output = output.detach()
+
+        if self.speaker_emb is not None:
+            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
+                -1, max_src_len, -1
+            )
+        if self.emotion_emb is not None:
+            output = output + self.emotion_emb(emotions).unsqueeze(1).expand(
+                -1, max_src_len, -1
+            )
 
         return output
 
@@ -184,16 +196,8 @@ class FastSpeech2(nn.Module):
             src_lens, max_src_len, mel_lens=None, max_mel_len=None
         )
         output = self.encoder_forward(
-            texts, src_masks
+            texts, src_masks, max_src_len, speakers, emotions
         )
-        if self.speaker_emb is not None:
-            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
-                -1, max_src_len, -1
-            )
-        if self.emotion_emb is not None:
-            output = output + self.emotion_emb(emotions).unsqueeze(1).expand(
-                -1, max_src_len, -1
-            )
 
         output, p_predictions, e_predictions, log_d_predictions, d_rounded, mel_lens, mel_masks = self.variance_adaptor(
             output, src_masks, mel_masks, max_mel_len, p_targets, e_targets, d_targets, p_control, e_control, d_control,
