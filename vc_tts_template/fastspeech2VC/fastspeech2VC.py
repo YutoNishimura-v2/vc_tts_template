@@ -103,6 +103,92 @@ class fastspeech2VC(nn.Module):
         self.speakers = speakers
         self.emotions = emotions
 
+    def init_forward(
+        self,
+        s_mels,
+        s_mel_lens,
+        max_s_mel_len,
+        t_mel_lens,
+        max_t_mel_len,
+    ):
+        s_mel_masks = make_pad_mask(s_mel_lens, max_s_mel_len)
+        t_mel_masks = (
+            make_pad_mask(t_mel_lens, max_t_mel_len)
+            if t_mel_lens is not None
+            else None
+        )
+        if self.reduction_factor > 1:
+            max_s_mel_len = max_s_mel_len // self.reduction_factor
+            s_mel_lens = torch.trunc(s_mel_lens / self.reduction_factor)
+            s_mel_masks = make_pad_mask(s_mel_lens, max_s_mel_len)
+            s_mels = s_mels[:, :max_s_mel_len*self.reduction_factor, :]
+
+            if t_mel_lens is not None:
+                max_t_mel_len = max_t_mel_len // self.reduction_factor
+                t_mel_lens = torch.trunc(t_mel_lens / self.reduction_factor)
+                t_mel_masks = make_pad_mask(t_mel_lens, max_t_mel_len)
+
+        return (
+            s_mels,
+            s_mel_lens,
+            max_s_mel_len,
+            s_mel_masks,
+            t_mel_lens,
+            max_t_mel_len,
+            t_mel_masks,
+        )
+
+    def encoder_forward(
+        self,
+        s_sp_ids,
+        s_em_ids,
+        s_mels,
+        s_mel_masks,
+    ):
+        output = self.mel_linear_1(
+            s_mels.contiguous().view(s_mels.size(0), -1, self.mel_num * self.reduction_factor)
+        )
+
+        if self.speaker_emb is not None:
+            output = output + self.speaker_emb(s_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
+        if self.emotion_emb is not None:
+            output = output + self.emotion_emb(s_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
+
+        output = self.encoder(output, s_mel_masks)
+
+        if self.encoder_fix is True:
+            output = output.detach()
+
+        return output
+
+    def decoder_forward(
+        self,
+        output,
+        t_sp_ids,
+        t_em_ids,
+        t_mel_lens,
+        t_mel_masks,
+    ):
+        if self.speaker_emb is not None:
+            output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
+        if self.emotion_emb is not None:
+            output = output + self.speaker_emb(t_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
+
+        output = self.decoder(self.decoder_linear(output), t_mel_masks)
+        output = self.mel_linear_2(output).contiguous().view(output.size(0), -1, self.mel_num)
+
+        postnet_output = self.postnet(output) + output
+
+        t_mel_lens = t_mel_lens * self.reduction_factor
+        t_mel_masks = make_pad_mask(t_mel_lens, torch.max(t_mel_lens).item())
+
+        return (
+            output,
+            postnet_output,
+            t_mel_lens,
+            t_mel_masks,
+        )
+
     def forward(
         self,
         ids,
@@ -125,36 +211,21 @@ class fastspeech2VC(nn.Module):
         e_control=1.0,
         d_control=1.0,
     ):
-        s_mel_masks = make_pad_mask(s_mel_lens, max_s_mel_len)
-        t_mel_masks = (
-            make_pad_mask(t_mel_lens, max_t_mel_len)
-            if t_mel_lens is not None
-            else None
-        )
-        if self.reduction_factor > 1:
-            max_s_mel_len = max_s_mel_len // self.reduction_factor
-            s_mel_lens = torch.trunc(s_mel_lens / self.reduction_factor)
-            s_mel_masks = make_pad_mask(s_mel_lens, max_s_mel_len)
-            s_mels = s_mels[:, :max_s_mel_len*self.reduction_factor, :]
-
-            if t_mel_lens is not None:
-                max_t_mel_len = max_t_mel_len // self.reduction_factor
-                t_mel_lens = torch.trunc(t_mel_lens / self.reduction_factor)
-                t_mel_masks = make_pad_mask(t_mel_lens, max_t_mel_len)
-
-        output = self.mel_linear_1(
-            s_mels.contiguous().view(s_mels.size(0), -1, self.mel_num * self.reduction_factor)
+        (
+            s_mels,
+            s_mel_lens,
+            max_s_mel_len,
+            s_mel_masks,
+            t_mel_lens,
+            max_t_mel_len,
+            t_mel_masks,
+        ) = self.init_forward(
+            s_mels, s_mel_lens, max_s_mel_len, t_mel_lens, max_t_mel_len
         )
 
-        if self.speaker_emb is not None:
-            output = output + self.speaker_emb(s_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
-        if self.emotion_emb is not None:
-            output = output + self.emotion_emb(s_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
-
-        output = self.encoder(output, s_mel_masks)
-
-        if self.encoder_fix is True:
-            output = output.detach()
+        output = self.encoder_forward(
+            s_sp_ids, s_em_ids, s_mels, s_mel_masks,
+        )
 
         (
             output,
@@ -180,18 +251,14 @@ class fastspeech2VC(nn.Module):
             d_control,
         )
 
-        if self.speaker_emb is not None:
-            output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
-        if self.emotion_emb is not None:
-            output = output + self.speaker_emb(t_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
-
-        output = self.decoder(self.decoder_linear(output), t_mel_masks)
-        output = self.mel_linear_2(output).contiguous().view(output.size(0), -1, self.mel_num)
-
-        postnet_output = self.postnet(output) + output
-
-        t_mel_lens *= self.reduction_factor
-        t_mel_masks = make_pad_mask(t_mel_lens, torch.max(t_mel_lens).item())
+        (
+            output,
+            postnet_output,
+            t_mel_lens,
+            t_mel_masks,
+        ) = self.decoder_forward(
+            output, t_sp_ids, t_em_ids, t_mel_lens, t_mel_masks,
+        )
 
         return (
             output,
