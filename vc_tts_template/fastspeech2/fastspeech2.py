@@ -106,6 +106,62 @@ class FastSpeech2(nn.Module):
         self.emotions = emotions
         self.accent_info = accent_info
 
+    def init_forward(
+        self,
+        src_lens,
+        max_src_len,
+        mel_lens=None,
+        max_mel_len=None,
+    ):
+        divide_value = 2 if self.accent_info > 0 else 1
+        src_lens = (src_lens / divide_value).long()
+        max_src_len = max_src_len // divide_value
+
+        src_masks = make_pad_mask(src_lens, max_src_len)
+        # PAD前の, 元データが入っていない部分がTrueになっているmaskの取得
+        # これは, attentionで, -infをfillするために使いたいので.
+        mel_masks = (
+            make_pad_mask(mel_lens, max_mel_len)
+            if mel_lens is not None
+            else None
+        )
+        return (
+            src_lens,
+            max_src_len,
+            src_masks,
+            mel_lens,
+            max_mel_len,
+            mel_masks,
+        )
+
+    def encoder_forward(
+        self,
+        texts,
+        src_masks,
+    ):
+        output = self.encoder(texts, src_masks)
+
+        if self.encoder_fix is True:
+            output = output.detach()
+
+        return output
+
+    def decoder_forward(
+        self,
+        output,
+        mel_masks,
+    ):
+        output, mel_masks = self.decoder(self.decoder_linear(output), mel_masks)
+        output = self.mel_linear(output)
+
+        postnet_output = self.postnet(output) + output
+
+        return (
+            output,
+            postnet_output,
+            mel_masks,
+        )
+
     def forward(
         self,
         ids,
@@ -124,23 +180,12 @@ class FastSpeech2(nn.Module):
         e_control=1.0,
         d_control=1.0,
     ):
-        divide_value = 2 if self.accent_info > 0 else 1
-        src_lens = (src_lens / divide_value).long()
-        max_src_len = max_src_len // divide_value
-
-        src_masks = make_pad_mask(src_lens, max_src_len)
-        # PAD前の, 元データが入っていない部分がTrueになっているmaskの取得
-        # これは, attentionで, -infをfillするために使いたいので.
-        mel_masks = (
-            make_pad_mask(mel_lens, max_mel_len)
-            if mel_lens is not None
-            else None
+        src_lens, max_src_len, src_masks, mel_lens, max_mel_len, mel_masks = self.init_forward(
+            src_lens, max_src_len, mel_lens=None, max_mel_len=None
         )
-        output = self.encoder(texts, src_masks)
-
-        if self.encoder_fix is True:
-            output = output.detach()
-
+        output = self.encoder_forward(
+            texts, src_masks
+        )
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
                 -1, max_src_len, -1
@@ -150,31 +195,13 @@ class FastSpeech2(nn.Module):
                 -1, max_src_len, -1
             )
 
-        (
-            output,
-            p_predictions,
-            e_predictions,
-            log_d_predictions,
-            d_rounded,
-            mel_lens,
-            mel_masks,
-        ) = self.variance_adaptor(
-            output,
-            src_masks,
-            mel_masks,
-            max_mel_len,
-            p_targets,
-            e_targets,
-            d_targets,
-            p_control,
-            e_control,
-            d_control,
+        output, p_predictions, e_predictions, log_d_predictions, d_rounded, mel_lens, mel_masks = self.variance_adaptor(
+            output, src_masks, mel_masks, max_mel_len, p_targets, e_targets, d_targets, p_control, e_control, d_control,
         )
 
-        output, mel_masks = self.decoder(self.decoder_linear(output), mel_masks)
-        output = self.mel_linear(output)
-
-        postnet_output = self.postnet(output) + output
+        output, postnet_output, mel_masks = self.decoder_forward(
+            output, mel_masks
+        )
 
         return (
             output,

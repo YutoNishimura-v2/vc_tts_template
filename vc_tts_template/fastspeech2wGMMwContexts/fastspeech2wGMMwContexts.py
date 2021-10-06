@@ -65,7 +65,7 @@ class FastSpeech2wGMMwContexts(nn.Module):
         emotions: Optional[Dict] = None,
         accent_info: int = 0,
     ):
-        super(FastSpeech2wGMM, self).__init__()
+        super(FastSpeech2wGMMwContexts, self).__init__()
         self.encoder = Encoder(
             max_seq_len,
             num_vocab,
