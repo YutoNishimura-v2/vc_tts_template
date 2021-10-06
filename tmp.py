@@ -1,36 +1,33 @@
-from pathlib import Path
-from scipy.io import wavfile
-import pyworld as pw
-import numpy as np
-from tqdm import tqdm
-from concurrent.futures import ProcessPoolExecutor
-
-
-wav_path_src = Path("recipes/fastspeech2VC/downloads/jsut_jsss_jvs/source")
-wav_path_tgt = Path("recipes/fastspeech2VC/downloads/jsut_jsss_jvs/target")
-hop_length = 256
-n_jobs = 32
-
-def preprocess(wav_path):
-    sr, wav = wavfile.read(wav_path)
-    pitch, t = pw.dio(
-        wav.astype(np.float64),
-        sr,
-        frame_period=hop_length / sr * 1000,
-    )
-    pitch = pw.stonemask(wav.astype(np.float64),
-                        pitch, t, sr)
-    if np.sum(pitch != 0) <= 1:
-        print(wav_path)
-
-
-with ProcessPoolExecutor(n_jobs) as executor:
-    futures = [
-        executor.submit(
-            preprocess,
-            wav_path
+        self.fastspeech2VC = fastspeech2VC(
+            n_mel_channel,
+            attention_dim,
+            encoder_hidden_dim,
+            encoder_num_layer,
+            encoder_num_head,
+            decoder_hidden_dim,
+            decoder_num_layer,
+            decoder_num_head,
+            conv_kernel_size,
+            ff_expansion_factor,
+            conv_expansion_factor,
+            ff_dropout,
+            attention_dropout,
+            conv_dropout,
+            variance_predictor_filter_size,
+            variance_predictor_kernel_size_d,
+            variance_predictor_layer_num_d,
+            variance_predictor_kernel_size_p,
+            variance_predictor_layer_num_p,
+            variance_predictor_kernel_size_e,
+            variance_predictor_layer_num_e,
+            variance_predictor_dropout,
+            stop_gradient_flow_d,
+            stop_gradient_flow_p,
+            stop_gradient_flow_e,
+            reduction_factor,
+            encoder_fix,
+            pitch_AR,
+            lstm_layers,
+            speakers,
+            emotions,
         )
-        for wav_path in list(wav_path_src.glob("*.wav")) + list(wav_path_tgt.glob("*.wav"))
-    ]
-    for future in tqdm(futures):
-        future.result()

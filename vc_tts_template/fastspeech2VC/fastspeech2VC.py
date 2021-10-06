@@ -7,6 +7,7 @@ from vc_tts_template.fastspeech2VC.encoder_decoder import Encoder, Decoder
 from vc_tts_template.fastspeech2VC.layers import PostNet
 from vc_tts_template.fastspeech2VC.varianceadaptor import VarianceAdaptor
 from vc_tts_template.utils import make_pad_mask
+from vc_tts_template.train_utils import free_tensors_memory
 
 
 class fastspeech2VC(nn.Module):
@@ -42,7 +43,7 @@ class fastspeech2VC(nn.Module):
         stop_gradient_flow_p: bool,
         stop_gradient_flow_e: bool,
         reduction_factor: int,
-
+        # other
         encoder_fix: bool,
         pitch_AR: bool = False,
         lstm_layers: int = 2,
@@ -148,6 +149,7 @@ class fastspeech2VC(nn.Module):
         output = self.mel_linear_1(
             s_mels.contiguous().view(s_mels.size(0), -1, self.mel_num * self.reduction_factor)
         )
+        free_tensors_memory([s_mels])
 
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(s_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
