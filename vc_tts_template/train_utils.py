@@ -61,6 +61,10 @@ class check_grad_flow():
                 )
                 self._report_dict(loss_values, add_step=True)
                 raise ValueError("loss value error")
+            else:
+                self.logger.info(
+                    "There is no record of grads. Maybe only the grad norm is inf."
+                )
 
         self._report_dict(loss_values)
         self._report_dict(self.model_params)
