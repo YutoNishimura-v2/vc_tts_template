@@ -212,10 +212,10 @@ class FastSpeech2wGMM(nn.Module):
                 output, target_prosody=prosody_target, is_inference=is_inference
             )
         else:
-            prosody_target, g_prosody_target = self.prosody_extractor(mels, d_targets)
+            prosody_target, g_prosody_target = self.prosody_extractor(mels, d_targets, src_lens)
             prosody_prediction, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu = self.prosody_predictor(
                 output, target_prosody=prosody_target, target_global_prosody=g_prosody_target,
-                is_inference=is_inference
+                src_lens=src_lens, is_inference=is_inference
             )
         if is_inference is True:
             output = output + self.prosody_linear(prosody_prediction)

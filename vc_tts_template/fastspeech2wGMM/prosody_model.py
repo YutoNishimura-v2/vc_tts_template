@@ -4,10 +4,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.distributions import Normal, OneHotCategorical
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 sys.path.append("../..")
-from vc_tts_template.fastspeech2wGMM.layers import ConvBNorms2d, ConvLNorms1d
+from vc_tts_template.fastspeech2wGMM.layers import ConvBNorms2d, ConvLNorms1d, GRUwSort
 from vc_tts_template.tacotron.decoder import ZoneOutCell
 from vc_tts_template.utils import pad
 from vc_tts_template.train_utils import free_tensors_memory
@@ -43,18 +42,18 @@ class ProsodyExtractor(nn.Module):
             conv_stride, conv_padding, conv_dilation, conv_bias, conv_n_layers
         )
         self.convnorms.apply(encoder_init)
-        self.bi_gru = nn.GRU(
+        self.bi_gru = GRUwSort(
             input_size=d_mel, hidden_size=d_out // 2, num_layers=gru_n_layers,
-            batch_first=True, bidirectional=True
+            batch_first=True, bidirectional=True, sort=False
         )
         if global_prosody is True:
-            self.global_bi_gru = nn.GRU(
+            self.global_bi_gru = GRUwSort(
                 input_size=d_out, hidden_size=d_out // 2, num_layers=global_gru_n_layers,
-                batch_first=True, bidirectional=True
+                batch_first=True, bidirectional=True, sort=False
             )
         self.global_prosody = global_prosody
 
-    def forward(self, mels, durations):
+    def forward(self, mels, durations, emb_lens=None):
         # expected(B, T, d_mel)
         if mels is None:
             if self.global_prosody is True:
@@ -69,10 +68,8 @@ class ProsodyExtractor(nn.Module):
             # convolution
             mel_hidden = self.convnorms(output.unsqueeze(1))
             # Bi-GRU
-            mel_hidden = pack_padded_sequence(mel_hidden.squeeze(1), src_lens, batch_first=True)
-            out, _ = self.bi_gru(mel_hidden)
+            out = self.bi_gru(mel_hidden.squeeze(1), src_lens)
             # out: (B, T_n, d_out)
-            out, _ = pad_packed_sequence(out, batch_first=True)
             outs.append(out[:, -1, :])  # use last time
         free_tensors_memory([output_sorted, src_lens_sorted])
         outs = torch.cat(outs, 0)
@@ -81,7 +78,7 @@ class ProsodyExtractor(nn.Module):
 
         if self.global_prosody is True:
             # global_emb: (B, d_out)
-            global_emb = self.global_bi_gru(out)[0][:, -1, :]
+            global_emb = self.global_bi_gru(out, emb_lens)[:, -1, :]
             out = out + global_emb.unsqueeze(1).expand_as(out)
             return out, global_emb
         return out
@@ -190,9 +187,10 @@ class ProsodyPredictor(nn.Module):
         self.mu_linear = nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians)
 
         if global_prosody is True:
-            self.global_bi_gru = nn.GRU(
+            self.global_bi_gru = GRUwSort(
                 input_size=conv_out_channels, hidden_size=global_d_gru // 2,
-                num_layers=global_gru_layers, batch_first=True, bidirectional=True
+                num_layers=global_gru_layers, batch_first=True, bidirectional=True,
+                sort=False
             )
             self.g_pi_linear = nn.Sequential(
                 nn.Linear(global_d_gru, global_num_gaussians),
@@ -206,12 +204,14 @@ class ProsodyPredictor(nn.Module):
         self.global_prosody = global_prosody
         self.global_num_gaussians = global_num_gaussians
 
-    def forward(self, encoder_output, target_prosody=None, target_global_prosody=None, is_inference=False):
+    def forward(self, encoder_output, target_prosody=None, target_global_prosody=None,
+                src_lens=None, is_inference=False):
         encoder_output = self.convnorms(encoder_output)
 
         if self.global_prosody is True:
             # hidden_global: (B, global_d_gru)
-            hidden_global = self.global_bi_gru(encoder_output)[0][:, -1, :]
+            hidden_global = self.global_bi_gru(encoder_output, src_lens)[:, -1, :]
+
             g_pi = self.g_pi_linear(hidden_global)
             g_sigma = torch.exp(self.g_sigma_linear(hidden_global)).view(-1, self.global_num_gaussians, self.d_out)
             g_mu = self.g_mu_linear(hidden_global).view(-1, self.global_num_gaussians, self.d_out)

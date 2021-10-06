@@ -1,4 +1,6 @@
 import torch.nn as nn
+import torch
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 from vc_tts_template.fastspeech2VC.modules import Transpose
 
@@ -118,3 +120,37 @@ class ConvLNorms1d(nn.Module):
     def forward(self, x):
         # expected (B, T, d)
         return self.convolutions(x)
+
+
+class GRUwSort(nn.Module):
+    """
+    pack_padded_sequenceなどを内部でやってくれるクラスです.
+    """
+    def __init__(self, input_size, hidden_size, num_layers,
+                 batch_first, bidirectional, sort) -> None:
+        super().__init__()
+        self.gru = nn.GRU(
+            input_size=input_size, hidden_size=hidden_size, num_layers=num_layers,
+            batch_first=batch_first, bidirectional=bidirectional
+        )
+        self.sort = sort
+        self.batch_first = batch_first
+
+    def forward(self, x, lens):
+        if self.sort is True:
+            sort_idx = torch.argsort(-lens)
+            inv_sort_idx = torch.argsort(sort_idx)
+            x = x[sort_idx]
+            lens = lens[sort_idx]
+
+        if type(lens) == torch.Tensor:
+            lens = lens.to("cpu")
+
+        x = pack_padded_sequence(x, lens, batch_first=self.batch_first)
+        out = self.gru(x)[0]
+        out, _ = pad_packed_sequence(out, batch_first=self.batch_first)
+
+        if self.sort is True:
+            out = out[inv_sort_idx]
+
+        return out
