@@ -351,3 +351,8 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     plt.scatter(x=x_sample, y=y_sample)
     plt.savefig("test.png")
+
+    """memo
+
+    20211006: extractorの勾配伝播確認. あのような変な操作も、微分可能。
+    """

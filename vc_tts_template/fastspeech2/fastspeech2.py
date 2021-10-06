@@ -125,7 +125,10 @@ class FastSpeech2(nn.Module):
         d_control=1.0,
     ):
         divide_value = 2 if self.accent_info > 0 else 1
-        src_masks = make_pad_mask((src_lens / divide_value).long(), max_src_len // divide_value)
+        src_lens = (src_lens / divide_value).long()
+        max_src_len = max_src_len // divide_value
+
+        src_masks = make_pad_mask(src_lens, max_src_len)
         # PAD前の, 元データが入っていない部分がTrueになっているmaskの取得
         # これは, attentionで, -infをfillするために使いたいので.
         mel_masks = (
