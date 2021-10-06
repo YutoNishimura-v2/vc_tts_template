@@ -3,7 +3,6 @@ import shutil
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
-import optuna
 import hydra
 import joblib
 import matplotlib.pyplot as plt
@@ -54,16 +53,14 @@ class check_grad_flow():
                     n = f"steps: {self.num_step}, param_name: " + n
                     self.model_params[n] = p
 
-    def report(self, loss_values=None, trial=False):
+    def report(self, loss_values=None):
         if (len(self.model_params) == 0) and (loss_values is not None):
-            self.logger.warning(
-                "Maybe the losses is NaN!! check log"
-            )
-            self._report_dict(loss_values, add_step=True)
-            if trial is False:
+            if bool(np.isnan(np.array(list(loss_values.values()))).any()) is True:
+                self.logger.error(
+                    "the loss is NaN!! debug it!"
+                )
+                self._report_dict(loss_values, add_step=True)
                 raise ValueError("loss value error")
-            else:
-                raise optuna.TrialPruned()
 
         self._report_dict(loss_values)
         self._report_dict(self.model_params)
