@@ -12,11 +12,12 @@ class ScaledDotProductAttention(nn.Module):
         self.softmax = nn.Softmax(dim=2)
 
     def forward(self, q, k, v, mask=None):
-        # for AMP
-        q = q.to(torch.float32)
-        k = k.to(torch.float32)
-        attn = torch.bmm(q, k.transpose(1, 2))
-        # batchを無視して, 第2,3次元で行列計算↑
+        with torch.cuda.amp.autocast(enabled=False):
+            # これをしないと, attnでinfとなって, softmaxでnanになる.
+            q = q.to(torch.float32)
+            k = k.to(torch.float32)
+            attn = torch.bmm(q, k.transpose(1, 2))
+
         attn = attn / self.temperature
 
         if mask is not None:
