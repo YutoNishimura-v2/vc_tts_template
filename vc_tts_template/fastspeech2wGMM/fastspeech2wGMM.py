@@ -6,7 +6,7 @@ from vc_tts_template.fastspeech2.fastspeech2 import FastSpeech2
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyExtractor, ProsodyPredictor
 
 
-class FastSpeech2wGMM(nn.Module):
+class FastSpeech2wGMM(FastSpeech2):
     """ FastSpeech2wGMM """
 
     def __init__(
@@ -62,9 +62,7 @@ class FastSpeech2wGMM(nn.Module):
         emotions: Optional[Dict] = None,
         accent_info: int = 0,
     ):
-        super(FastSpeech2wGMM, self).__init__()
-
-        self.fastspeech2 = FastSpeech2(
+        super().__init__(
             max_seq_len,
             num_vocab,
             encoder_hidden_dim,
@@ -190,10 +188,10 @@ class FastSpeech2wGMM(nn.Module):
         e_control=1.0,
         d_control=1.0,
     ):
-        src_lens, max_src_len, src_masks, mel_lens, max_mel_len, mel_masks = self.fastspeech2.init_forward(
+        src_lens, max_src_len, src_masks, mel_lens, max_mel_len, mel_masks = self.init_forward(
             src_lens, max_src_len, mel_lens, max_mel_len
         )
-        output = self.fastspeech2.encoder_forward(
+        output = self.encoder_forward(
             texts, src_masks, max_src_len, speakers, emotions
         )
 
@@ -208,7 +206,7 @@ class FastSpeech2wGMM(nn.Module):
             d_rounded,
             mel_lens,
             mel_masks,
-        ) = self.fastspeech2.variance_adaptor(
+        ) = self.variance_adaptor(
             output,
             src_masks,
             mel_masks,
@@ -221,7 +219,7 @@ class FastSpeech2wGMM(nn.Module):
             d_control,
         )
 
-        output, postnet_output, mel_masks = self.fastspeech2.decoder_forward(
+        output, postnet_output, mel_masks = self.decoder_forward(
             output, mel_masks
         )
 

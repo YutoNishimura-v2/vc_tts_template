@@ -10,7 +10,7 @@ from vc_tts_template.fastspeech2VCwGMM.prosody_model import ProsodyPredictor
 from vc_tts_template.train_utils import free_tensors_memory
 
 
-class fastspeech2VCwGMM(nn.Module):
+class fastspeech2VCwGMM(fastspeech2VC):
     """ FastSpeech2 """
 
     def __init__(
@@ -69,11 +69,7 @@ class fastspeech2VCwGMM(nn.Module):
         speakers: Optional[Dict] = None,
         emotions: Optional[Dict] = None
     ):
-        super(fastspeech2VCwGMM, self).__init__()
-        self.reduction_factor = reduction_factor
-        self.mel_num = n_mel_channel
-
-        self.fastspeech2VC = fastspeech2VC(
+        super().__init__(
             n_mel_channel,
             attention_dim,
             encoder_hidden_dim,
@@ -106,7 +102,6 @@ class fastspeech2VCwGMM(nn.Module):
             speakers,
             emotions,
         )
-
         self.prosody_extractor = ProsodyExtractor(
             n_mel_channel,
             prosody_emb_dim,
@@ -141,7 +136,7 @@ class fastspeech2VCwGMM(nn.Module):
 
         self.global_prosody = global_prosody
 
-    def init_forward(
+    def init_forward_wGMM(
         self,
         s_mels,
         s_mel_lens,
@@ -162,7 +157,7 @@ class fastspeech2VCwGMM(nn.Module):
             t_mel_lens,
             max_t_mel_len,
             t_mel_masks,
-        ) = self.fastspeech2VC.init_forward(
+        ) = self.init_forward(
             s_mels, s_mel_lens, max_s_mel_len, t_mel_lens, max_t_mel_len
         )
         if t_mels is not None:
@@ -266,11 +261,11 @@ class fastspeech2VCwGMM(nn.Module):
             max_t_mel_len,
             t_mel_masks,
             s_snt_durations,
-        ) = self.init_forward(
+        ) = self.init_forward_wGMM(
             s_mels, s_mel_lens, max_s_mel_len, t_mel_lens, max_t_mel_len
         )
 
-        output = self.fastspeech2VC.encoder_forward(
+        output = self.encoder_forward(
             s_sp_ids, s_em_ids, s_mels, s_mel_masks,
         )
 
@@ -289,7 +284,7 @@ class fastspeech2VCwGMM(nn.Module):
             d_rounded,
             t_mel_lens,
             t_mel_masks,
-        ) = self.fastspeech2VC.variance_adaptor(
+        ) = self.variance_adaptor(
             output,
             s_mel_masks,
             max_s_mel_len,
@@ -310,7 +305,7 @@ class fastspeech2VCwGMM(nn.Module):
             postnet_output,
             t_mel_lens,
             t_mel_masks,
-        ) = self.fastspeech2VC.decoder_forward(
+        ) = self.decoder_forward(
             output, t_sp_ids, t_em_ids, t_mel_lens, t_mel_masks,
         )
 
