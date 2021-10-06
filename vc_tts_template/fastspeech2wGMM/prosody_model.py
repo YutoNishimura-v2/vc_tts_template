@@ -53,6 +53,8 @@ class ProsodyExtractor(nn.Module):
             )
         self.global_prosody = global_prosody
 
+        self.segment_nums = None
+
     def forward(self, mels, durations, emb_lens=None):
         # expected(B, T, d_mel)
         if mels is None:
@@ -70,10 +72,11 @@ class ProsodyExtractor(nn.Module):
             # Bi-GRU
             out = self.bi_gru(mel_hidden.squeeze(1), src_lens)
             # out: (B, T_n, d_out)
-            outs.append(out[:, -1, :])  # use last time
+            outs.append(out[:, -1, :])
         free_tensors_memory([output_sorted, src_lens_sorted])
         outs = torch.cat(outs, 0)
         out = self.phone2utter(outs[inv_sort_idx], segment_nums)
+        self.segment_nums = segment_nums
         free_tensors_memory([outs])
 
         if self.global_prosody is True:

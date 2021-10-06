@@ -5,7 +5,7 @@ import torch.nn as nn
 from torch.distributions import Normal, OneHotCategorical
 
 sys.path.append("../..")
-from vc_tts_template.fastspeech2wGMM.layers import ConvLNorms1d
+from vc_tts_template.fastspeech2wGMM.layers import ConvLNorms1d, GRUwSort
 from vc_tts_template.tacotron.decoder import ZoneOutCell
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyExtractor
 from vc_tts_template.utils import make_pad_mask
@@ -76,9 +76,10 @@ class ProsodyPredictor(nn.Module):
         self.mu_linear = nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians)
 
         if global_prosody is True:
-            self.global_bi_gru = nn.GRU(
+            self.global_bi_gru = GRUwSort(
                 input_size=conv_out_channels, hidden_size=global_d_gru // 2,
-                num_layers=global_gru_layers, batch_first=True, bidirectional=True
+                num_layers=global_gru_layers, batch_first=True, bidirectional=True,
+                sort=True
             )
             self.g_pi_linear = nn.Sequential(
                 nn.Linear(global_d_gru, global_num_gaussians),
@@ -100,7 +101,7 @@ class ProsodyPredictor(nn.Module):
 
         if self.global_prosody is True:
             # hidden_global: (B, global_d_gru)
-            hidden_global = self.global_bi_gru(encoder_output)[0][:, -1, :]
+            hidden_global = self.global_bi_gru(encoder_output, self.prosody_extractor.segment_nums)[:, -1, :]
             g_pi = self.g_pi_linear(hidden_global)
             g_sigma = torch.exp(self.g_sigma_linear(hidden_global)).view(-1, self.global_num_gaussians, self.d_out)
             g_mu = self.g_mu_linear(hidden_global).view(-1, self.global_num_gaussians, self.d_out)
