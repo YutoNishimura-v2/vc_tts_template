@@ -84,7 +84,7 @@ class FastSpeech2VCwGMMLoss(nn.Module):
 
         if len(prosody_features) > 5:
             # global embedding True
-            g_prosody_target, g_pi, g_mu, g_sigma = predictions[5:]
+            g_prosody_target, g_pi, g_mu, g_sigma = prosody_features[5:]
             normal_dist = Normal(loc=g_mu, scale=(g_sigma+1e-3))
             loglik = normal_dist.log_prob(g_prosody_target.detach().unsqueeze(1).expand_as(normal_dist.loc))
             # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.

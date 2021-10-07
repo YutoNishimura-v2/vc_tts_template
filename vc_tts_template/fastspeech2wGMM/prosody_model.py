@@ -76,11 +76,13 @@ class ProsodyExtractor(nn.Module):
         free_tensors_memory([output_sorted, src_lens_sorted])
         outs = torch.cat(outs, 0)
         out = self.phone2utter(outs[inv_sort_idx], segment_nums)
-        self.segment_nums = segment_nums
+        self.segment_nums = torch.from_numpy(np.array(segment_nums)).long().to(out.device)
         free_tensors_memory([outs])
 
         if self.global_prosody is True:
             # global_emb: (B, d_out)
+            if emb_lens is None:
+                emb_lens = self.segment_nums
             global_emb = self.global_bi_gru(out, emb_lens)[:, -1, :]
             out = out + global_emb.unsqueeze(1).expand_as(out)
             return out, global_emb

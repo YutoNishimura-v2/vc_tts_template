@@ -57,3 +57,7 @@
         - spk: N2C_2
         - pretrain: なし
         - wGMM, optuna
+    - N2C_7
+        - spk: N2C_2
+        - pretrain: なし
+        - wGMM, optuna, パラメタめちゃ少な目

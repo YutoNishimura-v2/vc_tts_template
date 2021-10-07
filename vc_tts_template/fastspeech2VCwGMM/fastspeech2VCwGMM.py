@@ -136,6 +136,9 @@ class fastspeech2VCwGMM(fastspeech2VC):
 
         self.global_prosody = global_prosody
 
+        if self.global_prosody is True:
+            self.prosody_extractor.global_bi_gru.sort = True
+
     def init_forward_wGMM(
         self,
         s_mels,
@@ -262,7 +265,7 @@ class fastspeech2VCwGMM(fastspeech2VC):
             t_mel_masks,
             s_snt_durations,
         ) = self.init_forward_wGMM(
-            s_mels, s_mel_lens, max_s_mel_len, t_mel_lens, max_t_mel_len
+            s_mels, s_mel_lens, max_s_mel_len, t_mels, t_mel_lens, max_t_mel_len, s_snt_durations
         )
 
         output = self.encoder_forward(
