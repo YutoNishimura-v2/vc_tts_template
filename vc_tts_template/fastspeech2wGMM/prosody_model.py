@@ -193,7 +193,7 @@ class ProsodyPredictor(nn.Module):
             self.global_bi_gru = GRUwSort(
                 input_size=conv_out_channels, hidden_size=global_d_gru // 2,
                 num_layers=global_gru_layers, batch_first=True, bidirectional=True,
-                sort=False
+                sort=False,
             )
             self.g_pi_linear = nn.Sequential(
                 nn.Linear(global_d_gru, global_num_gaussians),
@@ -283,7 +283,10 @@ class ProsodyPredictor(nn.Module):
         # mu: (B, num_gaussians, d_out)
         pis = OneHotCategorical(probs=pi).sample().unsqueeze(-1)
         # pis: (B, num_gaussians), one-hot.
-        normal = Normal(loc=mu, scale=(sigma+1e-3)).sample()
+        with torch.cuda.amp.autocast(enabled=False):
+            mu = mu.to(torch.float32)
+            sigma = sigma.to(torch.float32)
+            normal = Normal(loc=mu, scale=sigma).sample()
         samples = torch.sum(pis*normal, dim=1)
         return samples
 

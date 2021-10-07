@@ -179,7 +179,10 @@ class ProsodyPredictor(nn.Module):
         # mu: (B, num_gaussians, d_out)
         pis = OneHotCategorical(probs=pi).sample().unsqueeze(-1)
         # pis: (B, num_gaussians), one-hot.
-        normal = Normal(loc=mu, scale=(sigma+1e-3)).sample()
+        with torch.cuda.amp.autocast(enabled=False):
+            mu = mu.to(torch.float32)
+            sigma = sigma.to(torch.float32)
+            normal = Normal(loc=mu, scale=sigma).sample()
         samples = torch.sum(pis*normal, dim=1)
         return samples
 
