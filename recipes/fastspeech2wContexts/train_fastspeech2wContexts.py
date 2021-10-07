@@ -9,7 +9,7 @@ from omegaconf import DictConfig
 import matplotlib.pyplot as plt
 
 sys.path.append("../..")
-from vc_tts_template.fastspeech2.collate_fn import (
+from vc_tts_template.fastspeech2wContexts.collate_fn import (
     collate_fn_fastspeech2, fastspeech2_get_data_loaders)
 from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer, free_tensors_memory
 from recipes.common.train_loop import train_loop
