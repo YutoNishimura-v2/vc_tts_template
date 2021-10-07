@@ -68,8 +68,8 @@ train:
         weight_decay: 0.0
     lr_scheduler:
       _target_: vc_tts_template.fastspeech2VC.optimizer.ScheduledOptim
-      warm_up_step: 4000
-      anneal_steps: [300000, 400000, 500000]
+      warm_up_step: 250  # if batch: 8, groupsize:4, 4000
+      anneal_steps: [18750, 25000, 31250]
       anneal_rate: 0.3
   
   criterion:

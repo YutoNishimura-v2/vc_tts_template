@@ -9,7 +9,7 @@ sampler:
   name: TPESampler
   params:
 pruner:
-  name: HyperbandPruner
+  name: MedianPruner
   params:
 
 target_loss: ["postnet_mel_loss"]
