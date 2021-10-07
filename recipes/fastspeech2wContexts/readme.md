@@ -29,13 +29,15 @@ Teacher_LD01-Dialogue-01-Teacher-Turn-04_joy:1:4
 5. speakers_dictを作成してください. 但し、必ず話者「"pad"」を用意し、IDは-1としてください。
 
 
-## 追加機能
+## その他情報
 - emotion embを付けたい場合は, ファイル名の**後**に感情を「_」をつけて追加.
     - 例: `JSUT_BASIC5000_0001_悲しみ.wav`
     - そして, fastspeech2wEmotionのnetGのemotionsに事前に用意したspeakerのdictionalyを追加すること.
-    - こちらも, speakers同様に, {"pad": -1}を用意してください。
+    - こちらも, speakers同様に, {"pad": 0}を用意してください。
 
 - statsに関しては, dump以下に全データ通してのそれをjsonとして吐きだすので, それを参考に入力しましょう。
+
+- lossは, `fastspeech2wGMMwContexts`を利用する場合, `fastspeech2wGMM`のlossをそのまま利用します.
 
 - 実験名管理について
     - spk: 全体の名前. preprocessed_data名にもなるため, データそのものの変更をするならここを変える.

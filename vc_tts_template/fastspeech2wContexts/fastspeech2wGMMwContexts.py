@@ -21,6 +21,11 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
         conv_kernel_size_1: int,
         conv_kernel_size_2: int,
         encoder_dropout: float,
+        # context encoder
+        context_encoder_hidden_dim: int,
+        context_num_layer: int,
+        context_encoder_dropout: float,
+        text_emb_dim: int,
         # prosody extractor
         prosody_emb_dim: int,
         extra_conv_kernel_size: int,
@@ -113,7 +118,7 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
         self.speaker_emb = nn.Embedding(
             n_speaker,
             encoder_hidden_dim,
-            padding_idx=-1,
+            padding_idx=0,
         )
         self.emotion_emb = None
         if emotions is not None:
@@ -121,13 +126,44 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
             self.emotion_emb = nn.Embedding(
                 n_emotion,
                 encoder_hidden_dim,
-                padding_idx=-1,
+                padding_idx=0,
             )
-    
+
+        self.context_encoder = ConversationalContextEncoder(
+            d_encoder_hidden=encoder_hidden_dim,
+            d_context_hidden=context_encoder_hidden_dim,
+            context_layer_num=context_num_layer,
+            context_dropout=context_encoder_dropout,
+            text_emb_size=text_emb_dim,
+            speaker_embedding=self.speaker_emb,
+            emotion_embedding=self.emotion_emb,
+        )
+
     def contexts_forward(
         self,
-
-    )
+        output,
+        max_src_len,
+        c_txt_embs,
+        speakers,
+        emotions,
+        h_txt_embs,
+        h_txt_emb_lens,
+        h_speakers,
+        h_emotions
+    ):
+        context_enc = self.context_encoder(
+            c_txt_embs,
+            speakers,
+            emotions,
+            h_txt_embs,
+            h_speakers,
+            h_emotions,
+            h_txt_emb_lens,
+        )
+        output = output + context_enc.unsqueeze(1).expand(
+            -1, max_src_len, -1
+        )
+        return output
 
     def forward(
         self,
@@ -137,6 +173,11 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
         texts,
         src_lens,
         max_src_len,
+        c_txt_embs,
+        h_txt_embs,
+        h_txt_emb_lens,
+        h_speakers,
+        h_emotions,
         mels=None,
         mel_lens=None,
         max_mel_len=None,
@@ -152,6 +193,10 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
         )
         output = self.encoder_forward(
             texts, src_masks, max_src_len, speakers, emotions
+        )
+        output = self.contexts_forward(
+            output, max_src_len, c_txt_embs, speakers, emotions,
+            h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions
         )
 
         output, prosody_features = self.prosody_forward(
@@ -177,7 +222,6 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
             e_control,
             d_control,
         )
-
         output, postnet_output, mel_masks = self.decoder_forward(
             output, mel_masks
         )

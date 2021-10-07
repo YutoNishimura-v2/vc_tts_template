@@ -35,12 +35,12 @@ data:
   
   emb_dir:
   dialogue_info:
-  use_hist_num: 4
+  use_hist_num: 10
 
   # data loader
   num_workers: 5
   batch_size:
-  group_size: 4
+  group_size: 16
   accent_info:
 
 ###########################################################

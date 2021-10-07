@@ -1,5 +1,5 @@
 netG:
-  _target_: vc_tts_template.fastspeech2wGMM.FastSpeech2wGMM
+  _target_: vc_tts_template.fastspeech2wContexts.FastSpeech2wGMMwContexts
   max_seq_len: 1000
   num_vocab: 52
   # encoder
@@ -10,6 +10,11 @@ netG:
   conv_kernel_size_1: 9
   conv_kernel_size_2: 1
   encoder_dropout: 0.2
+  # context encoder
+  context_encoder_hidden_dim: 512
+  context_num_layer: 4
+  context_encoder_dropout: 0.2
+  text_emb_dim: 768
   # prosody extractor
   prosody_emb_dim: 64
   extra_conv_kernel_size: 3
@@ -47,6 +52,6 @@ netG:
   encoder_fix: False
   global_prosody: True
   stats: {"pitch_min": 70, "pitch_max": 750, "energy_min": 10, "energy_max": 27}
-  speakers: {"pad": -1, "Teacher": 0, "StudentMale": 1, "StudentFemale": 2}
+  speakers: {"pad": 0, "Teacher": 1, "StudentMale": 2, "StudentFemale": 3}
   emotions:
   accent_info:

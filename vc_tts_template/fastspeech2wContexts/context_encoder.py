@@ -20,19 +20,26 @@ class ConversationalContextEncoder(nn.Module):
         context_layer_num,
         context_dropout,
         text_emb_size,
+        speaker_embedding,
+        emotion_embedding,
     ):
         super(ConversationalContextEncoder, self).__init__()
         d_model = d_encoder_hidden
         d_cont_enc = d_context_hidden
         num_layers = context_layer_num
         dropout = context_dropout
-        self.text_emb_size = text_emb_size
+        text_emb_size = text_emb_size
 
-        self.text_emb_linear = nn.Linear(self.text_emb_size, d_cont_enc)
+        self.text_emb_linear = nn.Linear(text_emb_size, d_cont_enc)
         self.speaker_linear = nn.Linear(d_model, d_cont_enc)
+        if emotion_embedding is not None:
+            self.emotion_linear = nn.Linear(d_model, d_cont_enc)
 
         self.enc_linear = nn.Sequential(
-            nn.Linear(2*d_cont_enc, d_cont_enc),
+            nn.Linear(
+                2*d_cont_enc if emotion_embedding is None else 3*d_cont_enc,
+                d_cont_enc
+            ),
             nn.ReLU()
         )
         self.gru = GRUwSort(
@@ -40,9 +47,10 @@ class ConversationalContextEncoder(nn.Module):
             hidden_size=d_cont_enc,
             num_layers=num_layers,
             batch_first=True,
-            dropout=dropout,
             bidirectional=True,
             sort=True,
+            dropout=dropout,
+            allow_zero_length=True,
         )
         self.gru_linear = nn.Sequential(
             nn.Linear(2*d_cont_enc, d_cont_enc),
@@ -52,25 +60,34 @@ class ConversationalContextEncoder(nn.Module):
         self.context_linear = nn.Linear(d_cont_enc, d_model)
         self.context_attention = SLA(d_model)
 
-    def forward(self, text_emb, speaker, history_text_emb, history_speaker, history_lens):
-        max_history_len = history_text_emb.size(1)
+        self.speaker_embedding = speaker_embedding
+        self.emotion_embedding = emotion_embedding
 
+    def forward(
+        self, text_emb, speaker, emotion, history_text_emb, history_speaker, history_emotion, history_lens
+    ):
+        max_history_len = torch.max(history_lens)
         history_masks = make_pad_mask(history_lens, max_history_len)
-
         # Embedding
         history_text_emb = torch.cat([history_text_emb, text_emb.unsqueeze(1)], dim=1)
         history_text_emb = self.text_emb_linear(history_text_emb)
         history_speaker = torch.cat([history_speaker, speaker.unsqueeze(1)], dim=1)
-        history_speaker = self.speaker_linear(history_speaker)
+        history_speaker = self.speaker_linear(self.speaker_embedding(history_speaker))
 
         history_enc = torch.cat([history_text_emb, history_speaker], dim=-1)
+
+        if self.emotion_embedding is not None:
+            history_emotion = torch.cat([history_emotion, emotion.unsqueeze(1)], dim=1)
+            history_emotion = self.emotion_linear(self.emotion_embedding(history_emotion))
+            history_enc = torch.cat([history_enc, history_emotion], dim=-1)
+
         history_enc = self.enc_linear(history_enc)
 
         # Split
         enc_past, enc_current = torch.split(history_enc, max_history_len, dim=1)
 
         # GRU
-        enc_past = self.gru_linear(self.gru(enc_past, history_lens)[0])
+        enc_past = self.gru_linear(self.gru(enc_past, history_lens))
         enc_past = enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
 
         # Encoding

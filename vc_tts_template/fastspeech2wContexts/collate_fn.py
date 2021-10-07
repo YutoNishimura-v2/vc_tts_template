@@ -25,7 +25,7 @@ def make_dialogue_dict(dialogue_info):
     return utt2id, id2utt
 
 
-class fastspeech2_Dataset(data_utils.Dataset):  # type: ignore
+class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
     """Dataset for numpy files
 
     Args:
@@ -121,7 +121,7 @@ class fastspeech2_Dataset(data_utils.Dataset):  # type: ignore
         return answer
 
 
-def fastspeech2_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data_utils.DataLoader]:
+def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data_utils.DataLoader]:
     """Get data loaders for training and validation.
 
     Args:
@@ -149,7 +149,7 @@ def fastspeech2_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dic
 
         text_emb_paths = list((emb_dir / "text_emb").glob("*.npy"))
 
-        dataset = fastspeech2_Dataset(
+        dataset = fastspeech2wContexts_Dataset(
             in_feats_paths,
             out_mel_paths,
             out_pitch_paths,
@@ -194,8 +194,8 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
         h_emotions = np.array([[emotion_dict[emo] for emo in emotions] for emotions in h_emotions])
     else:
-        emotions = np.array([-1 for _ in idxs])
-        h_emotions = np.array([[-1 for _ in range(len(h_speakers[0]))] for _ in idxs])
+        emotions = np.array([0 for _ in idxs])
+        h_emotions = np.array([[0 for _ in range(len(h_speakers[0]))] for _ in idxs])
 
     # reprocessの内容をここに.
 
@@ -230,7 +230,7 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     )
 
 
-def collate_fn_fastspeech2(batch, batch_size, speaker_dict=None, emotion_dict=None):
+def collate_fn_fastspeech2wContexts(batch, batch_size, speaker_dict=None, emotion_dict=None):
     """Collate function for Tacotron.
     Args:
         batch (list): List of tuples of the form (inputs, targets).

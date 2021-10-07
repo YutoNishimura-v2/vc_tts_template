@@ -175,7 +175,6 @@ class Decoder(nn.Module):
         """
         dec_slf_attn_list = []
         batch_size, max_len = enc_seq.shape[0], enc_seq.shape[1]
-
         # -- Forward
         # 条件分岐も同じですね.
         if not self.training and enc_seq.shape[1] > self.max_seq_len:
@@ -201,7 +200,6 @@ class Decoder(nn.Module):
             # どちらも同じFFTBlockなのに, ここがどう影響するんだろうか.
             mask = mask[:, :max_len]
             slf_attn_mask = slf_attn_mask[:, :, :max_len]
-
         # 以下も一緒.
         for dec_layer in self.layer_stack:
             dec_output, dec_slf_attn = dec_layer(
