@@ -127,11 +127,11 @@ class GRUwSort(nn.Module):
     pack_padded_sequenceなどを内部でやってくれるクラスです.
     """
     def __init__(self, input_size, hidden_size, num_layers,
-                 batch_first, bidirectional, sort) -> None:
+                 batch_first, bidirectional, sort, dropout=0.0) -> None:
         super().__init__()
         self.gru = nn.GRU(
             input_size=input_size, hidden_size=hidden_size, num_layers=num_layers,
-            batch_first=batch_first, bidirectional=bidirectional
+            batch_first=batch_first, bidirectional=bidirectional, dropout=dropout
         )
         self.sort = sort
         self.batch_first = batch_first

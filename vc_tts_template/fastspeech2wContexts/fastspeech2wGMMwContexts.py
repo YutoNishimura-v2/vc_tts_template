@@ -3,6 +3,7 @@ from typing import Dict, Optional
 import torch.nn as nn
 
 from vc_tts_template.fastspeech2wGMM.fastspeech2wGMM import FastSpeech2wGMM
+from vc_tts_template.fastspeech2wContexts.context_encoder import ConversationalContextEncoder
 
 
 class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
@@ -122,6 +123,11 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
                 encoder_hidden_dim,
                 padding_idx=-1,
             )
+    
+    def contexts_forward(
+        self,
+
+    )
 
     def forward(
         self,
