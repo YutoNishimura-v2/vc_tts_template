@@ -135,6 +135,11 @@ def to_device(data, phase, device):
         pitches,
         energies,
         durations,
+        c_txt_embs,
+        h_txt_embs,
+        h_txt_emb_lens,
+        h_speakers,
+        h_emotions,
     ) = data
     speakers = torch.from_numpy(speakers).long().to(device, non_blocking=True)
     emotions = torch.from_numpy(emotions).long().to(device, non_blocking=True)
@@ -145,6 +150,11 @@ def to_device(data, phase, device):
     pitches = torch.from_numpy(pitches).float().to(device, non_blocking=True)
     energies = torch.from_numpy(energies).to(device, non_blocking=True)
     durations = torch.from_numpy(durations).long().to(device, non_blocking=True)
+    c_txt_embs = torch.from_numpy(c_txt_embs).float().to(device, non_blocking=True)
+    h_txt_embs = torch.from_numpy(h_txt_embs).float().to(device, non_blocking=True)
+    h_txt_emb_lens = torch.from_numpy(h_txt_emb_lens).long().to(device, non_blocking=True)
+    h_speakers = torch.from_numpy(h_speakers).long().to(device, non_blocking=True)
+    h_emotions = torch.from_numpy(h_emotions).long().to(device, non_blocking=True)
 
     return (
         ids,
@@ -159,6 +169,11 @@ def to_device(data, phase, device):
         pitches,
         energies,
         durations,
+        c_txt_embs,
+        h_txt_embs,
+        h_txt_emb_lens,
+        h_speakers,
+        h_emotions,
     )
 
 

@@ -32,6 +32,10 @@ data:
     utt_list:
     in_dir:
     out_dir:
+  
+  emb_dir:
+  dialogue_info:
+  use_hist_num: 4
 
   # data loader
   num_workers: 5

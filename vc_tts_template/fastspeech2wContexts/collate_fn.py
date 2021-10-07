@@ -18,7 +18,7 @@ def make_dialogue_dict(dialogue_info):
         dialogue_data = f.readlines()
 
     for dialogue in dialogue_data:
-        utt_id, dialogue_id, in_dialogue_id = dialogue.strip().split(":")
+        utt_id, dialogue_id, in_dialogue_id, _ = dialogue.strip().split(":")
         utt2id[utt_id] = (dialogue_id, in_dialogue_id)
         id2utt[(dialogue_id, in_dialogue_id)] = utt_id
 
@@ -62,7 +62,9 @@ class fastspeech2_Dataset(data_utils.Dataset):  # type: ignore
         Returns:
             tuple: input and target in numpy format
         """
-        current_txt_emb, history_txt_embs = self.get_embs(self.in_paths[idx].stem, self.text_emb_paths)
+        current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions = self.get_embs(
+            self.in_paths[idx].name.replace("-feats.npy", ""), self.text_emb_paths
+        )
         return (
             self.in_paths[idx].name,
             np.load(self.in_paths[idx]),
@@ -72,6 +74,9 @@ class fastspeech2_Dataset(data_utils.Dataset):  # type: ignore
             np.load(self.out_duration_paths[idx]),
             current_txt_emb,
             history_txt_embs,
+            hist_emb_len,
+            history_speakers,
+            history_emotions,
         )
 
     def __len__(self):
@@ -86,19 +91,32 @@ class fastspeech2_Dataset(data_utils.Dataset):  # type: ignore
         current_d_id, current_in_d_id = self.utt2id[utt_id]
         current_emb = np.load(self.get_path_from_uttid(utt_id, emb_paths))
 
-        range_ = range(current_in_d_id-1, max(0, current_in_d_id-1-self.use_hist_num), -1)
+        range_ = range(int(current_in_d_id)-1, max(0, int(current_in_d_id)-1-self.use_hist_num), -1)
         hist_embs = []
+        hist_emb_len = 0
+        history_speakers = []
+        history_emotions = []
         for hist_in_d_id in range_:
-            utt_id = self.id2utt[(current_d_id, hist_in_d_id)]
+            utt_id = self.id2utt[(current_d_id, str(hist_in_d_id))]
             hist_embs.append(np.load(self.get_path_from_uttid(utt_id, emb_paths)))
+            history_speakers.append(utt_id.split('_')[0])
+            history_emotions.append(utt_id.split('_')[-1])
+            hist_emb_len += 1
 
-        return current_emb, np.stack(hist_embs)
+        for _ in range(self.use_hist_num - len(hist_embs)):
+            hist_embs.append(np.zeros_like(current_emb))
+            history_speakers.append("pad")
+            history_emotions.append("pad")
+        return (
+            np.array(current_emb), np.stack(hist_embs), hist_emb_len,
+            np.array(history_speakers), np.array(history_emotions)
+        )
 
     def get_path_from_uttid(self, utt_id, emb_paths):
         answer = None
         for path_ in emb_paths:
             answer = path_
-            if utt_id in path_:
+            if utt_id in path_.name:
                 break
         return answer
 
@@ -162,22 +180,27 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     durations = [batch[idx][5] for idx in idxs]
     c_txt_embs = [batch[idx][6] for idx in idxs]
     h_txt_embs = [batch[idx][7] for idx in idxs]
+    h_txt_emb_lens = [batch[idx][8] for idx in idxs]
+    h_speakers = [batch[idx][9] for idx in idxs]
+    h_emotions = [batch[idx][10] for idx in idxs]
 
     ids = np.array([fname.replace("-feats.npy", "") for fname in file_names])
     if speaker_dict is not None:
         speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in ids])
+        h_speakers = np.array([[speaker_dict[spk] for spk in speakers] for speakers in h_speakers])
     else:
-        speakers = np.array([0 for _ in idxs])
+        raise ValueError("You Need emotion_dict")
     if emotion_dict is not None:
         emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
+        h_emotions = np.array([[emotion_dict[emo] for emo in emotions] for emotions in h_emotions])
     else:
-        emotions = np.array([0 for _ in idxs])
+        emotions = np.array([-1 for _ in idxs])
+        h_emotions = np.array([[-1 for _ in range(len(h_speakers[0]))] for _ in idxs])
 
     # reprocessの内容をここに.
 
     text_lens = np.array([text.shape[0] for text in texts])
     mel_lens = np.array([mel.shape[0] for mel in mels])
-    h_txt_emb_lens = np.array([h_txt_emb.shape[0] for h_txt_emb in h_txt_embs])
 
     texts = pad_1d(texts)
     mels = pad_2d(mels)
@@ -185,8 +208,6 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     energies = pad_1d(energies)
     durations = pad_1d(durations)
     c_txt_embs = np.array(c_txt_embs)
-    # h_txt_embs: [(hist_cnt, emb_dim), ...]
-    h_txt_embs = pad_2d(h_txt_embs)
 
     return (
         ids,
@@ -202,8 +223,10 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         energies,
         durations,
         c_txt_embs,
-        h_txt_embs,
-        h_txt_emb_lens,
+        np.array(h_txt_embs),
+        np.array(h_txt_emb_lens),
+        h_speakers,
+        h_emotions,
     )
 
 

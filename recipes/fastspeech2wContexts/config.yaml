@@ -56,7 +56,7 @@ vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
 vocoder_config: "conf/train_hifigan/model/hifigan.yaml"
-vocoder_weight_base_path: "exp/Long_dialogue_sr22050_Long_dialogue_1/hifigan"
+vocoder_weight_base_path: "../fastspeech2/exp/Long_dialogue_sr22050_Long_dialogue_1/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.

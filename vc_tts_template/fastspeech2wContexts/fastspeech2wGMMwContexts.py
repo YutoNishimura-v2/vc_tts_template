@@ -1,5 +1,7 @@
 from typing import Dict, Optional
 
+import torch.nn as nn
+
 from vc_tts_template.fastspeech2wGMM.fastspeech2wGMM import FastSpeech2wGMM
 
 
@@ -55,7 +57,7 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
         encoder_fix: bool,
         global_prosody: bool,
         stats: Dict,
-        speakers: Optional[Dict] = None,
+        speakers: Dict,
         emotions: Optional[Dict] = None,
         accent_info: int = 0,
     ):
@@ -105,6 +107,21 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
             emotions,
             accent_info,
         )
+        # override to add padding_idx
+        n_speaker = len(speakers)
+        self.speaker_emb = nn.Embedding(
+            n_speaker,
+            encoder_hidden_dim,
+            padding_idx=-1,
+        )
+        self.emotion_emb = None
+        if emotions is not None:
+            n_emotion = len(emotions)
+            self.emotion_emb = nn.Embedding(
+                n_emotion,
+                encoder_hidden_dim,
+                padding_idx=-1,
+            )
 
     def forward(
         self,

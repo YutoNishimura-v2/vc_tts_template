@@ -47,6 +47,6 @@ netG:
   encoder_fix: False
   global_prosody: True
   stats: {"pitch_min": 70, "pitch_max": 750, "energy_min": 10, "energy_max": 27}
-  speakers:
+  speakers: {"pad": -1, "Teacher": 0, "StudentMale": 1, "StudentFemale": 2}
   emotions:
   accent_info:

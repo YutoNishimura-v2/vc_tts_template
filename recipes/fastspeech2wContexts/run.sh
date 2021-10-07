@@ -129,7 +129,7 @@ fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     echo "stage 4: Training fastspeech2"
-    xrun python train_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
+    xrun python train_fastspeech2wContexts.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
         data.train.in_dir=$dump_norm_dir/$train_set/in_fastspeech2/ \
