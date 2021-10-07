@@ -7,6 +7,8 @@
 こちらのコードは、[ttslearn](https://github.com/r9y9/ttslearn)をベースにして作られています。hifiganに関しては、[こちら](https://github.com/jik876/hifi-gan)、fastspeech2に関しては、[こちら](https://github.com/ming024/FastSpeech2)がベースです。
 ## todo
 - check_grad: 10回くらい？連続でNaNを出すようなパラメタがある場合はraiseしてもいいかもしれない. あまりにひどい場合実装してみる.
+- wGMMのGRUにdropoutを導入検討
+- wContextsのsynthesis, tuning, gen, tts
 
 ## memo
 - [勾配計算を可視化したかったらtorchvizが楽かも](https://github.com/szagoruyko/pytorchviz)
