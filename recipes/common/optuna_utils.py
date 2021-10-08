@@ -201,6 +201,9 @@ def optuna_train_loop(config, to_device, model, optimizer, lr_scheduler, loss, d
             if phase == "dev":
                 target_loss = np.sum([running_losses[loss_] for loss_ in use_loss])
                 ave_loss = target_loss / (len(data_loaders[phase]) * group_size)
+                if bool(np.isnan(ave_loss).any()) is True:
+                    logger.warning("the target loss is NaN!! it had better to check your exp.")
+                    raise optuna.TrialPruned()
                 trial.report(ave_loss, epoch)
 
             if trial.should_prune():

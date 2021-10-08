@@ -1,4 +1,5 @@
 import sys
+import optuna
 
 import torch
 import torch.nn as nn
@@ -177,6 +178,7 @@ class ProsodyPredictor(nn.Module):
         # pi: (B, num_gaussians)
         # sigma: (B, num_gaussians, d_out)
         # mu: (B, num_gaussians, d_out)
+        self.check_nan([pi, sigma, mu])
         pis = OneHotCategorical(probs=pi).sample().unsqueeze(-1)
         # pis: (B, num_gaussians), one-hot.
         with torch.cuda.amp.autocast(enabled=False):
@@ -185,6 +187,12 @@ class ProsodyPredictor(nn.Module):
             normal = Normal(loc=mu, scale=sigma).sample()
         samples = torch.sum(pis*normal, dim=1)
         return samples
+
+    def check_nan(self, tensors):
+        # to avoid errors of distribution.
+        for x in tensors:
+            if bool(torch.isnan(x).any()) is True:
+                raise optuna.TrialPruned("if you do not use optuna, sorry! but there is NaN. check your model.")
 
 
 if __name__ == "__main__":
