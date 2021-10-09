@@ -184,7 +184,7 @@ class ProsodyPredictor(nn.Module):
         with torch.cuda.amp.autocast(enabled=False):
             mu = mu.to(torch.float32)
             sigma = sigma.to(torch.float32)
-            normal = Normal(loc=mu, scale=sigma).sample()
+            normal = Normal(loc=mu, scale=sigma+1e-8).sample()
         samples = torch.sum(pis*normal, dim=1)
         return samples
 

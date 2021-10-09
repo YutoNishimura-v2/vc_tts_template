@@ -71,11 +71,12 @@ train:
       warm_up_step: 250  # if batch: 8, groupsize:4, 4000
       anneal_steps: [18750, 25000, 31250]
       anneal_rate: 0.3
+      max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 
   
   criterion:
     _target_: vc_tts_template.fastspeech2VCwGMM.loss.FastSpeech2VCwGMMLoss
-    beta: 0.00785
-    g_beta: 0.000275
+    beta: 0.02
+    g_beta: 0.02
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
