@@ -18,6 +18,9 @@
     
     - N2C_2
         - sent_durationを実装して再実行.
+    
+    - N2C_3
+        - min_silence_len: 100にして再度実行.
 
 - tag
     - jsut_jsss_1
@@ -80,3 +83,17 @@
         - spk: N2C_2
         - pretrain: なし
         - optunaリベンジ. lr問題を修正したうえで、更に基準を一番大事なpitch lossにしてみた.
+            - #3が一番落ち着いている推移をしているので#3でしっかり訓練してみる.
+    - N2C_12
+        - spk: N2C_2
+        - pretrain: なし
+        - N2C_10で探索した#3で訓練.
+            - ダメダメだった. 普通にやっぱりpitchで探すのは無理だった.
+    - N2C_13
+        - spk: N2C_2
+        - pretrain: なし
+        - lr_schedulerを直した後、pitchで探索したが, 素直にpost mel lossで探索する.
+    - N2C_14
+        - spk: N2C_3
+        - pretrain: なし
+        - min_silence_lenを小さくして、sentence_levelだったものを細かくしてみてoptuna挑戦. 果たしてどうなるか.

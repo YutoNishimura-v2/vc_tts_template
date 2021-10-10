@@ -75,8 +75,8 @@ train:
   
   criterion:
     _target_: vc_tts_template.fastspeech2VCwGMM.loss.FastSpeech2VCwGMMLoss
-    beta: 0.02
-    g_beta: 0.02
+    beta: 0.00433
+    g_beta: 0.00119
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.

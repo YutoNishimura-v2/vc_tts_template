@@ -12,7 +12,7 @@ pruner:
   name: MedianPruner
   params:
 
-target_loss: ["pitch_loss"]
+target_loss: ["postnet_mel_loss"]
 
 # optimizer
 optimizer:

@@ -1,8 +1,8 @@
 # General settings.
-spk: "N2C_2"
+spk: "N2C_3"
 
 # exp tag(for managing experiments)
-tag: "N2C_11"
+tag: "N2C_14"
 
 sample_rate: 22050
 
@@ -54,7 +54,7 @@ reduction_factor: 3
 # ↓set 0 if you do not need sentence_duration
 sentence_duration: 1
 # ↓use if sentence_duration > 0
-min_silence_len: 500
+min_silence_len: 100
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
