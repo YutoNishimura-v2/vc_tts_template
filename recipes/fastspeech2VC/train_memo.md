@@ -110,3 +110,16 @@
         - pretrain: なし
         - pretrain用. pitchARのみ.
             - もちろんsetntence_duration: 0
+        - warmup rateのミスが発覚.
+            - group_sizeは計算に入っているのだから、倍率に影響しない.
+            - batch_sizeのみ考えて割り算するべきだった.
+    - N2C_17
+        - spk: N2C_2
+        - pretrain: なし
+        - pretrainやり直し.
+    - N2C_18
+        - spk: N2C_2
+        - pretrain: N2C_17
+        - N2C_10(論文に似せたよさげなパラメタ)と比較して、どちらがマシか確認.
+        - lrはresetしてみる(resetしないverも試したい).
+        - これの方がよければ、pretrainは有効. pretrainを前提にして, optuna探索をかけることにする.
