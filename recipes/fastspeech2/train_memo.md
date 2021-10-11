@@ -6,9 +6,10 @@
         - 先生にアライメントも二回目の修正をしてもらったきれいなやつ.
     - Long_dialogue
         - 先生にもらったもので, soxで22050にしたもの.
-    
     - JSUT_accent
         - tacotronの実装にある, フルコンテキストラベルのアクセント情報を利用したデータセット
+    - LINE(10/11)
+        - 完全データ.
 
 - exp
     - jsut_1
@@ -50,3 +51,15 @@
         - pretrain: None
         - optunaでハイパラ探索を行う. 別パラメタ。
             - prunerを変えてnum_gaussianをカテゴリ―にした.
+    
+    - ここで、VCの方にシフト. lr_scheduler周りで2つほどミスを見つけたりの修正が出来たので、ましになるかも.
+    - まずは、コーパス評価用のbaselineとして, 普通のfastspeech2かwGMMかを選ぶ.
+    - LINE_1
+        - spk: LINE
+        - pretrain: None
+        - ふっつーのやつ.
+
+
+## 主要な実験
+
+## 知見

@@ -16,7 +16,7 @@ netG:
   attention_dropout: 0.2
   conv_dropout: 0.2
   # prosody extractor
-  prosody_emb_dim: 512
+  prosody_emb_dim: 256
   extra_conv_kernel_size: 3
   extra_conv_n_layers: 2
   extra_gru_n_layers: 2
@@ -29,10 +29,10 @@ netG:
   pp_conv_n_layers: 2
   pp_conv_dropout: 0.2
   pp_zoneout: 0.1
-  num_gaussians: 7
+  num_gaussians: 10
   global_gru_n_layers: 2
   global_d_gru: 512
-  global_num_gaussians: 15
+  global_num_gaussians: 10
   # varianceadaptor
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size_d: 3

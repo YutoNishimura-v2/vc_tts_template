@@ -1,8 +1,8 @@
 # General settings.
-spk: "N2C_2"
+spk: "N2C_4"
 
 # exp tag(for managing experiments)
-tag: "N2C_17"
+tag: "N2C_27"
 
 sample_rate: 22050
 
@@ -39,7 +39,7 @@ eval_num: 60
 ###########################################################
 # 一般的に, head > tailの方がよいです.
 silence_thresh_h: -50
-silence_thresh_t: -80
+silence_thresh_t: -100
 chunk_size: 50
 filter_length: 1024
 hop_length: 256
@@ -52,14 +52,14 @@ log_base: "natural"
 is_continuous_pitch: 1
 reduction_factor: 3
 # ↓set 0 if you do not need sentence_duration
-sentence_duration: 0
+sentence_duration: 1
 # ↓use if sentence_duration > 0
 min_silence_len: 500
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2VC
+acoustic_model: fastspeech2VCwGMM
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.

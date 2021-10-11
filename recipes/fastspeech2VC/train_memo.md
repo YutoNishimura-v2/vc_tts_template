@@ -22,6 +22,11 @@
     
     - N2C_3
         - min_silence_len: 100にして再度実行.
+    
+    - N2C_4
+        - silence_thresh_t: -100にして再実行.
+            - N2C_2で結果が出ない原因はこいつだった.
+        - min_silence_len: 500
 
 - tag
     - jsut_jsss_1
@@ -116,10 +121,128 @@
     - N2C_17
         - spk: N2C_2
         - pretrain: なし
+        - 実行時間: 32min/50epoch
         - pretrainやり直し.
+        - なぜか再現が出来ない...。warm_up_rateもちゃんと1000にしているのにもかかわらず...。
+            - 少量データセットには小さいbatchの方がいいのかもしれません.
     - N2C_18
         - spk: N2C_2
-        - pretrain: N2C_17
-        - N2C_10(論文に似せたよさげなパラメタ)と比較して、どちらがマシか確認.
-        - lrはresetしてみる(resetしないverも試したい).
-        - これの方がよければ、pretrainは有効. pretrainを前提にして, optuna探索をかけることにする.
+        - pretrain: なし
+        - 実行時間: 26min/22epoch
+        - pretrainやり直し.
+        - N2C_17で過去の結果であるN2C_4を再現できなかったので, batch_sizeを小さくしてみる. その代わり、group_sizeを64にしてみる.
+    - N2C_19
+        - spk: N2C_2
+        - pretrain: なし
+        - 実行時間: 33min/23epoch
+        - pretrainやり直し.
+        - なぜかN2C_18では再現できなかった。。。。
+            - trainも中途半端だし.
+            - 違う点
+                - group_size
+                    - むしろ改善すると思ったが...。
+                - spk
+                    - たぶんほぼ同じなのに...。
+                - モデルの実装
+                    - 見え方変えただけだけど.
+            - まずはgroup_size=4にしてちゃんとやってみる.
+            - これで無理ならspkもN2Cに戻す.
+	- ダメでした 次はspkを1に戻します.
+    - N2C_20
+        - spk: N2C
+        - pretrain: なし
+        - 実行時間: 
+        - pretrainやり直し.
+        - これでだめなら、違うところはもう初期値とかモデルの書き換え時のミスとかしかなくなってくる.
+        - 再現成功！！！！！！データセット側の問題だった！！！
+            - 変更したところ: silence_thresh_t = -100 → -80
+        - ↑これを確かめるために, -100にして, sentence_durationも作り直してみる.
+    - N2C_21
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - silence_t=-100にして, ちゃんと仮説↑が正しかったかを確かめる.
+        - 正しかった. silence_tで行きましょう
+    - N2C_22
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - batch_sizeのみ32にしてみる. warm_up_rateもちゃんと1/4にして.
+        - 微悪化. 次はgroupsizeも元の16に戻してみて実験.
+    - N2C_23
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - batch_size:32, group_size:16. warm_up_rateもちゃんと1/4にして.
+        - マシになっている気がする. より安定している?
+            - これはpaddingが減ったことに依りそう.
+            - 音質も、N2C_4のものよりも安定していた気がした.
+        - これをさらにloss下げたら結構よさそう.
+            - そのために, warmuprateをいじってみる.
+    - N2C_24
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 2000
+            - つまり, batch_size 1/4に対して1/2なので, 実質2倍遅くしている.
+            - 微悪化...。今度は逆に, 実質2倍早くしてみる.
+    - N2C_25
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 500
+            - つまり, batch_size 1/4に対して1/8なので, 実質2倍速くしている.
+            - ほぼ効果なし.
+            - じゃあmax_iterを制限しなければ...?
+    - N2C_26
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 1000, max_lr_scale: 1000
+            - 上限をなくしてみた.
+            - 超微悪化. 少なくとも改善はなし.
+    - 結論, batch_size増で微悪化は防げず. 以下、N2C_23と同じ設定で行く.
+    - N2C_27
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 1000
+        - wGMMの再実行. silence問題とwarm_up_rate勘違い問題を修正した後の初実行. sotaが予想される.
+        - ほかのパラメタはよさげなセット(N2C_9).   
+    - N2C_28
+        - spk: N2C_4
+        - pretrain: N2C_23(100epoch)
+        - 実行時間: /50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 1000, reset_optim: False
+
+## 主要な実験
+- N2C_4: 初pitchAR化. 今のところsotaはこれ.
+- N2C_15: wGMMのbest. 
+    - データがN2C_2で, silence問題前なので、それを直したらかなり改善する可能性はある.
+    - しかもwarm_up_rateも勘違いして250とかになっている. 悲惨.
+- N2C_23: batch_size: 32におけるpitchARの訓練. pre-train用.
+
+## 知見
+- silence_thresh_tは-80より-100のがよい(N2C_20)
+    - 削りすぎるよりはのこしておいた方がよいのかもしれない.
+    - 更に削るとどうなるかは気になる.
+    - **datasetを作り直したら、今までのbestで比較するべき**
+
+- groupsizeは小さい方がよい??(N2C_18, N2C_19)
+    - これは非直感的.
+    - valもtrainも若干改善といった具合.
+        - 特に速度にも影響しないので, 小さくしておくべきかも.
+    - N2C_22, N2C_23にて, 大きい方がより安定した！という結果に.
+        - Batch_sizeが大きいときは, よりgroup_sizeが大きい方が
+        - padding問題もあって安定しそう.
+        - 常に, batch_size/2 = group_size位がちょうどいいのかも.
+
+- batch_sizeは小さい方がよい??(N2C_21, N2C_22)
+    - ただし、warm_up_rateは単純にbatch_sizeの比率でスピードを変えているだけ.
+    - batch_sizeが小さい方がよいのは、データセットが小さい場合は確かに一般的に言えることではあるので、正しそう.
+    - 一方で, batch_sizeを小さいまま訓練するのは時間的に厳しいため, warm_up_rateの方などで調整をして何とかこの差をなくしてあげるべき.
+        - warm_up_rateで下げるのは厳しかった(N2C_24~N2C_26)
+        - 0.01の差なので, 許容する.
+            - 本当に精度が欲しいときは, 時間をかけてbatch_size=8でやるというやり方でいく.
+
+- pretrainは 

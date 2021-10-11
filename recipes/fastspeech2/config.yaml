@@ -1,8 +1,8 @@
 # General settings.
-spk: "Long_dialogue"
+spk: "LINE"
 
 # exp tag(for managing experiments)
-tag: "Long_dialogue_9"
+tag: "LINE_1"
 
 sample_rate: 22050
 
@@ -21,15 +21,15 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-wav_root: "../../../dataset/out_Long_dialogue/Long_dialogue/wav/22050"
-lab_root: "../../../dataset/out_Long_dialogue/textgrid"
+wav_root: "../../../dataset/out_LINE/LINE/wav/22050"
+lab_root: "../../../dataset/out_LINE/textgrid"
 
 n_jobs: 8
 
-train_num: 1002
-deveval_num: 200
-dev_num: 150
-eval_num: 50
+train_num: 
+deveval_num: 
+dev_num: 
+eval_num: 
 
 ###########################################################
 #                FEATURE EXTRACTION SETTING               #
@@ -58,7 +58,7 @@ vocoder_weight_base_path: "exp/Long_dialogue_sr22050_Long_dialogue_1/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 50
+fastspeech2_train_nepochs: 100
 fastspeech2_data_batch_size: 32
 
 ### hifigan ###
