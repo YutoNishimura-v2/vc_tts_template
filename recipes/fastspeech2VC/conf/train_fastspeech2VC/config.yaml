@@ -37,6 +37,7 @@ data:
   num_workers: 5
   batch_size:
   group_size: 16
+  sentence_duration:
 
 ###########################################################
 #                TRAIN SETTING                            #
@@ -74,9 +75,7 @@ train:
       max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 
   
   criterion:
-    _target_: vc_tts_template.fastspeech2VCwGMM.loss.FastSpeech2VCwGMMLoss
-    beta: 0.00433
-    g_beta: 0.00119
+    _target_: vc_tts_template.fastspeech2VC.loss.FastSpeech2VCLoss
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.

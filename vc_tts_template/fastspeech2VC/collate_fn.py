@@ -119,7 +119,7 @@ def fastspeech2VC_get_data_loaders(data_config: Dict, collate_fn: Callable) -> D
     return data_loaders
 
 
-def reprocess(batch, idxs, speaker_dict, emotion_dict):
+def reprocess(batch, idxs, speaker_dict, emotion_dict, sentence_duration):
     file_names = [batch[idx][0] for idx in idxs]
     s_mels = [batch[idx][1] for idx in idxs]
     s_pitches = [batch[idx][2] for idx in idxs]
@@ -155,7 +155,7 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     t_energies = pad_1d(t_energies)
     t_durations = pad_1d(t_durations)
 
-    if batch[0][4] is not None:
+    if (batch[0][4] is not None) and (sentence_duration == 1):
         s_snt_durations = pad_1d([batch[idx][4] for idx in idxs])
         t_snt_durations = pad_1d([batch[idx][9] for idx in idxs])
     else:
@@ -184,7 +184,7 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     )
 
 
-def collate_fn_fastspeech2VC(batch, batch_size, speaker_dict=None, emotion_dict=None):
+def collate_fn_fastspeech2VC(batch, batch_size, speaker_dict=None, emotion_dict=None, sentence_duration=0):
     """Collate function for Tacotron.
     Args:
         batch (list): List of tuples of the form (inputs, targets).
@@ -205,6 +205,6 @@ def collate_fn_fastspeech2VC(batch, batch_size, speaker_dict=None, emotion_dict=
 
     # 以下, reprocessへの引数が変更の余地あり.
     for idx in idx_arr:
-        output.append(reprocess(batch, idx, speaker_dict, emotion_dict))
+        output.append(reprocess(batch, idx, speaker_dict, emotion_dict, sentence_duration))
 
     return output

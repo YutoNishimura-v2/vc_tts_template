@@ -18,6 +18,7 @@
     
     - N2C_2
         - sent_durationを実装して再実行.
+        - min_silence_len: 500
     
     - N2C_3
         - min_silence_len: 100にして再度実行.
@@ -97,3 +98,15 @@
         - spk: N2C_3
         - pretrain: なし
         - min_silence_lenを小さくして、sentence_levelだったものを細かくしてみてoptuna挑戦. 果たしてどうなるか.
+    - N2C_15
+        - spk: N2C_3
+        - pretrain: なし
+        - N2C_14でみつけた、#53
+            - 微妙かも. まぁそれ以上にwGMM自体が微妙
+            - まずは, pretrainしてある程度学習が進んでからの方がよいのでは???
+            - min_silence_lenを500に戻し, そのうえでpretrainから始めてみる.
+    - N2C_16
+        - spk: N2C_2
+        - pretrain: なし
+        - pretrain用. pitchARのみ.
+            - もちろんsetntence_duration: 0
