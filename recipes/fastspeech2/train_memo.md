@@ -8,8 +8,8 @@
         - 先生にもらったもので, soxで22050にしたもの.
     - JSUT_accent
         - tacotronの実装にある, フルコンテキストラベルのアクセント情報を利用したデータセット
-    - LINE(10/11)
-        - 完全データ.
+    - LINE
+        - corpus評価用のwoITAKO.
 
 - exp
     - jsut_1
@@ -53,11 +53,11 @@
             - prunerを変えてnum_gaussianをカテゴリ―にした.
     
     - ここで、VCの方にシフト. lr_scheduler周りで2つほどミスを見つけたりの修正が出来たので、ましになるかも.
-    - まずは、コーパス評価用のbaselineとして, 普通のfastspeech2かwGMMかを選ぶ.
+    - wGMMも他のも, アクセントを前提にしてみる.
     - LINE_1
         - spk: LINE
         - pretrain: None
-        - ふっつーのやつ.
+        - ふっつーのfastspeech2.
 
 
 ## 主要な実験

@@ -24,71 +24,76 @@ def hifigan_train_step(
     loss,
     batch,
     logger,
+    scaler,
+    grad_checker,
     mel_spectrogram_in_train_step
 ):
-    if train:
-        _, y, x, y_mel = batch
-        x = torch.autograd.Variable(x)
-        y = torch.autograd.Variable(y)
-        y_mel = torch.autograd.Variable(y_mel)
-        y = y.unsqueeze(1)
-        y_g_hat = model['netG'](x)
-        y_g_hat_mel = mel_spectrogram_in_train_step(y=y_g_hat.squeeze(1))
-        optimizer.optim_d.zero_grad()
+    with torch.cuda.amp.autocast():
+        if train:
+            _, y, x, y_mel = batch
+            x = torch.autograd.Variable(x)
+            y = torch.autograd.Variable(y)
+            y_mel = torch.autograd.Variable(y_mel)
+            y = y.unsqueeze(1)
+            y_g_hat = model['netG'](x)
+            y_g_hat_mel = mel_spectrogram_in_train_step(y=y_g_hat.squeeze(1))
+            optimizer.optim_d.zero_grad()
 
-        # MPD: multi period descriminator
-        y_df_hat_r, y_df_hat_g, _, _ = model['netMPD'](y, y_g_hat.detach())
-        loss_disc_f, _, _ = loss.discriminator_loss(y_df_hat_r, y_df_hat_g)
+            # MPD: multi period descriminator
+            y_df_hat_r, y_df_hat_g, _, _ = model['netMPD'](y, y_g_hat.detach())
+            loss_disc_f, _, _ = loss.discriminator_loss(y_df_hat_r, y_df_hat_g)
 
-        # MSD: multi scale descriminator
-        y_ds_hat_r, y_ds_hat_g, _, _ = model['netMSD'](y, y_g_hat.detach())
-        loss_disc_s, _, _ = loss.discriminator_loss(y_ds_hat_r, y_ds_hat_g)
+            # MSD: multi scale descriminator
+            y_ds_hat_r, y_ds_hat_g, _, _ = model['netMSD'](y, y_g_hat.detach())
+            loss_disc_s, _, _ = loss.discriminator_loss(y_ds_hat_r, y_ds_hat_g)
 
-        loss_disc_all = loss_disc_s + loss_disc_f
+            loss_disc_all = loss_disc_s + loss_disc_f
 
-        loss_disc_all.backward()
-        optimizer.optim_d.step()
+            scaler.scale(loss_disc_all).backward()
+            scaler.step(optimizer.optim_d)
 
-        optimizer.optim_g.zero_grad()
+            optimizer.optim_g.zero_grad()
 
-        loss_mel = F.l1_loss(y_mel, y_g_hat_mel) * 45
+            loss_mel = F.l1_loss(y_mel, y_g_hat_mel) * 45
 
-        y_df_hat_r, y_df_hat_g, fmap_f_r, fmap_f_g = model['netMPD'](y, y_g_hat)
-        y_ds_hat_r, y_ds_hat_g, fmap_s_r, fmap_s_g = model['netMSD'](y, y_g_hat)
-        loss_fm_f = loss.feature_loss(fmap_f_r, fmap_f_g)
-        loss_fm_s = loss.feature_loss(fmap_s_r, fmap_s_g)
-        loss_gen_f, _ = loss.generator_loss(y_df_hat_g)
-        loss_gen_s, _ = loss.generator_loss(y_ds_hat_g)
-        loss_gen_all = loss_gen_s + loss_gen_f + loss_fm_s + loss_fm_f + loss_mel
+            y_df_hat_r, y_df_hat_g, fmap_f_r, fmap_f_g = model['netMPD'](y, y_g_hat)
+            y_ds_hat_r, y_ds_hat_g, fmap_s_r, fmap_s_g = model['netMSD'](y, y_g_hat)
+            loss_fm_f = loss.feature_loss(fmap_f_r, fmap_f_g)
+            loss_fm_s = loss.feature_loss(fmap_s_r, fmap_s_g)
+            loss_gen_f, _ = loss.generator_loss(y_df_hat_g)
+            loss_gen_s, _ = loss.generator_loss(y_ds_hat_g)
+            loss_gen_all = loss_gen_s + loss_gen_f + loss_fm_s + loss_fm_f + loss_mel
 
-        loss_gen_all.backward()
-        optimizer.optim_g.step()
+            scaler.scale(loss_gen_all).backward()
+            scaler.step(optimizer.optim_g)
 
-        with torch.no_grad():
-            mel_error = F.l1_loss(y_mel, y_g_hat_mel).item()
-        loss_values = {
-            'Gen Loss Total': loss_gen_all.item(),
-            'Mel-Spec. Error': mel_error,
-        }
+            scaler.update()
 
-    else:
-        torch.cuda.empty_cache()
-        with torch.no_grad():
-            # validationはbatch_size=1で固定.
-            _, _, x, y_mel = batch
-            val_err = 0
-            cnt = 0
-            for x_, y_mel_ in zip(x, y_mel):
-                x_ = x_.unsqueeze(0)
-                y_mel_ = y_mel_.unsqueeze(0)
-                y_g_hat = model['netG'](x_)
-                y_mel_ = torch.autograd.Variable(y_mel_)
-                y_g_hat_mel = mel_spectrogram_in_train_step(y=y_g_hat.squeeze(1))
-                val_err += F.l1_loss(y_mel_, y_g_hat_mel).item()
-                cnt += 1
-        loss_values = {
-            'Mel-Spec. Error': val_err/cnt,
-        }
+            with torch.no_grad():
+                mel_error = F.l1_loss(y_mel, y_g_hat_mel).item()
+            loss_values = {
+                'Gen Loss Total': loss_gen_all.item(),
+                'Mel-Spec. Error': mel_error,
+            }
+
+        else:
+            torch.cuda.empty_cache()
+            with torch.no_grad():
+                # validationはbatch_size=1で固定.
+                _, _, x, y_mel = batch
+                val_err = 0
+                cnt = 0
+                for x_, y_mel_ in zip(x, y_mel):
+                    x_ = x_.unsqueeze(0)
+                    y_mel_ = y_mel_.unsqueeze(0)
+                    y_g_hat = model['netG'](x_)
+                    y_mel_ = torch.autograd.Variable(y_mel_)
+                    y_g_hat_mel = mel_spectrogram_in_train_step(y=y_g_hat.squeeze(1))
+                    val_err += F.l1_loss(y_mel_, y_g_hat_mel).item()
+                    cnt += 1
+            loss_values = {
+                'Mel-Spec. Error': val_err/cnt,
+            }
     return loss_values
 
 
