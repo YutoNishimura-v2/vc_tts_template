@@ -172,7 +172,7 @@
     - N2C_23
         - spk: N2C_4
         - pretrain: なし
-        - 実行時間: /50epoch
+        - 実行時間: 35min/50epoch
         - batch_size:32, group_size:16. warm_up_rateもちゃんと1/4にして.
         - マシになっている気がする. より安定している?
             - これはpaddingが減ったことに依りそう.
@@ -240,6 +240,13 @@
             - NARとARの中間を目指すことで高速化とloss伝播を防ぐ.
         - durationを細かくしてみる
             - それによってより細かい制御が可能になるのか検証
+    - N2C_31
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 1000
+        - pitchARではなく, pitchARNAR.
+            - つまり, snt_durationを利用して, それ毎にpitchARを行うようにしたもの.
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.

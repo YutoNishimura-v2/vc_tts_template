@@ -18,7 +18,7 @@ class FastSpeech2VCLoss(nn.Module):
             pitch_targets,
             energy_targets,
             duration_targets,
-        ) = inputs[10:]
+        ) = inputs[10:16]
         (
             mel_predictions,
             postnet_mel_predictions,

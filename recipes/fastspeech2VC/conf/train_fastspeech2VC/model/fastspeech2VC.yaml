@@ -30,7 +30,8 @@ netG:
   reduction_factor:
 
   encoder_fix: False
-  pitch_AR: True
+  pitch_AR: False
+  pitch_ARNAR: True
   lstm_layers: 2
   speakers:
   emotions:

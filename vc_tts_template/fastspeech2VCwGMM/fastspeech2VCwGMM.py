@@ -65,6 +65,7 @@ class fastspeech2VCwGMM(fastspeech2VC):
         encoder_fix: bool,
         global_prosody: bool,
         pitch_AR: bool = False,
+        pitch_ARNAR: bool = False,
         lstm_layers: int = 2,
         speakers: Optional[Dict] = None,
         emotions: Optional[Dict] = None
@@ -98,6 +99,7 @@ class fastspeech2VCwGMM(fastspeech2VC):
             reduction_factor,
             encoder_fix,
             pitch_AR,
+            pitch_ARNAR,
             lstm_layers,
             speakers,
             emotions,
@@ -301,6 +303,8 @@ class fastspeech2VCwGMM(fastspeech2VC):
             p_control,
             e_control,
             d_control,
+            s_snt_durations,
+            t_snt_durations,
         )
 
         (

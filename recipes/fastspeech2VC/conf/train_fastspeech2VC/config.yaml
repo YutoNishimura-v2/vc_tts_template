@@ -75,9 +75,7 @@ train:
       max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 = 0.016
   
   criterion:
-    _target_: vc_tts_template.fastspeech2VCwGMM.loss.FastSpeech2VCwGMMLoss
-    beta: 0.02
-    g_beta: 0.02
+    _target_: vc_tts_template.fastspeech2VC.loss.FastSpeech2VCLoss
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.

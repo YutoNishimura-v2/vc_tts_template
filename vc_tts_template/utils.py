@@ -210,7 +210,7 @@ def pad(x: torch.Tensor, max_length: Optional[int] = None) -> torch.Tensor:
         max_len = max([x[i].size(0) for i in range(len(x))])
 
     out_list = list()
-    for i, batch in enumerate(x):
+    for batch in x:
         if len(batch.shape) == 1:
             one_batch_padded = F.pad(
                 batch, (0, max_len - batch.size(0)), "constant", 0.0

@@ -62,7 +62,7 @@ class ProsodyExtractor(nn.Module):
                 return None, None
             return None
         durations = durations.detach().cpu().numpy()  # detach
-        output_sorted, src_lens_sorted, segment_nums, inv_sort_idx = self.mel2phone(mels, durations)
+        output_sorted, src_lens_sorted, segment_nums, inv_sort_idx = mel2phone(mels, durations)
         free_tensors_memory([durations])
         outs = list()
         for output, src_lens in zip(output_sorted, src_lens_sorted):
@@ -75,7 +75,7 @@ class ProsodyExtractor(nn.Module):
             outs.append(out[:, -1, :])
         free_tensors_memory([output_sorted, src_lens_sorted])
         outs = torch.cat(outs, 0)
-        out = self.phone2utter(outs[inv_sort_idx], segment_nums)
+        out = phone2utter(outs[inv_sort_idx], segment_nums)
         self.segment_nums = torch.from_numpy(np.array(segment_nums)).long().to(out.device)
         free_tensors_memory([outs])
 
@@ -88,59 +88,61 @@ class ProsodyExtractor(nn.Module):
             return out, global_emb
         return out
 
-    def mel2phone(self, mels, durations):
-        """
-        melをphone単位のsegmentに分割
-        長い順に降順ソートして, batch_sizeごとにまとめている
-        降順sortはpack_padded_sequenceの要請. batch_sizeごとにまとめたのはpadの量を削減するため
-        """
-        output = list()
-        src_lens = list()
-        segment_nums = list()
-        # devide mel into phone segments
-        for mel, duration in zip(mels, durations):
-            s_idx = 0
-            cnt = 0
-            for d in duration:
-                if d == 0:
-                    # d = 0 is only allowed for pad
-                    break
-                mel_seg = mel[s_idx: s_idx+d]
-                s_idx += d
-                cnt += 1
-                output.append(mel_seg)
-                src_lens.append(d)
-            segment_nums.append(cnt)
 
-        sort_idx = np.argsort(-np.array(src_lens))
-        inv_sort_idx = np.argsort(sort_idx)
-        # Regroup phoneme segments into batch sizes.
-        batch_size = mels.size(0)
-        output_sorted = list()
-        src_lens_sorted = list()
-        for i in range(len(output) // batch_size):
-            sort_seg = sort_idx[i*batch_size:(i+1)*batch_size]
-            if i == ((len(output) // batch_size) - 1):
-                # This is a way to avoid setting batch_size=1 when doing BN.
-                sort_seg = sort_idx[i*batch_size:]
-            output_seg = [output[idx] for idx in sort_seg]
-            src_lens_seg = [src_lens[idx] for idx in sort_seg]
-            output_seg = pad(output_seg)
-            output_sorted.append(output_seg)
-            src_lens_sorted.append(src_lens_seg)
-        free_tensors_memory([output])
-        return output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
-
-    def phone2utter(self, out, segment_nums):
-        """
-        音素ごとのmel segmentを, utteranceごとにまとめ直す
-        """
-        output = list()
+def mel2phone(mels, durations):
+    """
+    melをphone単位のsegmentに分割
+    長い順に降順ソートして, batch_sizeごとにまとめている
+    降順sortはpack_padded_sequenceの要請. batch_sizeごとにまとめたのはpadの量を削減するため
+    """
+    output = list()
+    src_lens = list()
+    segment_nums = list()
+    # devide mel into phone segments
+    for mel, duration in zip(mels, durations):
         s_idx = 0
-        for seg_num in segment_nums:
-            output.append(out[s_idx:s_idx+seg_num])
-            s_idx += seg_num
-        return pad(output)
+        cnt = 0
+        for d in duration:
+            if d == 0:
+                # d = 0 is only allowed for pad
+                break
+            mel_seg = mel[s_idx: s_idx+d]
+            s_idx += d
+            cnt += 1
+            output.append(mel_seg)
+            src_lens.append(d)
+        segment_nums.append(cnt)
+
+    sort_idx = np.argsort(-np.array(src_lens))
+    inv_sort_idx = np.argsort(sort_idx)
+    # Regroup phoneme segments into batch sizes.
+    batch_size = mels.size(0)
+    output_sorted = list()
+    src_lens_sorted = list()
+    for i in range(len(output) // batch_size):
+        sort_seg = sort_idx[i*batch_size:(i+1)*batch_size]
+        if i == ((len(output) // batch_size) - 1):
+            # This is a way to avoid setting batch_size=1 when doing BN.
+            sort_seg = sort_idx[i*batch_size:]
+        output_seg = [output[idx] for idx in sort_seg]
+        src_lens_seg = [src_lens[idx] for idx in sort_seg]
+        output_seg = pad(output_seg)
+        output_sorted.append(output_seg)
+        src_lens_sorted.append(src_lens_seg)
+    free_tensors_memory([output])
+    return output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
+
+
+def phone2utter(out, segment_nums):
+    """
+    音素ごとのmel segmentを, utteranceごとにまとめ直す
+    """
+    output = list()
+    s_idx = 0
+    for seg_num in segment_nums:
+        output.append(out[s_idx:s_idx+seg_num])
+        s_idx += seg_num
+    return pad(output)
 
 
 class ProsodyPredictor(nn.Module):

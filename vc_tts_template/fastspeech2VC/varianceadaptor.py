@@ -1,11 +1,15 @@
 import sys
 
+import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 sys.path.append('.')
 from vc_tts_template.utils import make_pad_mask, pad
 from vc_tts_template.tacotron.decoder import ZoneOutCell
+from vc_tts_template.fastspeech2wGMM.prosody_model import mel2phone
+from vc_tts_template.train_utils import free_tensors_memory
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -27,11 +31,13 @@ class VarianceAdaptor(nn.Module):
         stop_gradient_flow_e: bool,
         reduction_factor: int,
         pitch_AR: bool = False,
+        pitch_ARNAR: bool = False,
         lstm_layers: int = 2,
     ):
         super(VarianceAdaptor, self).__init__()
         self.reduction_factor = reduction_factor
         self.pitch_AR = pitch_AR
+        self.pitch_ARNAR = pitch_ARNAR
 
         # duration, pitch, energyで共通なのね.
         self.duration_predictor = VariancePredictor(
@@ -41,7 +47,7 @@ class VarianceAdaptor(nn.Module):
             variance_predictor_layer_num_d,
             variance_predictor_dropout,
         )
-        if pitch_AR is False:
+        if (pitch_AR is False) and (pitch_ARNAR is False):
             self.pitch_predictor = VariancePredictor(
                 encoder_hidden_dim,
                 variance_predictor_filter_size,
@@ -50,8 +56,18 @@ class VarianceAdaptor(nn.Module):
                 variance_predictor_dropout,
                 reduction_factor
             )
-        else:
+        elif pitch_AR is True:
             self.pitch_predictor = VarianceARPredictor(  # type: ignore
+                encoder_hidden_dim,
+                variance_predictor_filter_size,
+                variance_predictor_kernel_size_p,
+                variance_predictor_layer_num_p,
+                variance_predictor_dropout,
+                reduction_factor,
+                lstm_layers
+            )
+        elif pitch_ARNAR is True:
+            self.pitch_predictor = VarianceARNARPredictor(  # type: ignore
                 encoder_hidden_dim,
                 variance_predictor_filter_size,
                 variance_predictor_kernel_size_p,
@@ -93,6 +109,8 @@ class VarianceAdaptor(nn.Module):
         p_control=1.0,
         e_control=1.0,
         d_control=1.0,
+        s_snt_durations=None,
+        t_snt_durations=None,
     ):
         # まずは, durationを計算する.
         if self.duration_stop_gradient_flow is True:
@@ -128,10 +146,14 @@ class VarianceAdaptor(nn.Module):
         energy = energy + x.detach() if self.energy_stop_gradient_flow is True else energy + x
 
         # pitch, energy: (B, T//r, d_enc)
-        if self.pitch_AR is False:
+        if (self.pitch_AR is False) and (self.pitch_ARNAR is False):
             pitch_prediction = self.pitch_predictor(pitch, mel_mask) * p_control
-        else:
+        elif self.pitch_AR is True:
             pitch_prediction = self.pitch_predictor(pitch, mel_mask, pitch_target) * p_control
+        elif self.pitch_ARNAR is True:
+            if t_snt_durations is None:
+                t_snt_durations = self.make_t_snt_durations(s_snt_durations, duration_rounded)
+            pitch_prediction = self.pitch_predictor(pitch, mel_mask, t_snt_durations, pitch_target) * p_control
 
         energy_prediction = self.energy_predictor(energy, mel_mask) * e_control
         # pitchを, また次元増やしてhiddenに足す.
@@ -161,6 +183,20 @@ class VarianceAdaptor(nn.Module):
         x = x[:, :max_len*self.reduction_factor]
         x = x.unsqueeze(-1).contiguous().view(x.size(0), -1, self.reduction_factor)
         return x
+
+    def make_t_snt_durations(self, s_snt_durations, duration):
+        duration = duration.detach().cpu().numpy()
+        t_snt_durations = []
+        for i, snt_duration in enumerate(s_snt_durations):
+            t_snt_duration = []
+            idx = 0
+            for s_d in snt_duration:
+                if s_d == 0:
+                    break
+                t_snt_duration.append(np.sum(duration[i, idx:idx+s_d]))
+                idx += s_d
+            t_snt_durations.append(torch.from_numpy(np.array(t_snt_duration)).long().to(s_snt_durations.device))
+        return pad(t_snt_durations)
 
 
 class LengthRegulator(nn.Module):
@@ -377,8 +413,7 @@ class VarianceARPredictor(nn.Module):
                 outs = outs.masked_fill(
                     mask.unsqueeze(-1).expand(mask.size(0), mask.size(1), self.reduction_factor), 0.0
                 )
-                outs = outs.contiguous().view(outs.size(0), -1, 1)
-                outs = outs.squeeze(-1)
+                outs = outs.contiguous().view(outs.size(0), -1)
 
             else:
                 outs = outs.squeeze(-1)
@@ -390,6 +425,175 @@ class VarianceARPredictor(nn.Module):
     def _zero_state(self, hs):
         init_hs = hs.new_zeros(hs.size(0), self.lstm[0].hidden_size)
         return init_hs
+
+
+class VarianceARNARPredictor(nn.Module):
+    def __init__(
+        self,
+        encoder_hidden_dim: int,
+        variance_predictor_filter_size: int,
+        variance_predictor_kernel_size: int,
+        variance_predictor_layer_num: int,
+        variance_predictor_dropout: int,
+        reduction_factor: int = 1,
+        lstm_layers: int = 2,
+        zoneout: float = 0.1
+    ):
+        super(VarianceARNARPredictor, self).__init__()
+
+        self.input_size = encoder_hidden_dim
+        self.filter_size = variance_predictor_filter_size
+        self.kernel = variance_predictor_kernel_size
+        self.layer_num = variance_predictor_layer_num
+        self.dropout = variance_predictor_dropout
+        self.reduction_factor = reduction_factor
+
+        conv_layers = []
+
+        for i in range(self.layer_num):
+            if i == 0:
+                conv = Conv(
+                    self.input_size,
+                    self.filter_size,
+                    kernel_size=self.kernel,
+                    padding=(self.kernel - 1) // 2,  # same sizeに.
+                )
+            else:
+                conv = Conv(
+                    self.filter_size,
+                    self.filter_size,
+                    kernel_size=self.kernel,
+                    padding=(self.kernel - 1) // 2,  # same sizeに.
+                )
+            conv_layers += [conv, nn.ReLU(), nn.LayerNorm(self.filter_size),
+                            nn.Dropout(self.dropout)]
+
+        self.conv_layer = nn.Sequential(*conv_layers)
+
+        # 片方向 LSTM
+        self.lstm = nn.ModuleList()
+        for layer in range(lstm_layers):
+            lstm = nn.LSTMCell(
+                self.filter_size*2 if layer == 0 else self.filter_size,
+                self.filter_size,
+            )
+            self.lstm += [ZoneOutCell(lstm, zoneout)]
+
+        self.prenet = nn.Linear(1, self.filter_size)
+
+        self.linear_layer = nn.Linear(self.filter_size*2, self.reduction_factor)
+
+    def lstm_forward(self, encoder_output, target):
+        # LSTM の状態をゼロで初期化
+        h_list, c_list = [], []
+        for _ in range(len(self.lstm)):
+            h_list.append(self._zero_state(encoder_output))
+            c_list.append(self._zero_state(encoder_output))
+
+        # デコーダの最初の入力
+        go_frame = encoder_output.new_zeros(encoder_output.size(0), 1)
+        prev_out = go_frame
+        outs = []
+
+        # main loop
+        for t in range(encoder_output.size()[1]):
+            # Pre-Net
+            prenet_out = self.prenet(prev_out)
+
+            # LSTM
+            xs = torch.cat([encoder_output[:, t, :], prenet_out], dim=1)
+            h_list[0], c_list[0] = self.lstm[0](xs, (h_list[0], c_list[0]))
+            for i in range(1, len(self.lstm)):
+                h_list[i], c_list[i] = self.lstm[i](
+                    h_list[i - 1], (h_list[i], c_list[i])
+                )
+            hcs = torch.cat([h_list[-1], encoder_output[:, t, :]], dim=1)
+            outs.append(self.linear_layer(hcs).unsqueeze(1))
+
+            # 次の時刻のデコーダの入力を更新
+            if target is None:
+                prev_out = outs[-1][:, :, -1]  # (B, 1)
+            else:
+                # Teacher forcing
+                prev_out = target[:, t]
+
+        outs = torch.cat(outs, dim=1)
+        # outs: (B, T//r, r)
+
+        return outs
+
+    def forward(self, encoder_output, mask, durations, target=None):
+        # encoder_output: (B, T//r, d_enc)
+        # target: (B, T)
+        if (self.reduction_factor > 1) and (target is not None):
+            target = target[
+                :, self.reduction_factor - 1:: self.reduction_factor
+            ].unsqueeze(-1)
+        # target: (B, T//r)
+        encoder_output = self.conv_layer(encoder_output)
+        durations = durations.detach().cpu().numpy()  # detach
+        output_sorted, src_lens_sorted, segment_nums, inv_sort_idx = mel2phone(encoder_output, durations)
+        if target is not None:
+            target_sorted, _, _, _ = mel2phone(target, durations)
+        else:
+            target_sorted = [None]*len(output_sorted)
+        free_tensors_memory([durations])
+        outs = list()
+        for output, target in zip(output_sorted, target_sorted):
+            # output: (B, T_n, d). T_n: length of sentence duration
+            out = self.lstm_forward(output, target)
+            # out: (B, T_n//r, r)
+            outs.append(out)
+        free_tensors_memory([output_sorted])
+        outs = self.seg2utter(outs, src_lens_sorted, inv_sort_idx, segment_nums)
+        free_tensors_memory([src_lens_sorted, inv_sort_idx, segment_nums])
+        if mask is not None:
+            if self.reduction_factor > 1:
+                outs = outs.masked_fill(
+                    mask.unsqueeze(-1).expand(mask.size(0), mask.size(1), self.reduction_factor), 0.0
+                )
+                outs = outs.contiguous().view(outs.size(0), -1)
+
+            else:
+                outs = outs.squeeze(-1)
+                outs = outs.masked_fill(mask, 0.0)
+
+        # outs: (B, T)
+        return outs
+
+    def _zero_state(self, hs):
+        init_hs = hs.new_zeros(hs.size(0), self.lstm[0].hidden_size)
+        return init_hs
+
+    def seg2utter(self, outs, src_lens_sorted, inv_sort_idx, segment_nums):
+        # outs: List[(B, T_n//r, r)]. T_n are differenct
+        # padding
+        max_len = max([x.size(1) for x in outs])
+        for i, out in enumerate(outs):
+            out = F.pad(
+                out, (0, 0, 0, max_len - out.size(1)), "constant", 0.0
+            )
+            outs[i] = out
+        outs = torch.cat(outs, dim=0)
+        # sortで元に戻し, 順番も元に戻す.
+        # outs: (B*n, T_n//r, r), n=segment数
+        outs = outs[inv_sort_idx]
+        src_lens = []
+        for src_lens_seg in src_lens_sorted:
+            src_lens += src_lens_seg
+        src_lens_sorted = np.array(src_lens)[inv_sort_idx]
+        # 元に戻していく.
+        output = []
+        idx = 0
+        for seg_num in segment_nums:
+            utter = []
+            for _ in range(seg_num):
+                utter.append(outs[idx][:src_lens_sorted[idx]])
+                idx += 1
+            output.append(torch.cat(utter, dim=0))
+        # output: List[(T//r, r)*B]
+        output = pad(output)
+        return output
 
 
 class Conv(nn.Module):

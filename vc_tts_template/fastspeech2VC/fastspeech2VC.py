@@ -46,6 +46,7 @@ class fastspeech2VC(nn.Module):
         # other
         encoder_fix: bool,
         pitch_AR: bool = False,
+        pitch_ARNAR: bool = False,
         lstm_layers: int = 2,
         speakers: Optional[Dict] = None,
         emotions: Optional[Dict] = None
@@ -63,7 +64,8 @@ class fastspeech2VC(nn.Module):
             encoder_hidden_dim, variance_predictor_filter_size, variance_predictor_kernel_size_d,
             variance_predictor_layer_num_d, variance_predictor_kernel_size_p, variance_predictor_layer_num_p,
             variance_predictor_kernel_size_e, variance_predictor_layer_num_e, variance_predictor_dropout,
-            stop_gradient_flow_d, stop_gradient_flow_p, stop_gradient_flow_e, reduction_factor, pitch_AR, lstm_layers
+            stop_gradient_flow_d, stop_gradient_flow_p, stop_gradient_flow_e, reduction_factor, pitch_AR,
+            pitch_ARNAR, lstm_layers
         )
         self.decoder = Decoder(
             decoder_hidden_dim, attention_dim, decoder_num_layer, decoder_num_head,
@@ -209,6 +211,8 @@ class fastspeech2VC(nn.Module):
         t_pitches=None,
         t_energies=None,
         t_durations=None,
+        s_snt_durations=None,
+        t_snt_durations=None,
         p_control=1.0,
         e_control=1.0,
         d_control=1.0,
@@ -251,6 +255,8 @@ class fastspeech2VC(nn.Module):
             p_control,
             e_control,
             d_control,
+            s_snt_durations,
+            t_snt_durations,
         )
 
         (
