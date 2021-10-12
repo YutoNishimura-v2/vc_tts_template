@@ -2,7 +2,7 @@
 spk: "N2C_4"
 
 # exp tag(for managing experiments)
-tag: "N2C_27"
+tag: "N2C_30"
 
 sample_rate: 22050
 
@@ -68,7 +68,7 @@ vocoder_weight_base_path: "exp/N2C_sr22050_N2C_2/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 100
+fastspeech2_train_nepochs: 200
 fastspeech2_data_batch_size: 32
 
 ### hifigan ###

@@ -209,18 +209,42 @@
         - batch_size:32, group_size:16. warm_up_rate: 1000
         - wGMMの再実行. silence問題とwarm_up_rate勘違い問題を修正した後の初実行. sotaが予想される.
         - ほかのパラメタはよさげなセット(N2C_9).   
+            - inferenceでNaN問題が生じたので、epoch150からsigma clipを利用している.
+                - そのせいで, 150以降で爆発みたいなことが起きてしまっている. あまりよくないかも.
     - N2C_28
         - spk: N2C_4
         - pretrain: N2C_23(100epoch)
         - 実行時間: /50epoch
-        - batch_size:32, group_size:16. warm_up_rate: 1000, reset_optim: False
+        - batch_size:32, group_size:16. warm_up_rate: 1000, reset_optim: True
+        - lossはほぼ同じだが, prosody loss等は改善しているし, 自然性も向上している. 一方で, N2C_27と比べて単に200epoch回したおかげという可能性もあるので, N2C_27を再度回して確認.
+    - N2C_29
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 1000
+        - wGMMの再実行. 実行時, sigmaがバカでかくなってしまい, Normalがinfを出してそれ以降でinf-inf→NaNとなる問題に対処.
+            - 単に, sigmaをclip(max=1.5)することにしてみた. 解決できたが, 学習初期に悪影響をもたらす可能性を否定できない.
+            - なので, ちゃんとこれを導入してからもう一度200まで訓練してみて, N2C_27と大きな違いがなければ今後も採用.
+        - 違いがないどころか, 若干改善していた. よい.
+    - N2C_30
+        - spk: N2C_4
+        - pretrain: なし
+        - 実行時間: /50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 1000
+        - wGMMの再実行. 実行時, sigmaがバカでかくなってしまい, Normalがinfを出してそれ以降でinf-inf→NaNとなる問題に対処.
+            - 今回は, clipではなく, ELU+1を利用してみる.
+        - 結果: ほぼほぼ同じだが, lossは若干少な目. 加えて、clipみたいなハードコーディングの値が必要ないのは好印象. こっちを利用.
+
+    - 今後
+        - pitchARのsentence_duration内でのみARする方式に変更
+            - NARとARの中間を目指すことで高速化とloss伝播を防ぐ.
+        - durationを細かくしてみる
+            - それによってより細かい制御が可能になるのか検証
 
 ## 主要な実験
-- N2C_4: 初pitchAR化. 今のところsotaはこれ.
-- N2C_15: wGMMのbest. 
-    - データがN2C_2で, silence問題前なので、それを直したらかなり改善する可能性はある.
-    - しかもwarm_up_rateも勘違いして250とかになっている. 悲惨.
+- N2C_4: 初pitchAR化.
 - N2C_23: batch_size: 32におけるpitchARの訓練. pre-train用.
+- N2C_29: wGMMの正しい初訓練. 完全にN2C_23の上位互換. 成功.
 
 ## 知見
 - silence_thresh_tは-80より-100のがよい(N2C_20)
@@ -245,4 +269,47 @@
         - 0.01の差なので, 許容する.
             - 本当に精度が欲しいときは, 時間をかけてbatch_size=8でやるというやり方でいく.
 
-- pretrainは 
+- wGMMの方が, pitchARよりよい(N2C_23, N2C_29)
+    - 今までは, wGMMの時にwarm up rateをミスったりデータセットが違ったりで正しく比較できていなかった.
+    - ここにきて初めてちゃんと比較.
+    - 結果
+        - loss:
+            - dev: 同じ
+            - train: wGMMの方が高い
+            - つまり, 過学習度合いが弱まり、実質の改善といえる.
+        - 音質:
+            - 改善. pitchARは基本的に前半からのミスが積み重なって最後とか超高音になったりしている.
+                - 発話も壊れ気味.
+            - 一方, wGMMは同じ傾向もものによっては見られるものの, 一部発話では発話がより明瞭になったりして安定.
+    - 結論: VCにおいてwGMMは効く.
+    - 問題点
+        - pitchのミスが増幅される
+            - pitchをresetする機構を作ってみる.
+
+- sigma爆発問題の対処方法は, 「ELU+1」がよい
+    - MDNの元論文では、expが使われていたが、ここまでさんざん見たように, expを用いると爆発してinf-inf=NaNが発生しうる.
+    - 防ぐ方法としては,
+        - expをclipしてしまう
+            - 途中からclip: N2C_27
+                - 割とlossが暴れているので、よくなさそう
+            - 最初からclip: N2C_29
+                - 成功. 普通に安定してくれた.
+        - expではなく, ELU+1を使う
+            - N2C_30
+                - 結果はほぼ同じ！詳細はN2C_30のところを参照.
+        - 他にも, 単なるReLUでもいいし, softplusでも良さそう.
+    - 色々あるが、今回は「ELU+1」を採用する。
+
+- pretrainは「ある」方がよい(たぶん)
+    - N2C_28: pretrainあり
+    - N2C_29: pretrainなし
+    - 比較が平等になるように, 同じlrの時で比較
+    - 結果
+        - 音声評価: 同じくらい→どちらも外しているところが違くて何とも言えない
+        - 画像評価: pretrainの方が若干よい?
+            - 発言の最初にちゃんと高いのをpretrainは予測できている.
+            - pretrainなしの方は必ず低いところから始まる...。
+        - loss評価: pretrainの方がよい
+            - pitchなどの基本的なlossは変わらない.
+            - prosody lossは, 予想通りpretrainしていた方が低くまで下がる.
+    - 結論: 今後はpretrainしよう!
