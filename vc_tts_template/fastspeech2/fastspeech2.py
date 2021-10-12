@@ -193,7 +193,7 @@ class FastSpeech2(nn.Module):
         d_control=1.0,
     ):
         src_lens, max_src_len, src_masks, mel_lens, max_mel_len, mel_masks = self.init_forward(
-            src_lens, max_src_len, mel_lens=None, max_mel_len=None
+            src_lens, max_src_len, mel_lens, max_mel_len
         )
         output = self.encoder_forward(
             texts, src_masks, max_src_len, speakers, emotions

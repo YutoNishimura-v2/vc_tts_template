@@ -58,8 +58,8 @@ vocoder_weight_base_path: "exp/LINE_sr22050_LINE_1/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 100
-fastspeech2_data_batch_size: 32
+fastspeech2_train_nepochs: 200
+fastspeech2_data_batch_size: 16
 
 ### hifigan ###
 hifigan_train_nepochs: 200

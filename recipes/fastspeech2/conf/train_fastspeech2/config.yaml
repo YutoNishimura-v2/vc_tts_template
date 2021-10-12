@@ -36,7 +36,7 @@ data:
   # data loader
   num_workers: 5
   batch_size:
-  group_size: 16
+  group_size: 8
   accent_info:
 
 ###########################################################
