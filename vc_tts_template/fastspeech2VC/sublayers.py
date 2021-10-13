@@ -111,16 +111,22 @@ class RelativeMultiHeadAttention(nn.Module):
         value = self.value_proj(value).view(batch_size, -1, self.num_heads, self.d_head).permute(0, 2, 1, 3)
         pos_embedding = self.pos_proj(pos_embedding).view(batch_size, -1, self.num_heads, self.d_head)
 
-        with torch.cuda.amp.autocast(enabled=False):
-            # これをしないと, attnでinfとなって, softmaxでnanになる.
-            query = query.to(torch.float32)
-            key = key.to(torch.float32)
-            pos_embedding = pos_embedding.to(torch.float32)
-            content_score = torch.matmul((query + self.u_bias).transpose(1, 2), key.transpose(2, 3))
-            pos_score = torch.matmul((query + self.v_bias).transpose(1, 2), pos_embedding.permute(0, 2, 3, 1))
-            pos_score = self._relative_shift(pos_score)
+        # with torch.cuda.amp.autocast(enabled=False):
+        #     # これをしないと, attnでinfとなって, softmaxでnanになる.
+        #     query = query.to(torch.float32)
+        #     key = key.to(torch.float32)
+        #     pos_embedding = pos_embedding.to(torch.float32)
+        #     content_score = torch.matmul((query + self.u_bias).transpose(1, 2), key.transpose(2, 3))
+        #     pos_score = torch.matmul((query + self.v_bias).transpose(1, 2), pos_embedding.permute(0, 2, 3, 1))
+        #     pos_score = self._relative_shift(pos_score)
 
-            score = (content_score + pos_score) / self.sqrt_dim
+        #     score = (content_score + pos_score) / self.sqrt_dim
+
+        content_score = torch.matmul((query + self.u_bias).transpose(1, 2), key.transpose(2, 3))
+        pos_score = torch.matmul((query + self.v_bias).transpose(1, 2), pos_embedding.permute(0, 2, 3, 1))
+        pos_score = self._relative_shift(pos_score)
+
+        score = (content_score + pos_score) / self.sqrt_dim
 
         if mask is not None:
             mask = mask.unsqueeze(1)
