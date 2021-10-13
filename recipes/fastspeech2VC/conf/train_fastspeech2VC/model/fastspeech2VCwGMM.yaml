@@ -49,8 +49,8 @@ netG:
 
   encoder_fix: False
   global_prosody: True
-  pitch_AR: False
-  pitch_ARNAR: True
+  pitch_AR: True
+  pitch_ARNAR: False
   lstm_layers: 2
   speakers:
   emotions:

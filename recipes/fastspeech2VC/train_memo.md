@@ -252,10 +252,15 @@
     - N2C_32
         - spk: N2C_4
         - pretrain: N2C_31(300epoch)
-        - 実行時間: min/50epoch
+        - 実行時間: 40min/50epoch → min/50epoch
         - batch_size:32, group_size:16. warm_up_rate: 1000
         - pitchARではなく, pitchARNAR. それに加えてwGMM
-    - N2C_33(待機中)
+            - いい気がする. あくまで気がするだけ. ちゃんと比較してから。
+        - 期待していた高速化効果はそんなに単純ではなかった
+            - 現状は, 新たなbatchとして通常batch_sizeごとにまとめているが, それをかなり大きくしてみた → 逆に低速に
+                - 細かく分けることで, padの量が減ってデータ量減少, 速度高速化の効果の方が上回った.
+                - なので, 通常batchと大規模batchの間に良さそうなものがありそうだが、見つけるのは大変そう. なので以前同様batch_sizeとする.
+    - N2C_33
         - spk: N2C_4
         - pretrain: N2C_23(300epoch)
         - 実行時間: min/50epoch

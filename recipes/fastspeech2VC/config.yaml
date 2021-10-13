@@ -2,7 +2,7 @@
 spk: "N2C_4"
 
 # exp tag(for managing experiments)
-tag: "N2C_32"
+tag: "N2C_33"
 
 sample_rate: 22050
 
