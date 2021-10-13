@@ -243,15 +243,30 @@
     - N2C_31
         - spk: N2C_4
         - pretrain: なし
-        - 実行時間: /50epoch
+        - 実行時間: 37min/50epoch
         - batch_size:32, group_size:16. warm_up_rate: 1000
         - pitchARではなく, pitchARNAR.
             - つまり, snt_durationを利用して, それ毎にpitchARを行うようにしたもの.
+        - 正直微妙な違いすぎる. pitchARよりも気持ち感情がこもっているような気もする...。ただ明確に違う！という感じはしない(lossも一緒だし)
+            - wGMMと組み合わせて初めて効果を発揮しそうなので, そちらを試してみる.
+    - N2C_32
+        - spk: N2C_4
+        - pretrain: N2C_31(300epoch)
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 1000
+        - pitchARではなく, pitchARNAR. それに加えてwGMM
+    - N2C_33(待機中)
+        - spk: N2C_4
+        - pretrain: N2C_23(300epoch)
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16. warm_up_rate: 1000
+        - pitchAR. それに加えてwGMM. すでにこれはN2C_28でやったことだけど, N2C_32と比較がしたいので, 300+200epoch回すということをしたい.
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.
 - N2C_23: batch_size: 32におけるpitchARの訓練. pre-train用.
 - N2C_29: wGMMの正しい初訓練. 完全にN2C_23の上位互換. 成功.
+- N2C_28: 現状のsota. pitchAR+wGMM+pretrain
 
 ## 知見
 - silence_thresh_tは-80より-100のがよい(N2C_20)
@@ -320,3 +335,5 @@
             - pitchなどの基本的なlossは変わらない.
             - prosody lossは, 予想通りpretrainしていた方が低くまで下がる.
     - 結論: 今後はpretrainしよう!
+
+- pitchARNARは, 「」方がよい

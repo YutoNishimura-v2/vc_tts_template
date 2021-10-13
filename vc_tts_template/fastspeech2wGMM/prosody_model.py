@@ -116,7 +116,7 @@ def mel2phone(mels, durations):
     sort_idx = np.argsort(-np.array(src_lens))
     inv_sort_idx = np.argsort(sort_idx)
     # Regroup phoneme segments into batch sizes.
-    batch_size = mels.size(0)
+    batch_size = mels.size(0) * len(durations[0])
     output_sorted = list()
     src_lens_sorted = list()
     for i in range(len(output) // batch_size):
