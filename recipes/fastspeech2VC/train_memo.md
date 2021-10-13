@@ -27,6 +27,14 @@
         - silence_thresh_t: -100にして再実行.
             - N2C_2で結果が出ない原因はこいつだった.
         - min_silence_len: 500
+    - N2C_5
+        - silence_thresh_t: -100
+        - min_silence_len: 500
+        - reduction_factor: 1
+    - N2C_6
+        - silence_thresh_t: -100
+        - min_silence_len: 50
+        - reduction_factor: 1
 
 - tag
     - jsut_jsss_1
@@ -220,7 +228,7 @@
     - N2C_29
         - spk: N2C_4
         - pretrain: なし
-        - 実行時間: /50epoch
+        - 実行時間: 39min/50epoch
         - batch_size:32, group_size:16. warm_up_rate: 1000
         - wGMMの再実行. 実行時, sigmaがバカでかくなってしまい, Normalがinfを出してそれ以降でinf-inf→NaNとなる問題に対処.
             - 単に, sigmaをclip(max=1.5)することにしてみた. 解決できたが, 学習初期に悪影響をもたらす可能性を否定できない.
@@ -229,7 +237,7 @@
     - N2C_30
         - spk: N2C_4
         - pretrain: なし
-        - 実行時間: /50epoch
+        - 実行時間: 39min/50epoch
         - batch_size:32, group_size:16. warm_up_rate: 1000
         - wGMMの再実行. 実行時, sigmaがバカでかくなってしまい, Normalがinfを出してそれ以降でinf-inf→NaNとなる問題に対処.
             - 今回は, clipではなく, ELU+1を利用してみる.
@@ -266,12 +274,28 @@
         - 実行時間: min/50epoch
         - batch_size:32, group_size:16. warm_up_rate: 1000
         - pitchAR. それに加えてwGMM. すでにこれはN2C_28でやったことだけど, N2C_32と比較がしたいので, 300+200epoch回すということをしたい.
+        - 比較の結果, 普通に全部ARする方が良さそうな音質。ここまで見たようにどっちも悪いところがあるが、こちらの方が軽傷という感じ.
+            - やはり, ARを途中で切ってしまうと, prosody embの助けがあるにも関わらず、直前とテンションがガラッと変わってしまったりしていて微妙。
+        - 結論: 素直に全部ARでヨシ.
+    
+    - min_silence_len=100を作る最中に, assertになる事態が.
+    - 原因としては, reduction_factorのせいで細かいところがつぶれ, きちんと対応が取れなくなってしまったという.
+        - これのせいで, min_silence_len=500とかでも普通にミスが起こっている.
+        - なので, 実行時間がかなり遅くなるのは覚悟のうえで、一度reduction_factor=1でやってみるべきかもしれない.
+    - N2C_34
+        - spk: N2C_5
+        - pretrain: なし
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 1
+        - wGMM. N2C_30と比較して, reduction_factorはどちらがよいのか検討.
+            - 精度に関しては上がらないとおかしそう。ただ、実行時間が純粋に3倍になりそうな予感...。
+            - AR部分がボトルネックになってくるので、ここでpitchARNARの出番かもしれない.
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.
 - N2C_23: batch_size: 32におけるpitchARの訓練. pre-train用.
-- N2C_29: wGMMの正しい初訓練. 完全にN2C_23の上位互換. 成功.
-- N2C_28: 現状のsota. pitchAR+wGMM+pretrain
+- N2C_30: wGMMの正しい初訓練(ELUで). 完全にN2C_23の上位互換. 成功.
+- N2C_33: 現状のsota. pitchAR+wGMM+pretrain
 
 ## 知見
 - silence_thresh_tは-80より-100のがよい(N2C_20)
@@ -341,4 +365,9 @@
             - prosody lossは, 予想通りpretrainしていた方が低くまで下がる.
     - 結論: 今後はpretrainしよう!
 
-- pitchARNARは, 「」方がよい
+- pitchARNARは, 「ない」方がよい
+    - N2C_32: pitchARNAR
+    - N2C_33: pitchAR
+    - pitchARくんもかなり大こけしているが、pitchARNARはやはり途中で切ってしまうことでテンションがガラッと変わったりしてしまい、不自然.
+    - 実行時間も結局高速化！どころか逆に遅くなってしまっているし微妙すぎた.
+    - 結論: 今後はpitchARでいく.

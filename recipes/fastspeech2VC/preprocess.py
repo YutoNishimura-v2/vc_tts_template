@@ -353,7 +353,12 @@ def get_sentence_duration(
             src_sent_durations.append(snt_idx)
         else:
             src_sent_durations.append(snt_idx - np.sum(src_sent_durations))
-    assert (np.array(src_sent_durations) > 0).all(), src_sent_durations
+    assert (np.array(src_sent_durations) > 0).all(), f"""
+        src_sent_durations: {src_sent_durations}\n
+        tgt_sent_durations: {tgt_sent_durations}\n
+        s_duration_cum: {s_duration_cum}\n
+        utt_id: {utt_id}\n
+    """
     assert np.sum(src_sent_durations) == len(src_mel)
 
     return np.array(src_sent_durations), np.array(tgt_sent_durations)

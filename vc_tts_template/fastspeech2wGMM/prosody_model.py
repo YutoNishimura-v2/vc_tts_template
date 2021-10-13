@@ -190,7 +190,10 @@ class ProsodyPredictor(nn.Module):
             nn.Linear(conv_out_channels+d_gru, num_gaussians),
             nn.Softmax(dim=1)
         )
-        self.sigma_linear = nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians)
+        self.sigma_linear = nn.Sequential(
+            nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians),
+            nn.ELU(inplace=True)
+        )
         self.mu_linear = nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians)
 
         if global_prosody is True:
@@ -203,7 +206,10 @@ class ProsodyPredictor(nn.Module):
                 nn.Linear(global_d_gru, global_num_gaussians),
                 nn.Softmax(dim=1)
             )
-            self.g_sigma_linear = nn.Linear(global_d_gru, d_out*global_num_gaussians)
+            self.g_sigma_linear = nn.Sequential(
+                nn.Linear(global_d_gru, d_out*global_num_gaussians),
+                nn.ELU(inplace=True)
+            )
             self.g_mu_linear = nn.Linear(global_d_gru, d_out*global_num_gaussians)
 
         self.d_out = d_out
@@ -220,7 +226,7 @@ class ProsodyPredictor(nn.Module):
             hidden_global = self.global_bi_gru(encoder_output, src_lens)[:, -1, :]
 
             g_pi = self.g_pi_linear(hidden_global)
-            g_sigma = torch.exp(self.g_sigma_linear(hidden_global)).view(-1, self.global_num_gaussians, self.d_out)
+            g_sigma = (self.g_sigma_linear(hidden_global)+1.0).view(-1, self.global_num_gaussians, self.d_out)
             g_mu = self.g_mu_linear(hidden_global).view(-1, self.global_num_gaussians, self.d_out)
             if target_global_prosody is None:
                 target_global_prosody = self.sample(g_pi, g_sigma, g_mu)
@@ -255,7 +261,7 @@ class ProsodyPredictor(nn.Module):
                 )
             hcs = torch.cat([h_list[-1], encoder_output[:, t, :]], dim=1)
             pi_outs.append(self.pi_linear(hcs).unsqueeze(1))
-            sigma_outs.append(torch.exp(self.sigma_linear(hcs)).view(-1, 1, self.num_gaussians, self.d_out))
+            sigma_outs.append((self.sigma_linear(hcs)+1.0).view(-1, 1, self.num_gaussians, self.d_out))
             mu_outs.append(self.mu_linear(hcs).view(-1, 1, self.num_gaussians, self.d_out))
 
             # 次の時刻のデコーダの入力を更新
@@ -287,10 +293,7 @@ class ProsodyPredictor(nn.Module):
         # mu: (B, num_gaussians, d_out)
         pis = OneHotCategorical(probs=pi).sample().unsqueeze(-1)
         # pis: (B, num_gaussians), one-hot.
-        with torch.cuda.amp.autocast(enabled=False):
-            mu = mu.to(torch.float32)
-            sigma = sigma.to(torch.float32)
-            normal = Normal(loc=mu, scale=sigma).sample()
+        normal = Normal(loc=mu, scale=sigma+1e-7).sample()
         samples = torch.sum(pis*normal, dim=1)
         return samples
 

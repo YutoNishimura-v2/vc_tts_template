@@ -58,6 +58,10 @@
         - spk: LINE
         - pretrain: None
         - ふっつーのfastspeech2.
+    - LINE_2(実行待ち)
+        - spk: LINE
+        - pretrain: None
+        - ふっつーのfastspeech2. アクセント情報あり.
 
 
 ## 主要な実験

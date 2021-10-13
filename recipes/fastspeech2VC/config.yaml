@@ -1,8 +1,8 @@
 # General settings.
-spk: "N2C_4"
+spk: "N2C_5"
 
 # exp tag(for managing experiments)
-tag: "N2C_33"
+tag: "N2C_34"
 
 sample_rate: 22050
 
@@ -50,7 +50,7 @@ mel_fmax: 8000
 clip: 0.00001
 log_base: "natural"
 is_continuous_pitch: 1
-reduction_factor: 3
+reduction_factor: 1
 # ↓set 0 if you do not need sentence_duration
 sentence_duration: 1
 # ↓use if sentence_duration > 0
