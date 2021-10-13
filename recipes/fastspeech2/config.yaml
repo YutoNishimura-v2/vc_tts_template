@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE"
+spk: "LINE_2"
 
 # exp tag(for managing experiments)
-tag: "LINE_1"
+tag: "LINE_2"
 
 sample_rate: 22050
 

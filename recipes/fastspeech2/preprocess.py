@@ -3,7 +3,6 @@ import json
 import sys
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
-from typing import List, Dict
 
 import librosa
 import numpy as np
@@ -282,10 +281,8 @@ def preprocess(
         allow_pickle=False,
     )
     return (
-        np.min(pitch),
-        np.max(pitch),
-        np.min(energy),
-        np.max(energy)
+        pitch,
+        energy
     )
 
 
@@ -312,7 +309,8 @@ if __name__ == "__main__":
     out_energy_dir.mkdir(parents=True, exist_ok=True)
     out_duration_dir.mkdir(parents=True, exist_ok=True)
 
-    stats_tmp: Dict[str, List[float]] = {"pitch_min": [], "pitch_max": [], "energy_min": [], "energy_max": []}
+    pitch_all = []
+    energy_all = []
 
     with ProcessPoolExecutor(args.n_jobs) as executor:
         futures = [
@@ -338,11 +336,15 @@ if __name__ == "__main__":
             for wav_file, lab_file in zip(wav_files, lab_files)
         ]
         for future in tqdm(futures):
-            p_m, p_M, e_m, e_M = future.result()
-            stats_tmp["pitch_min"].append(p_m)
-            stats_tmp["pitch_max"].append(p_M)
-            stats_tmp["energy_min"].append(e_m)
-            stats_tmp["energy_max"].append(e_M)
+            pitch, energy = future.result()
+            pitch_all += list(pitch)
+            energy_all += list(energy)
+
+    # normalize
+    pitch_all = np.array(pitch_all)  # type: ignore
+    pitch_all = (pitch_all-np.mean(pitch_all))/np.std(pitch_all)
+    energy_all = np.array(energy_all)  # type: ignore
+    energy_all = (energy_all-np.mean(energy_all))/np.std(energy_all)
 
     stats_path = Path(args.out_dir).parent / "stats.json"
     stats = {"pitch_min": 1e+9, "pitch_max": -1e+9, "energy_min": 1e+9, "energy_max": -1e-9}
@@ -350,10 +352,10 @@ if __name__ == "__main__":
     if stats_path.exists():
         with open(stats_path) as f:
             stats = json.load(f)
-    stats["pitch_min"] = float(min(stats["pitch_min"], np.min(stats_tmp["pitch_min"])))
-    stats["pitch_max"] = float(max(stats["pitch_max"], np.max(stats_tmp["pitch_max"])))
-    stats["energy_min"] = float(min(stats["energy_min"], np.min(stats_tmp["energy_min"])))
-    stats["energy_max"] = float(max(stats["energy_max"], np.max(stats_tmp["energy_max"])))
+    stats["pitch_min"] = float(min(stats["pitch_min"], np.percentile(pitch_all, 25)))
+    stats["pitch_max"] = float(max(stats["pitch_max"], np.percentile(pitch_all, 75)))
+    stats["energy_min"] = float(min(stats["energy_min"], np.percentile(energy_all, 25)))
+    stats["energy_max"] = float(max(stats["energy_max"], np.percentile(energy_all, 75)))
 
     with open(stats_path, "w") as f:
         f.write(json.dumps(stats))

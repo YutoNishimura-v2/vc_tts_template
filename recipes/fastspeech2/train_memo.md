@@ -10,6 +10,9 @@
         - tacotronの実装にある, フルコンテキストラベルのアクセント情報を利用したデータセット
     - LINE
         - corpus評価用のwoITAKO.
+    - LINE_2
+        - corpus評価用のwoITAKO.
+        - statsの計算方法を変えたので, 一応作り直し.
 
 - exp
     - jsut_1
@@ -58,10 +61,10 @@
         - spk: LINE
         - pretrain: None
         - ふっつーのfastspeech2.
-    - LINE_2(実行待ち)
-        - spk: LINE
+    - LINE_2
+        - spk: LINE_2
         - pretrain: None
-        - ふっつーのfastspeech2. アクセント情報あり.
+        - ふっつーのfastspeech2. LINE_1でstatsが正規化前のものになっているのに気づかず使っていた. そこを修正して実行しなおしたもの.
 
 
 ## 主要な実験
