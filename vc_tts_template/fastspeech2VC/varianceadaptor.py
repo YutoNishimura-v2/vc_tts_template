@@ -119,9 +119,8 @@ class VarianceAdaptor(nn.Module):
             log_duration_prediction = self.duration_predictor(x, src_mask)
 
         # convして, 次元を合わせる
-        if self.reduction_factor > 1:
-            src_pitch = self.reshape_with_reduction_factor(src_pitch, src_max_len)
-            src_energy = self.reshape_with_reduction_factor(src_energy, src_max_len)
+        src_pitch = self.reshape_with_reduction_factor(src_pitch, src_max_len)
+        src_energy = self.reshape_with_reduction_factor(src_energy, src_max_len)
 
         pitch_conv = self.pitch_conv1d_1(src_pitch)
         energy_conv = self.energy_conv1d_1(src_energy)
@@ -364,7 +363,7 @@ class VarianceARPredictor(nn.Module):
         # encoder_output: (B, T//r, d_enc)
         # target: (B, T)
 
-        if (self.reduction_factor > 1) and (target is not None):
+        if target is not None:
             target = target[
                 :, self.reduction_factor - 1:: self.reduction_factor
             ].unsqueeze(-1)
