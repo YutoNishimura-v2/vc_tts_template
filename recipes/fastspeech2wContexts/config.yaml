@@ -1,8 +1,8 @@
 # General settings.
-spk: "Long_dialogue_wContext"
+spk: "LINE_wContext"
 
 # exp tag(for managing experiments)
-tag: "Long_dialogue_wContext_1"
+tag: "LINE_wContext_1"
 
 sample_rate: 22050
 
@@ -21,9 +21,9 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-wav_root: "../../../dataset/out_Long_dialogue_contexts/Long_dialogue/wav/22050"
-lab_root: "../../../dataset/out_Long_dialogue_contexts/textgrid"
-dialogue_info: "../../../dataset/out_Long_dialogue_contexts/Long_dialogue/dialogue_info.txt"
+wav_root: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050"
+lab_root: "../../../dataset/out_LINE_woITAKO/fullcontext"
+dialogue_info: "../../../dataset/out_LINE_woITAKO/dialogue_info.txt"
 
 n_jobs: 8
 
@@ -45,30 +45,30 @@ clip: 0.00001
 log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
-accent_info: 0
+accent_info: 1
 BERT_weight: "colorfulscoop/sbert-base-ja"
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wGMMwContexts
+acoustic_model: fastspeech2wContexts
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
 vocoder_config: "conf/train_hifigan/model/hifigan.yaml"
-vocoder_weight_base_path: "../fastspeech2/exp/Long_dialogue_sr22050_Long_dialogue_1/hifigan"
+vocoder_weight_base_path: "../fastspeech2/exp/LINE_sr22050_LINE_1/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 100
-fastspeech2_data_batch_size: 32
+fastspeech2_train_nepochs: 200
+fastspeech2_data_batch_size: 8
 
 ### hifigan ###
 hifigan_train_nepochs: 50
 hifigan_data_batch_size: 32
 
 ### (optional) Optuna Tuning ###
-tuning_config: tuning_fastspeech2wGMMwContexts
+tuning_config: tuning_fastspeech2wContexts
 
 ###########################################################
 #                SYNTHESIS SETTING                        #

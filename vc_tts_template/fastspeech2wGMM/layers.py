@@ -2,8 +2,18 @@ import numpy as np
 import torch.nn as nn
 import torch
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from torch import Tensor
 
-from vc_tts_template.fastspeech2VC.modules import Transpose
+
+class Transpose(nn.Module):
+    """ Wrapper class of torch.transpose() for Sequential module. """
+
+    def __init__(self, shape: tuple):
+        super(Transpose, self).__init__()
+        self.shape = shape
+
+    def forward(self, x: Tensor) -> Tensor:
+        return x.transpose(*self.shape)
 
 
 class ConvBNorms2d(nn.Module):

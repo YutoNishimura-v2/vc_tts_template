@@ -84,7 +84,7 @@ class ConversationalContextEncoder(nn.Module):
         history_enc = self.enc_linear(history_enc)
 
         # Split
-        enc_past, enc_current = torch.split(history_enc, max_history_len, dim=1)
+        enc_past, enc_current = torch.split(history_enc, history_enc.size(1)-1, dim=1)
 
         # GRU
         enc_past = self.gru_linear(self.gru(enc_past, history_lens))
