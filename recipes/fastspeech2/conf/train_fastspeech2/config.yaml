@@ -36,7 +36,7 @@ data:
   # data loader
   num_workers: 5
   batch_size:
-  group_size: 8
+  group_size: 4
   accent_info:
 
 ###########################################################
@@ -69,8 +69,8 @@ train:
         weight_decay: 0.0
     lr_scheduler:
       _target_: vc_tts_template.fastspeech2.optimizer.ScheduledOptim
-      warm_up_step: 2000  # if batch: 8, groupsize:4, 4000. if your batch: 32, 1000 is recomended
-      anneal_steps: [150000, 200000, 250000]
+      warm_up_step: 4000  # if batch: 8, groupsize:4, 4000. if your batch: 32, 1000 is recomended
+      anneal_steps: [300000, 400000, 500000]
       anneal_rate: 0.3
       max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 
   

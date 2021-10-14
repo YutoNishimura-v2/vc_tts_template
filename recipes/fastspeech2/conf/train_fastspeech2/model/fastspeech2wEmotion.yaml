@@ -1,7 +1,7 @@
 netG:
   _target_: vc_tts_template.fastspeech2.FastSpeech2
   max_seq_len: 1000
-  num_vocab: 52
+  num_vocab: 53
   encoder_hidden_dim: 256
   encoder_num_layer: 4
   encoder_num_head: 2
@@ -23,7 +23,7 @@ netG:
   decoder_dropout: 0.2
   n_mel_channel:
   encoder_fix: False
-  stats: {"pitch_min": 70, "pitch_max": 750, "energy_min": 10, "energy_max": 27}
+  stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
   speakers:
-  emotions: {"joy": 0, "calm": 1, "sorrow": 2, "anger": 3}
+  emotions: {"Normal": 0, "Happy": 1, "Sad": 2, "Angry": 3}
   accent_info:

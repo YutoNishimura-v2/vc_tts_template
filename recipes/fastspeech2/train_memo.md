@@ -16,6 +16,10 @@
     - LINE_3
         - corpus評価用のwoITAKO.
         - accent info付き.
+    - LINE_4
+        - corpus評価用のwoITAKO_before_emotion.
+        - accent info付き.
+        - emotionを変えたのでdataをコピーしなおしていることに注意
 
 - exp
     - jsut_1
@@ -67,12 +71,25 @@
     - LINE_2
         - spk: LINE_2
         - pretrain: None
+        - 29min/50epoch
+        - batch_size: 8
         - ふっつーのfastspeech2. LINE_1でstatsが正規化前のものになっているのに気づかず使っていた. そこを修正して実行しなおしたもの.
     - LINE_3
         - spk: LINE_3
         - pretrain: None
         - +accent info
-        - メモリに乗り切らず. batch_sizeを下げてもいいが平等な実験にはならないので, ABCiというのを利用してみる.
+        - batch_size: 8
+        - loss上は微改善. 音声も劇的ではないが、改善.
+    - LINE_4
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info + emotion
+        - batch_size: 8
+    - LINE_5
+        - spk: LINE_4
+        - pretrain: None
+        - +accent info + before_emotion
+        - batch_size: 8
 
 
 ## 主要な実験
