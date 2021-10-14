@@ -33,8 +33,18 @@
         - reduction_factor: 1
     - N2C_6
         - silence_thresh_t: -100
+        - min_silence_len: 500
+        - reduction_factor: 3
+        - **ここから, durationの計算方法が変更. よりよいモノに**
+        - その際に, このアルゴでも計算を失敗するような音声が見つかる
+            - 目視・聴覚検査の結果, もうデータ側の問題と判断し, 削除
+            - 削除リストは以下
+                - `n_c_memory_1-04.wav`
+        - プロダクトの時もこれは気を付けた方が良さそう.
+    - N2C_7
+        - silence_thresh_t: -100
         - min_silence_len: 50
-        - reduction_factor: 1
+        - reduction_factor: 3
 
 - tag
     - jsut_jsss_1
@@ -285,15 +295,30 @@
     - N2C_34
         - spk: N2C_5
         - pretrain: なし
-        - 実行時間: min/50epoch
+        - 実行時間: 150min/50epoch
         - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 1
         - wGMM. N2C_30と比較して, reduction_factorはどちらがよいのか検討.
             - 精度に関しては上がらないとおかしそう。ただ、実行時間が純粋に3倍になりそうな予感...。
             - AR部分がボトルネックになってくるので、ここでpitchARNARの出番かもしれない.
         - 当然メモリに乗り切るはずもなく, Batch_size=12まで下げた.
             - それとreductionのおかげで1epoch 3minまで遅くなりました. → 150min/50epoch ← N2C_30の約3.75倍...。
+        - 終了. pitchが悲惨
+            - 単純に問題を簡単にするためにreduction factorは必要.
     - reduction_factorは可能であれば3のままにしたい...!
         - preprocessで頑張って辻褄の合うsentence_durationを作れ！！！
+    - N2C_35
+        - spk: N2C_6
+        - pretrain: なし
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 3
+        - wGMMの標準的な設定. **durationの計算方法を変えた**
+        - かなりよくなっているはずなので, N2C_30と比較してどちらがよかったか一応比較.
+    - N2C_36
+        - spk: N2C_7
+        - pretrain: なし
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 50, reduction_factor: 3
+        - やっとこmin_silence_lenを変えた実験. N2C_36との比較.
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.

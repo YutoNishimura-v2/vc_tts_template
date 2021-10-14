@@ -1,8 +1,8 @@
 # General settings.
-spk: "N2C_5"
+spk: "N2C_6"
 
 # exp tag(for managing experiments)
-tag: "N2C_34"
+tag: "N2C_35"
 
 sample_rate: 22050
 
@@ -29,7 +29,7 @@ tgt_wav_root: "downloads/N2C/target"
 
 n_jobs: 16
 
-train_num: 1000
+train_num: 999
 deveval_num: 180
 dev_num: 120
 eval_num: 60
@@ -50,7 +50,7 @@ mel_fmax: 8000
 clip: 0.00001
 log_base: "natural"
 is_continuous_pitch: 1
-reduction_factor: 1
+reduction_factor: 3
 # ↓set 0 if you do not need sentence_duration
 sentence_duration: 1
 # ↓use if sentence_duration > 0
@@ -69,7 +69,7 @@ vocoder_weight_base_path: "exp/N2C_sr22050_N2C_2/hifigan"
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
 fastspeech2_train_nepochs: 200
-fastspeech2_data_batch_size: 12
+fastspeech2_data_batch_size: 32
 
 ### hifigan ###
 hifigan_train_nepochs: 50

@@ -6,6 +6,7 @@ from vc_tts_template.fastspeech2.encoder_decoder import Encoder, Decoder
 from vc_tts_template.fastspeech2.layers import PostNet
 from vc_tts_template.fastspeech2.varianceadaptor import VarianceAdaptor
 from vc_tts_template.utils import make_pad_mask
+from vc_tts_template.train_utils import free_tensors_memory
 
 
 class FastSpeech2(nn.Module):
@@ -155,6 +156,7 @@ class FastSpeech2(nn.Module):
             output = output + self.emotion_emb(emotions).unsqueeze(1).expand(
                 -1, max_src_len, -1
             )
+        free_tensors_memory([texts])
 
         return output
 

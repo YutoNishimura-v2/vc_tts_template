@@ -13,6 +13,9 @@
     - LINE_2
         - corpus評価用のwoITAKO.
         - statsの計算方法を変えたので, 一応作り直し.
+    - LINE_3
+        - corpus評価用のwoITAKO.
+        - accent info付き.
 
 - exp
     - jsut_1
@@ -65,6 +68,11 @@
         - spk: LINE_2
         - pretrain: None
         - ふっつーのfastspeech2. LINE_1でstatsが正規化前のものになっているのに気づかず使っていた. そこを修正して実行しなおしたもの.
+    - LINE_3
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - メモリに乗り切らず. batch_sizeを下げてもいいが平等な実験にはならないので, ABCiというのを利用してみる.
 
 
 ## 主要な実験
