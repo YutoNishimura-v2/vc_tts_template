@@ -43,8 +43,9 @@
         - プロダクトの時もこれは気を付けた方が良さそう.
     - N2C_7
         - silence_thresh_t: -100
-        - min_silence_len: 50
+        - min_silence_len: 500
         - reduction_factor: 3
+        - N2C_6でなぜか80melで計算して爆死していたので, 20に戻して再挑戦.
 
 - tag
     - jsut_jsss_1
@@ -309,16 +310,32 @@
     - N2C_35
         - spk: N2C_6
         - pretrain: なし
-        - 実行時間: min/50epoch
+        - 実行時間: 39min/50epoch
         - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 3
         - wGMMの標準的な設定. **durationの計算方法を変えた**
         - かなりよくなっているはずなので, N2C_30と比較してどちらがよかったか一応比較.
+        - 大悪化!!!!
+            - energyが悲惨なことになってしまう.
+            - energyはいじっていないのに....
+            - get_durationを見返すと, 80melで計算している
+                - 20でないと正しくdtw出来ない可能性.
     - N2C_36
         - spk: N2C_7
         - pretrain: なし
         - 実行時間: min/50epoch
-        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 50, reduction_factor: 3
-        - やっとこmin_silence_lenを変えた実験. N2C_36との比較.
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 3
+        - get_durationをちゃんと20melで計算しようの会
+        - 結果: 変わらず.
+            - melはdtwに影響を与えない!!!!
+    - 結論: dtwではいいdurationを作れない(元データがゴミなので)
+        - oldの方でやると, ノイズは無視してくれる(reductionした後にアライメントをとるので)一方で、
+        やはり細かいところを無視してsnt_duration作成で0が生まれたりしてしまうのは致命的.
+        - その一方で, newの方は, まずやはり勝手にroundの補正をすると辻褄が合わなくなって, 特にenergyが困惑してしまっていた.
+        また, 細かく見すぎて逆にノイズを重視してしまい、変なことになったりもしていた.
+        - なので、要するにデータがきれいでないとdtwでアライメント作成は無理です.
+        - 研究であれば、「じゃあきれいなデータを用意しろ」で済むけれど、これは僕の趣味用でもあり、プロダクト化も見据えている
+            - なので, 可能ならノイズが多少あってもちゃんと動くようなものがいい.
+        - そこで、原点回帰だけれど, Tacotron2VCを訓練して, そこからアライメントをとる方向にします.
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.
@@ -400,6 +417,9 @@
     - pitchARくんもかなり大こけしているが、pitchARNARはやはり途中で切ってしまうことでテンションがガラッと変わったりしてしまい、不自然.
     - 実行時間も結局高速化！どころか逆に遅くなってしまっているし微妙すぎた.
     - 結論: 今後はpitchARでいく.
+
+- get_duration時に使うmelの次元は, 20でも80でも変わらない
+    - N2C_36で検証.
 
 ## 実験以外の知見
 - 高速化, メモリ省エネ化について

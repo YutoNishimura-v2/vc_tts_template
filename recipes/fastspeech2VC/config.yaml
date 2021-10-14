@@ -1,8 +1,8 @@
 # General settings.
-spk: "N2C_6"
+spk: "N2C_7"
 
 # exp tag(for managing experiments)
-tag: "N2C_35"
+tag: "N2C_36"
 
 sample_rate: 22050
 

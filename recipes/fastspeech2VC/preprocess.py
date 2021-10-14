@@ -170,11 +170,16 @@ def reduction(x: np.ndarray, reduction_factor: int, mode: str = "mean") -> np.nd
         x = x[:, :(x.shape[1]//reduction_factor)*reduction_factor]
         x = x.reshape(x.shape[0], x.shape[1]//reduction_factor, reduction_factor)
 
-    assert mode in ["mean", "sum"]
+    assert mode in ["mean", "sum", "discrete"]
     if mode == "mean":
         x = x.mean(-1)
     elif mode == "sum":
         x = x.sum(-1)
+    elif mode == "discrete":
+        if n_dim == 1:
+            x = x[:, -1]
+        else:
+            x = x[:, :, -1]
 
     return x.T
 
@@ -275,29 +280,6 @@ def calc_duration(ts_src: List[np.ndarray], target_path: str, diagonal_index: np
     return duration
 
 
-# def get_duration(
-#     utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
-#     fmin, fmax, clip_thresh, log_base, reduction_factor,
-#     return_mel=False
-# ):
-#     src_mel, energy = logmelspectrogram(
-#         src_wav, sr, n_fft, hop_length, win_length,
-#         80, fmin, fmax, clip=clip_thresh, log_base=log_base,
-#         need_energy=True
-#     )
-#     tgt_mel = logmelspectrogram(
-#         tgt_wav, sr, n_fft, hop_length, win_length,
-#         80, fmin, fmax, clip=clip_thresh, log_base=log_base,
-#         need_energy=False
-#     )
-#     source_mel = reduction(src_mel, reduction_factor)
-#     energy = reduction(energy, reduction_factor)
-#     target_mel = reduction(tgt_mel, reduction_factor)
-#     duration = calc_duration([target_mel, source_mel], utt_id, np.log(energy+1e-6) < -5.0)
-#     if return_mel is True:
-#         return duration, source_mel, target_mel
-#     return duration
-
 def get_duration(
     utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
     fmin, fmax, clip_thresh, log_base, reduction_factor,
@@ -313,39 +295,63 @@ def get_duration(
         80, fmin, fmax, clip=clip_thresh, log_base=log_base,
         need_energy=False
     )
-    src_mel = src_mel[:len(src_mel)//reduction_factor*reduction_factor]
-    energy = energy[:len(energy)//reduction_factor*reduction_factor]
-    tgt_mel = tgt_mel[:len(tgt_mel)//reduction_factor*reduction_factor]
-    duration = calc_duration([tgt_mel, src_mel], utt_id, np.log(energy+1e-6) < -5.0)
-    duration = reduction(duration, reduction_factor, mode="sum")
-
+    source_mel = reduction(src_mel, reduction_factor)
     energy = reduction(energy, reduction_factor)
-
-    if np.sum(np.round(duration/reduction_factor)) > len(tgt_mel)//reduction_factor:
-        # NOTE:0.5は0に丸められることに注意.
-        uppered_lst = np.where((duration % reduction_factor) > (reduction_factor)/2)[0]
-        energy_lst = [np.mean(energy[idx]) for idx in uppered_lst]
-        delete_num = int((np.sum(np.round(duration/reduction_factor)) - len(tgt_mel)//reduction_factor))
-        delete_idx = uppered_lst[np.argsort(energy_lst)[:delete_num]]
-        for idx in delete_idx:
-            duration[idx] = duration[idx]//reduction_factor*reduction_factor
-
-    elif np.sum(np.round(duration/reduction_factor)) < len(tgt_mel)//reduction_factor:
-        undered_lst = np.where((duration % reduction_factor) <= (reduction_factor)/2)[0]
-        energy_lst = [-np.mean(energy[idx]) for idx in undered_lst]
-        add_num = int((len(tgt_mel)//reduction_factor - np.sum(np.round(duration/reduction_factor))))
-        delete_idx = undered_lst[np.argsort(energy_lst)[:add_num]]
-        for idx in delete_idx:
-            duration[idx] = duration[idx] + (reduction_factor - (duration[idx] % reduction_factor))
-
-    duration = np.round(duration/reduction_factor).astype(int)
-
-    assert np.sum(duration) == len(tgt_mel)//reduction_factor, \
-        f"duration.sum(): {np.sum(duration)}, tgt_mel_len: {len(tgt_mel)}"
-
+    target_mel = reduction(tgt_mel, reduction_factor)
+    duration = calc_duration([target_mel, source_mel], utt_id, np.log(energy+1e-6) < -5.0)
     if return_mel is True:
-        return duration, reduction(src_mel, reduction_factor), reduction(tgt_mel, reduction_factor)
+        return duration, source_mel, target_mel
     return duration
+
+
+# def get_duration(
+#     utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
+#     fmin, fmax, clip_thresh, log_base, reduction_factor,
+#     return_mel=False
+# ):
+#     src_mel, energy = logmelspectrogram(
+#         src_wav, sr, n_fft, hop_length, win_length,
+#         20, fmin, fmax, clip=clip_thresh, log_base=log_base,
+#         need_energy=True
+#     )
+#     tgt_mel = logmelspectrogram(
+#         tgt_wav, sr, n_fft, hop_length, win_length,
+#         20, fmin, fmax, clip=clip_thresh, log_base=log_base,
+#         need_energy=False
+#     )
+#     src_mel = src_mel[:len(src_mel)//reduction_factor*reduction_factor]
+#     energy = energy[:len(energy)//reduction_factor*reduction_factor]
+#     tgt_mel = tgt_mel[:len(tgt_mel)//reduction_factor*reduction_factor]
+#     duration = calc_duration([tgt_mel, src_mel], utt_id, np.log(energy+1e-6) < -5.0)
+#     duration = reduction(duration, reduction_factor, mode="sum")
+
+#     energy = reduction(energy, reduction_factor)
+
+#     if np.sum(np.round(duration/reduction_factor)) > len(tgt_mel)//reduction_factor:
+#         # NOTE:0.5は0に丸められることに注意.
+#         uppered_lst = np.where((duration % reduction_factor) > (reduction_factor)/2)[0]
+#         energy_lst = [np.mean(energy[idx]) for idx in uppered_lst]
+#         delete_num = int((np.sum(np.round(duration/reduction_factor)) - len(tgt_mel)//reduction_factor))
+#         delete_idx = uppered_lst[np.argsort(energy_lst)[:delete_num]]
+#         for idx in delete_idx:
+#             duration[idx] = duration[idx]//reduction_factor*reduction_factor
+
+#     elif np.sum(np.round(duration/reduction_factor)) < len(tgt_mel)//reduction_factor:
+#         undered_lst = np.where((duration % reduction_factor) <= (reduction_factor)/2)[0]
+#         energy_lst = [-np.mean(energy[idx]) for idx in undered_lst]
+#         add_num = int((len(tgt_mel)//reduction_factor - np.sum(np.round(duration/reduction_factor))))
+#         delete_idx = undered_lst[np.argsort(energy_lst)[:add_num]]
+#         for idx in delete_idx:
+#             duration[idx] = duration[idx] + (reduction_factor - (duration[idx] % reduction_factor))
+
+#     duration = np.round(duration/reduction_factor).astype(int)
+
+#     assert np.sum(duration) == len(tgt_mel)//reduction_factor, \
+#         f"duration.sum(): {np.sum(duration)}, tgt_mel_len: {len(tgt_mel)}"
+
+#     if return_mel is True:
+#         return duration, reduction(src_mel, reduction_factor), reduction(tgt_mel, reduction_factor)
+#     return duration
 
 
 def get_sentence_duration(
