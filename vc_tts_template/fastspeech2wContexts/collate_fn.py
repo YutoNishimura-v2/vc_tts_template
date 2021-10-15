@@ -91,7 +91,7 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         current_d_id, current_in_d_id = self.utt2id[utt_id]
         current_emb = np.load(self.get_path_from_uttid(utt_id, emb_paths))
 
-        range_ = range(int(current_in_d_id)-1, max(0, int(current_in_d_id)-1-self.use_hist_num), -1)
+        range_ = range(int(current_in_d_id)-1, max(-1, int(current_in_d_id)-1-self.use_hist_num), -1)
         hist_embs = []
         hist_emb_len = 0
         history_speakers = []
@@ -105,8 +105,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
 
         for _ in range(self.use_hist_num - len(hist_embs)):
             hist_embs.append(np.zeros_like(current_emb))
-            history_speakers.append("pad")
-            history_emotions.append("pad")
+            history_speakers.append("PAD")
+            history_emotions.append("PAD")
         return (
             np.array(current_emb), np.stack(hist_embs), hist_emb_len,
             np.array(history_speakers), np.array(history_emotions)
