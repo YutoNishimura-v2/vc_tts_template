@@ -6,6 +6,9 @@
         - dialogue_infoにTurn-00としてsituation情報を追加
             - これがないと, 先頭のhistoryが0になって全部0でエラーとかが起きる.
             - あとは今になって思えばこの情報はかなり重要そう
+    - LINE_wContext_2
+        - out_LINE_woITAKO_before_ITAKOから作ったもの.
+        - 
 - exp
     - LINE_wContext_1
         - spk: LINE_wContext
@@ -17,3 +20,7 @@
         - pretrain: None
         - +accent+Emotion
         - 初実行. wEmotionは次かな?
+    - LINE_wContext_3
+        - spk: LINE_wContext
+        - pretrain: None
+        - +accent+before_Emotion
