@@ -2,7 +2,7 @@
 spk: "LINE_wContext"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContext_1"
+tag: "LINE_wContext_2"
 
 sample_rate: 22050
 
