@@ -309,7 +309,6 @@ if __name__ == "__main__":
             get_alignment, model=model,
             acoustic_in_scaler=acoustic_in_scaler, acoustic_out_scaler=acoustic_out_scaler
         )
-
         _get_duration = partial(
             get_duration_wARmodel, n_mel_channels=args.n_mel_channels, get_alignment=_get_alignment
         )

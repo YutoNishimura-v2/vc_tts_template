@@ -1,8 +1,8 @@
 # General settings.
-spk: "N2C"
+spk: "jsut_jsss_jvs"
 
 # exp tag(for managing experiments)
-tag: "N2C_1"
+tag: "jsut_jsss_jvs_1"
 
 sample_rate: 22050
 
@@ -24,8 +24,8 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-src_wav_root: "../fastspeech2VC/downloads/N2C/source"
-tgt_wav_root: "../fastspeech2VC/downloads/N2C/target"
+src_wav_root: "../fastspeech2VC/downloads/jsut_jsss_jvs/source"
+tgt_wav_root: "../fastspeech2VC/downloads/jsut_jsss_jvs/target"
 
 n_jobs: 16
 
@@ -63,7 +63,7 @@ vocoder_weight_base_path: "../fastspeech2VC/exp/N2C_sr22050_N2C_2/hifigan"
 
 ### tacotron2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-tacotron2_train_nepochs: 200
+tacotron2_train_nepochs: 500
 tacotron2_data_batch_size: 32
 
 ### hifigan ###

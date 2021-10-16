@@ -48,8 +48,8 @@ train:
   # steps can either be specified by steps or epochs
   max_train_steps: -1
   nepochs:
-  checkpoint_epoch_interval: 50
-  eval_epoch_interval: 10
+  checkpoint_epoch_interval: 100
+  eval_epoch_interval: 25
 
   vocoder_name:
   vocoder_config:

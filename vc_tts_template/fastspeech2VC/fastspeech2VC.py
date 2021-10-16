@@ -176,7 +176,7 @@ class fastspeech2VC(nn.Module):
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
         if self.emotion_emb is not None:
-            output = output + self.speaker_emb(t_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
+            output = output + self.emotion_emb(t_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
 
         output = self.decoder(self.decoder_linear(output), t_mel_masks)
         output = self.mel_linear_2(output).contiguous().view(output.size(0), -1, self.mel_num)

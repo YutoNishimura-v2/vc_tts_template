@@ -193,7 +193,7 @@ class Tacotron2VC(nn.Module):
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
         if self.emotion_emb is not None:
-            output = output + self.speaker_emb(t_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
+            output = output + self.emotion_emb(t_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
 
         output, logits, att_ws = self.decoder(output, s_mel_lens, t_mels, is_inference)
 
@@ -226,7 +226,6 @@ class Tacotron2VC(nn.Module):
         output = self.encoder_forward(
             s_sp_ids, s_em_ids, s_mels, s_mel_lens,
         )
-
         # デコーダによるメルスペクトログラム、stop token の予測
         outs, outs_fine, logits, att_ws = self.decoder_forward(
             output, t_sp_ids, t_em_ids, s_mel_lens, t_mels
