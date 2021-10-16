@@ -63,7 +63,7 @@ vocoder_weight_base_path: "../fastspeech2VC/exp/N2C_sr22050_N2C_2/hifigan"
 
 ### tacotron2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-tacotron2_train_nepochs: 500
+tacotron2_train_nepochs: 498
 tacotron2_data_batch_size: 32
 
 ### hifigan ###
