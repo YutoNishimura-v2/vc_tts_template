@@ -219,6 +219,8 @@ def pad(x: torch.Tensor, max_length: Optional[int] = None) -> torch.Tensor:
             one_batch_padded = F.pad(
                 batch, (0, 0, 0, max_len - batch.size(0)), "constant", 0.0
             )
+        else:
+            raise ValueError("3次元以上には未対応です.")
         out_list.append(one_batch_padded)
     out_padded = torch.stack(out_list)
     return out_padded

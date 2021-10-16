@@ -82,29 +82,28 @@ class Decoder(nn.Module):
         init_hs = hs.new_zeros(hs.size(0), self.lstm[0].hidden_size)
         return init_hs
 
-    def forward(self, encoder_outs, in_lens, decoder_targets=None):
-        """Forward step
-
-        Args:
-            encoder_outs (torch.Tensor) : encoder outputs
-            in_lens (torch.Tensor) : input lengths
-            decoder_targets (torch.Tensor) : decoder targets for teacher-forcing.
-
-        Returns:
-            tuple: tuple of outputs, stop token prediction, and attention weights
+    def forward(self, encoder_outs, in_lens, decoder_targets=None, is_inference=False):
         """
-        is_inference = decoder_targets is None
-
+        if (decoder_targets is None):
+            do not use teacher forcing.
+            do not use target for get same length.
+        elif (decoder_targets is not None) and (is_inference is False):
+            use teacher forcing.
+            use target for get same length.
+        elif (decoder_targets is not None) and (is_inference is True):
+            do not use teacher forcing.
+            use target for get same length.
+        """
         # Reduction factor に基づくフレーム数の調整
         # (B, Lmax, out_dim) ->  (B, Lmax/r, out_dim)
-        if self.reduction_factor > 1 and not is_inference:
+        if (self.reduction_factor > 1) and (decoder_targets is not None):
             decoder_targets = decoder_targets[
                 :, self.reduction_factor - 1:: self.reduction_factor
             ]
 
         # デコーダの系列長を保持
         # 推論時は、エンコーダの系列長から経験的に上限を定める
-        if is_inference:
+        if decoder_targets is None:
             max_decoder_time_steps = int(encoder_outs.shape[1] * 10.0)
         else:
             max_decoder_time_steps = decoder_targets.shape[1]
@@ -152,7 +151,7 @@ class Decoder(nn.Module):
             att_ws.append(att_w)
 
             # 次の時刻のデコーダの入力を更新
-            if is_inference:
+            if is_inference is True:
                 prev_out = outs[-1][:, :, -1]  # (1, out_dim)
             else:
                 # Teacher forcing
@@ -165,7 +164,7 @@ class Decoder(nn.Module):
             # 停止条件のチェック
             if t >= max_decoder_time_steps:
                 break
-            if is_inference and (torch.sigmoid(logits[-1]) >= 0.5).any():
+            if (decoder_targets is None) and (is_inference is True) and (torch.sigmoid(logits[-1]) >= 0.5).any():
                 break
 
         # 各時刻の出力を結合

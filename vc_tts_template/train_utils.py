@@ -394,11 +394,12 @@ class _Dataset(data_utils.Dataset):  # type: ignore
         out_paths: List of paths to output files
     """
 
-    def __init__(self, in_paths: List, out_paths: List):
+    def __init__(self, in_paths: List, out_paths: List, fname: bool):
         self.in_paths = in_paths
         self.out_paths = out_paths
+        self.fname = fname
 
-    def __getitem__(self, idx: int) -> Tuple[np.ndarray, np.ndarray]:
+    def __getitem__(self, idx: int):
         """Get a pair of input and target
 
         Args:
@@ -407,6 +408,11 @@ class _Dataset(data_utils.Dataset):  # type: ignore
         Returns:
             tuple: input and target in numpy format
         """
+        if self.fname is True:
+            return (
+                self.in_paths[idx].name.replace("-feats.npy", ""),
+                np.load(self.in_paths[idx]), np.load(self.out_paths[idx])
+            )
         return np.load(self.in_paths[idx]), np.load(self.out_paths[idx])
 
     def __len__(self):
@@ -418,7 +424,7 @@ class _Dataset(data_utils.Dataset):  # type: ignore
         return len(self.in_paths)
 
 
-def _get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data_utils.DataLoader]:
+def _get_data_loaders(data_config: Dict, collate_fn: Callable, fname: bool = True) -> Dict[str, data_utils.DataLoader]:
     """Get data loaders for training and validation.
 
     Args:
@@ -438,7 +444,7 @@ def _get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data
         in_feats_paths = [in_dir / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_feats_paths = [out_dir / f"{utt_id}-feats.npy" for utt_id in utt_ids]
 
-        dataset = _Dataset(in_feats_paths, out_feats_paths)
+        dataset = _Dataset(in_feats_paths, out_feats_paths, fname)
         data_loaders[phase] = data_utils.DataLoader(
             dataset,
             batch_size=data_config.batch_size * data_config.group_size,  # type: ignore
@@ -589,7 +595,7 @@ def setup(
 
     # DataLoader
     if get_dataloader is None:
-        data_loaders = _get_data_loaders(config.data, collate_fn)  # type: ignore
+        data_loaders = _get_data_loaders(config.data, collate_fn, fname=True)  # type: ignore
     else:
         data_loaders = get_dataloader(config.data, collate_fn)  # type: ignore
 

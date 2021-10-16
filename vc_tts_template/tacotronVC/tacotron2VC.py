@@ -1,11 +1,15 @@
+import sys
+from typing import Dict, Optional
+
+import numpy as np
 import torch
 from torch import nn
 
-
+sys.path.append("../..")
 from vc_tts_template.tacotronVC.decoder import Decoder
 from vc_tts_template.tacotronVC.encoder import Encoder
 from vc_tts_template.tacotron.postnet import Postnet
-from vc_tts_template.utils import make_pad_mask
+from vc_tts_template.utils import make_pad_mask, pad
 from vc_tts_template.train_utils import free_tensors_memory
 
 
@@ -41,7 +45,7 @@ class Tacotron2VC(nn.Module):
 
     def __init__(
         self,
-        n_mel_channel,
+        n_mel_channel=80,
         # encoder
         encoder_hidden_dim=512,
         encoder_conv_layers=3,
@@ -64,11 +68,19 @@ class Tacotron2VC(nn.Module):
         postnet_kernel_size=5,
         postnet_dropout=0.5,
         reduction_factor=1,
+        # other
+        encoder_fix: bool = False,
+        speakers: Optional[Dict] = None,
+        emotions: Optional[Dict] = None
     ):
         super().__init__()
         self.reduction_factor = reduction_factor
         self.mel_num = n_mel_channel
 
+        self.mel_linear = nn.Linear(
+            self.mel_num * self.reduction_factor,
+            encoder_hidden_dim,
+        )
         self.encoder = Encoder(
             encoder_hidden_dim,
             encoder_conv_layers,
@@ -97,6 +109,23 @@ class Tacotron2VC(nn.Module):
             postnet_kernel_size,
             postnet_dropout,
         )
+        self.speaker_emb = None
+        if speakers is not None:
+            n_speaker = len(speakers)
+            self.speaker_emb = nn.Embedding(
+                n_speaker,
+                encoder_hidden_dim,
+            )
+        self.emotion_emb = None
+        if emotions is not None:
+            n_emotion = len(emotions)
+            self.emotion_emb = nn.Embedding(
+                n_emotion,
+                encoder_hidden_dim,
+            )
+        self.encoder_fix = encoder_fix
+        self.speakers = speakers
+        self.emotions = emotions
 
     def init_forward(
         self,
@@ -106,19 +135,25 @@ class Tacotron2VC(nn.Module):
         t_mel_lens,
         max_t_mel_len,
     ):
-        t_mel_masks = (
-            make_pad_mask(t_mel_lens, max_t_mel_len)
-            if t_mel_lens is not None
-            else None
-        )
         if self.reduction_factor > 1:
             max_s_mel_len = max_s_mel_len // self.reduction_factor
             s_mel_lens = torch.trunc(s_mel_lens / self.reduction_factor)
             s_mels = s_mels[:, :max_s_mel_len*self.reduction_factor, :]
 
+            if t_mel_lens is not None:
+                t_mel_lens = torch.trunc(t_mel_lens / self.reduction_factor) * self.reduction_factor
+                max_t_mel_len = max_t_mel_len // self.reduction_factor * self.reduction_factor
+
+        t_mel_masks = (
+            make_pad_mask(t_mel_lens, max_t_mel_len)
+            if t_mel_lens is not None
+            else None
+        )
+
         return (
             s_mels,
             s_mel_lens,
+            t_mel_lens,
             t_mel_masks,
         )
 
@@ -129,7 +164,7 @@ class Tacotron2VC(nn.Module):
         s_mels,
         s_mel_lens,
     ):
-        output = self.mel_linear_1(
+        output = self.mel_linear(
             s_mels.contiguous().view(s_mels.size(0), -1, self.mel_num * self.reduction_factor)
         )
         free_tensors_memory([s_mels])
@@ -153,13 +188,14 @@ class Tacotron2VC(nn.Module):
         t_em_ids,
         s_mel_lens,
         t_mels,
+        is_inference=False
     ):
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
         if self.emotion_emb is not None:
             output = output + self.speaker_emb(t_em_ids).unsqueeze(1).expand(-1, output.size(1), -1)
 
-        output, logits, att_ws = self.decoder(output, s_mel_lens, t_mels)
+        output, logits, att_ws = self.decoder(output, s_mel_lens, t_mels, is_inference)
 
         # Post-Net によるメルスペクトログラムの残差の予測
         outs_fine = output + self.postnet(output)
@@ -184,7 +220,7 @@ class Tacotron2VC(nn.Module):
         t_mel_lens=None,
         max_t_mel_len=None,
     ):
-        s_mels, s_mel_lens, t_mel_masks = self.init_forward(
+        s_mels, s_mel_lens, t_mel_lens, t_mel_masks = self.init_forward(
             s_mels, s_mel_lens, max_s_mel_len, t_mel_lens, max_t_mel_len
         )
         output = self.encoder_forward(
@@ -196,51 +232,148 @@ class Tacotron2VC(nn.Module):
             output, t_sp_ids, t_em_ids, s_mel_lens, t_mels
         )
 
-        return outs, outs_fine, logits, att_ws, t_mel_masks
+        return outs, outs_fine, logits, att_ws, t_mel_lens, t_mel_masks
+
+    def inference(
+        self,
+        ids,
+        s_sp_ids,
+        t_sp_ids,
+        s_em_ids,
+        t_em_ids,
+        s_mels,
+        s_mel_lens,
+        max_s_mel_len,
+        t_mels=None,
+        t_mel_lens=None,
+        max_t_mel_len=None,
+        max_synth_num=1000000,
+    ):
+        if t_mels is not None:
+            # 主にteacher forcingなしでloss計算するvalid用.
+            # mel_lenもあるのでbatch処理でよい.
+            outs, outs_fine, logits, att_ws, t_mel_lens_pre, t_mel_masks = self._inference(
+                ids,
+                s_sp_ids,
+                t_sp_ids,
+                s_em_ids,
+                t_em_ids,
+                s_mels,
+                s_mel_lens,
+                max_s_mel_len,
+                t_mels,
+                t_mel_lens,
+                max_t_mel_len,
+            )
+        else:
+            # 主にsynthesis用.
+            # 1つずつ処理する.
+            outs = []
+            outs_fine = []
+            logits = []
+            att_ws = []
+            t_mel_lens_pre = []
+
+            for idx in range(min(len(ids), max_synth_num)):
+                out, out_fine, logit, att_w, _, _ = self._inference(
+                    ids[idx],
+                    s_sp_ids[idx].unsqueeze(0),
+                    t_sp_ids[idx].unsqueeze(0),
+                    s_em_ids[idx].unsqueeze(0),
+                    t_em_ids[idx].unsqueeze(0),
+                    s_mels[idx].unsqueeze(0),
+                    s_mel_lens[idx].unsqueeze(0),
+                    s_mel_lens[idx],
+                )
+                outs.append(out.squeeze(0))
+                outs_fine.append(out_fine.squeeze(0))
+                logits.append(logit.squeeze(0))
+                att_ws.append(att_w.squeeze(0))
+                t_mel_lens_pre.append(out_fine.size(1))
+
+            t_mel_masks = make_pad_mask(t_mel_lens_pre, max(t_mel_lens_pre))
+            t_mel_lens_pre = torch.from_numpy(np.array(t_mel_lens_pre)).long().to(t_mel_masks.device)
+            outs = pad(outs)
+            outs_fine = pad(outs_fine)
+            logits = pad(logits)
+
+        return outs, outs_fine, logits, att_ws, t_mel_lens_pre, t_mel_masks
+
+    def _inference(
+        self,
+        ids,
+        s_sp_ids,
+        t_sp_ids,
+        s_em_ids,
+        t_em_ids,
+        s_mels,
+        s_mel_lens,
+        max_s_mel_len,
+        t_mels=None,
+        t_mel_lens=None,
+        max_t_mel_len=None,
+    ):
+        s_mels, s_mel_lens, t_mel_lens, t_mel_masks = self.init_forward(
+            s_mels, s_mel_lens, max_s_mel_len, t_mel_lens, max_t_mel_len
+        )
+        output = self.encoder_forward(
+            s_sp_ids, s_em_ids, s_mels, s_mel_lens,
+        )
+        outs, outs_fine, logits, att_ws = self.decoder_forward(
+            output, t_sp_ids, t_em_ids, s_mel_lens, t_mels, is_inference=True
+        )
+        return outs, outs_fine, logits, att_ws, t_mel_lens, t_mel_masks
 
 
 if __name__ == '__main__':
     # dummy test
-    from frontend.text import text_to_sequence
-    from vc_tts_template.utils import pad_1d
+    from vc_tts_template.train_utils import plot_attention
 
     model = Tacotron2VC(encoder_conv_layers=1, decoder_prenet_layers=1, decoder_layers=1,
                         postnet_layers=1, reduction_factor=3)
 
     def get_dummy_input():
-        # バッチサイズに 2 を想定して、適当な文字列を作成
-        seqs = [
-            text_to_sequence("What is your favorite language?"),
-            text_to_sequence("Hello world."),
-        ]
-        in_lens = torch.tensor([len(x) for x in seqs], dtype=torch.long)
-        max_len = max(len(x) for x in seqs)
-        seqs = torch.stack([torch.from_numpy(pad_1d(seq, max_len)) for seq in seqs])
+        # バッチサイズに 2 を想定.
+        ids = torch.zeros(2)
+        s_sp_ids = torch.zeros(2)
+        t_sp_ids = torch.zeros(2)
+        s_em_ids = torch.zeros(2)
+        t_em_ids = torch.zeros(2)
+        s_mels = torch.randn(2, 21, 80)
+        s_mel_lens = torch.LongTensor([21, 10])
+        max_s_mel_len = 21
+        t_mels = torch.randn(2, 30, 80)
+        t_mel_lens = torch.LongTensor([30, 15])
+        max_t_mel_len = 30
 
-        return seqs, in_lens
-
-    def get_dummy_inout():
-        seqs, in_lens = get_dummy_input()
-
-        # デコーダの出力（メルスペクトログラム）の教師データ
-        decoder_targets = torch.ones(2, 120, 80)
-
-        # stop token の教師データ
-        # stop token の予測値は確率ですが、教師データは 二値のラベルです
-        # 1 は、デコーダの出力が完了したことを表します
-        stop_tokens = torch.zeros(2, 120)
-        stop_tokens[:, -1:] = 1.0
-
-        return seqs, in_lens, decoder_targets, stop_tokens
-
-    # 適当な入出力を生成
-    seqs, in_lens, decoder_targets, stop_tokens = get_dummy_inout()
+        return (
+            ids,
+            s_sp_ids,
+            t_sp_ids,
+            s_em_ids,
+            t_em_ids,
+            s_mels,
+            s_mel_lens,
+            max_s_mel_len,
+            t_mels,
+            t_mel_lens,
+            max_t_mel_len,
+        )
 
     # Tacotron 2 の出力を計算
     # NOTE: teacher-forcing のため、 decoder targets を明示的に与える
-    outs, outs_fine, logits, att_ws = model(seqs, in_lens, decoder_targets)
+    outs, outs_fine, logits, att_ws, t_mel_masks = model(*get_dummy_input())
 
-    print("入力のサイズ:", tuple(seqs.shape))
     print("デコーダの出力のサイズ:", tuple(outs.shape))
     print("Stop token のサイズ:", tuple(logits.shape))
     print("アテンション重みのサイズ:", tuple(att_ws.shape))
+
+    fig = plot_attention(att_ws[0])
+    attn_selected = att_ws[0]
+    for idx, argmax_idx in enumerate(torch.argmax(attn_selected, dim=-1)):
+        attn_selected[idx, :] = 0
+        attn_selected[idx, argmax_idx] = 1
+
+    fig2 = plot_attention(attn_selected)
+    fig.savefig("tmp.png")
+    fig2.savefig("tmp2.png")
