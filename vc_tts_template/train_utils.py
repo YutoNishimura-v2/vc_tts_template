@@ -544,9 +544,10 @@ def setup(
     else:
         model = _several_model_loader(config, device, logger, checkpoint)
 
-    # 複数 GPU 対応
-    if config.data_parallel:  # type: ignore
-        model = nn.DataParallel(model)
+        # 複数 GPU 対応
+        if config.data_parallel:  # type: ignore
+            for k, v in model.items():
+                model[k] = nn.DataParallel(v)
 
     # Optimizer
     # 例: config.train.optim.optimizer.name = "Adam"なら,

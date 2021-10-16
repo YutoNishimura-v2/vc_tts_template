@@ -85,11 +85,11 @@ def tacotron2VC_eval_model(
         if phase == 'train':
             file_name = f"utt_{idx}"
 
-        mel_post = output[1][idx].cpu().data.numpy().T
         mel_len_pre = int(output[4][idx].item())
+        mel_post = output[1][idx][:mel_len_pre].cpu().data.numpy().T
 
-        mel_gt = batch[8][idx].cpu().data.numpy().T
         mel_len_gt = int(batch[9][idx].item())
+        mel_gt = batch[8][idx][:mel_len_gt].cpu().data.numpy().T
         audio_recon = vocoder_infer(batch[8][idx][:mel_len_gt].unsqueeze(0))[0]
         audio_synth = vocoder_infer(output[1][idx][:mel_len_pre].unsqueeze(0))[0]
 
@@ -101,7 +101,7 @@ def tacotron2VC_eval_model(
             group = f"{phase}/teacher_forcing"
 
         fig = plot_attention(att_w)
-        writer.add_figure(f"{group}/{file_name}", fig, step)
+        writer.add_figure(f"{group}/{file_name}_attention", fig, step)
         fig = plot_mels([mel_post, mel_gt], ["out_after_postnet", "out_ground_truth"])
         writer.add_figure(f"{group}/{file_name}", fig, step)
         if is_inference:

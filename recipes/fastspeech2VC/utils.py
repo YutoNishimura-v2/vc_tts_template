@@ -1,7 +1,67 @@
 from typing import Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pydub
+import joblib
+import torch
+import hydra
+from hydra.utils import to_absolute_path
+from omegaconf import OmegaConf
+
+from vc_tts_template.utils import adaptive_load_state_dict
+
+
+def get_alignment_model(
+    model_config_path: str, pretrained_checkpoint: str,
+    device: torch.device, in_scaler_path: str, out_scaler_path: str
+):
+    checkpoint = torch.load(to_absolute_path(pretrained_checkpoint), map_location=device)
+    model_config = OmegaConf.load(to_absolute_path(model_config_path))
+    model = hydra.utils.instantiate(model_config.netG).to(device)
+    adaptive_load_state_dict(model, checkpoint["state_dict"])
+    acoustic_in_scaler = joblib.load(to_absolute_path(in_scaler_path))
+    acoustic_out_scaler = joblib.load(to_absolute_path(out_scaler_path))
+    model.eval()
+    model.remove_weight_norm()
+
+    return model, acoustic_in_scaler, acoustic_out_scaler
+
+
+def get_alignment(
+    model, acoustic_in_scaler, acoustic_out_scaler, src_mel, tgt_mel,
+    s_sp_id=None, t_sp_id=None, s_em_id=None, t_em_id=None
+):
+    src_mel = acoustic_in_scaler.transform(src_mel)
+    tgt_mel = acoustic_out_scaler.transform(tgt_mel)
+    src_mel = torch.tensor(src_mel).unsqueeze(0).to(model.device)
+    src_mel_lens = torch.tensor([src_mel.size(1)]).to(model.device)
+    max_src_mel_len = src_mel.size(1)
+    tgt_mel = torch.tensor(tgt_mel).unsqueeze(0).to(model.device)
+    tgt_mel_lens = torch.tensor([tgt_mel.size(1)]).to(model.device)
+    max_tgt_mel_len = tgt_mel.size(1)
+
+    s_sp_id = model.speakers[s_sp_id] if s_sp_id is not None else 0
+    t_sp_id = model.speakers[t_sp_id] if t_sp_id is not None else 0
+    s_em_id = model.emotions[s_em_id] if s_em_id is not None else 0
+    t_em_id = model.emotions[t_em_id] if t_em_id is not None else 0
+
+    s_sp_ids = torch.tensor([s_sp_id], dtype=torch.long).to(model.device)
+    t_sp_ids = torch.tensor([t_sp_id], dtype=torch.long).to(model.device)
+    s_em_ids = torch.tensor([s_em_id], dtype=torch.long).to(model.device)
+    t_em_ids = torch.tensor([t_em_id], dtype=torch.long).to(model.device)
+
+    attn_w = model(
+        None, s_sp_ids, t_sp_ids, s_em_ids, t_em_ids,
+        src_mel, src_mel_lens, max_src_mel_len,
+        tgt_mel, tgt_mel_lens, max_tgt_mel_len
+    )[3][0].cpu().data.numpy()
+
+    # 対角にあるとかは関係なく, encoder軸から見てargmaxになったものの個数をただ数える.
+    # Fastspeech1の論文と同じ手法.
+    duration = [np.sum(np.argmax(attn_w, axis=-1) == i) for i in range(attn_w.shape[1])]
+
+    return np.array(duration)
 
 
 def pydub_to_np(audio: pydub.AudioSegment) -> Tuple[np.ndarray, int]:

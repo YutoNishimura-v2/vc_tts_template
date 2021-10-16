@@ -129,7 +129,7 @@ def preprocess(
         log_base=log_base,
     )
     tgt_mel = logmelspectrogram(
-        src_wav,
+        tgt_wav,
         sr,
         n_fft,
         hop_length,
