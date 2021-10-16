@@ -41,21 +41,22 @@ def get_alignment(
     tgt_mel_lens = torch.tensor([tgt_mel.size(1)]).to(model.device)
     max_tgt_mel_len = tgt_mel.size(1)
 
-    s_sp_id = model.speakers[s_sp_id] if s_sp_id is not None else 0
-    t_sp_id = model.speakers[t_sp_id] if t_sp_id is not None else 0
-    s_em_id = model.emotions[s_em_id] if s_em_id is not None else 0
-    t_em_id = model.emotions[t_em_id] if t_em_id is not None else 0
+    s_sp_id = model.speakers[s_sp_id] if model.speakers is not None else 0
+    t_sp_id = model.speakers[t_sp_id] if model.speakers is not None else 0
+    s_em_id = model.emotions[s_em_id] if model.emotions is not None else 0
+    t_em_id = model.emotions[t_em_id] if model.emotions is not None else 0
 
     s_sp_ids = torch.tensor([s_sp_id], dtype=torch.long).to(model.device)
     t_sp_ids = torch.tensor([t_sp_id], dtype=torch.long).to(model.device)
     s_em_ids = torch.tensor([s_em_id], dtype=torch.long).to(model.device)
     t_em_ids = torch.tensor([t_em_id], dtype=torch.long).to(model.device)
 
-    attn_w = model(
-        None, s_sp_ids, t_sp_ids, s_em_ids, t_em_ids,
-        src_mel, src_mel_lens, max_src_mel_len,
-        tgt_mel, tgt_mel_lens, max_tgt_mel_len
-    )[3][0].cpu().data.numpy()
+    with torch.no_grad():
+        attn_w = model(
+            None, s_sp_ids, t_sp_ids, s_em_ids, t_em_ids,
+            src_mel, src_mel_lens, max_src_mel_len,
+            tgt_mel, tgt_mel_lens, max_tgt_mel_len
+        )[3][0].cpu().data.numpy()
 
     # 対角にあるとかは関係なく, encoder軸から見てargmaxになったものの個数をただ数える.
     # Fastspeech1の論文と同じ手法.

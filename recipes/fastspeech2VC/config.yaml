@@ -55,6 +55,12 @@ reduction_factor: 3
 sentence_duration: 1
 # ↓use if sentence_duration > 0
 min_silence_len: 500
+
+# ↓if you set this, duration is calc by AR model
+model_config_path:
+pretrained_checkpoint:
+in_scaler_path:
+out_scaler_path:
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################

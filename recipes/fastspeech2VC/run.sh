@@ -90,7 +90,9 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
             --n_mel_channels $n_mel_channels --mel_fmin $mel_fmin --mel_fmax $mel_fmax \
             --clip $clip --log_base $log_base --is_continuous_pitch $is_continuous_pitch \
             --reduction_factor $reduction_factor  --sentence_duration $sentence_duration \
-            --min_silence_len $min_silence_len
+            --min_silence_len $min_silence_len \
+            --model_config_path $model_config_path --pretrained_checkpoint $pretrained_checkpoint \
+            --in_scaler_path $in_scaler_path --out_scaler_path $out_scaler_path
     done
     # preprocess実行時にのみcopyするようにする.
     mkdir -p $expdir/data
