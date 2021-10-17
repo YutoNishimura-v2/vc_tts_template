@@ -392,7 +392,7 @@ if __name__ == "__main__":
             tgt_wavs = []
             durations = []
             in_mel_pathes = list(in_mel_dir.glob("*.npy"))
-            for in_mel_path in enumerate(in_mel_pathes):
+            for in_mel_path in in_mel_pathes:
                 utt_id = in_mel_path.stem.replace("-feats", "")
                 _, tgt_wav = wavfile.read(out_dir / "tgt_wavs" / f"{utt_id}.wav")
                 if tgt_wav.dtype in [np.int16, np.int32]:
