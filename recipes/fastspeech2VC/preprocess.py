@@ -409,12 +409,12 @@ if __name__ == "__main__":
                         get_sentence_duration,
                         utt_id, tgt_wav, args.sample_rate, args.hop_length,
                         args.reduction_factor, args.min_silence_len,
-                        args.silence_thresh_t, duration
+                        args.silence_thresh_t, duration, return_utt_id=True
                     )
                     for utt_id, tgt_wav, duration in zip(utt_ids, tgt_wavs, durations)
                 ]
                 for future in tqdm(futures):
-                    src_sent_durations, tgt_sent_durations = future.result()
+                    utt_id, src_sent_durations, tgt_sent_durations = future.result()
                     np.save(
                         in_dir / "sent_duration" / f"{utt_id}-feats.npy",
                         src_sent_durations.astype(np.int16),

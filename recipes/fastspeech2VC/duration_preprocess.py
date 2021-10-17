@@ -161,7 +161,7 @@ def get_duration(
 
 def get_sentence_duration(
     utt_id, tgt_wav, sr, hop_length, reduction_factor,
-    min_silence_len, silence_thresh, duration
+    min_silence_len, silence_thresh, duration, return_utt_id=False
 ):
     src_reducted_mel_len = len(duration)
     tgt_reducted_mel_len = np.sum(duration)
@@ -224,4 +224,6 @@ def get_sentence_duration(
     """
     assert np.sum(src_sent_durations) == src_reducted_mel_len
 
+    if return_utt_id is True:
+        return utt_id, np.array(src_sent_durations), np.array(tgt_sent_durations)
     return np.array(src_sent_durations), np.array(tgt_sent_durations)

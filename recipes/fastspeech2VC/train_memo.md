@@ -51,6 +51,11 @@
         - min_silence_len: 500
         - reduction_factor: 3
         - durationをTacotron2のteacher forcingによって計算してみる.
+    - N2C_9(未作成)
+        - silence_thresh_t: -100
+        - min_silence_len: 50
+        - reduction_factor: 3
+        - durationをTacotron2のteacher forcingによって計算してみた.
 
 - tag
     - jsut_jsss_1
