@@ -88,12 +88,13 @@ def tacotron2VC_eval_model(
         mel_len_pre = int(output[4][idx].item())
         mel_post = output[1][idx][:mel_len_pre].cpu().data.numpy().T
 
+        src_mel_len = int(batch[6][idx].item())
         mel_len_gt = int(batch[9][idx].item())
         mel_gt = batch[8][idx][:mel_len_gt].cpu().data.numpy().T
         audio_recon = vocoder_infer(batch[8][idx][:mel_len_gt].unsqueeze(0))[0]
         audio_synth = vocoder_infer(output[1][idx][:mel_len_pre].unsqueeze(0))[0]
 
-        att_w = output[3][idx][:mel_len_pre // reduction_factor, :mel_len_gt // reduction_factor]
+        att_w = output[3][idx][:mel_len_pre // reduction_factor, :src_mel_len // reduction_factor]
 
         if is_inference:
             group = f"{phase}/inference"
@@ -102,6 +103,11 @@ def tacotron2VC_eval_model(
 
         fig = plot_attention(att_w)
         writer.add_figure(f"{group}/{file_name}_attention", fig, step)
+        for i, argmax_idx in enumerate(torch.argmax(att_w, dim=-1)):
+            att_w[i, :] = 0
+            att_w[i, argmax_idx] = 1
+        fig = plot_attention(att_w)
+        writer.add_figure(f"{group}/{file_name}_attention_argmax", fig, step)
         fig = plot_mels([mel_post, mel_gt], ["out_after_postnet", "out_ground_truth"])
         writer.add_figure(f"{group}/{file_name}", fig, step)
         if is_inference:
