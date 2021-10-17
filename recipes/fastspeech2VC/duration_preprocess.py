@@ -159,29 +159,6 @@ def get_duration(
     return duration
 
 
-def get_duration_wARmodel(
-    utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
-    fmin, fmax, clip_thresh, log_base, reduction_factor,
-    n_mel_channels, get_alignment
-):
-    src_mel = logmelspectrogram(
-        src_wav, sr, n_fft, hop_length, win_length,
-        n_mel_channels, fmin, fmax, clip=clip_thresh, log_base=log_base,
-        need_energy=False
-    )
-    tgt_mel = logmelspectrogram(
-        tgt_wav, sr, n_fft, hop_length, win_length,
-        n_mel_channels, fmin, fmax, clip=clip_thresh, log_base=log_base,
-        need_energy=False
-    )
-    duration = get_alignment(
-        src_mel=src_mel, tgt_mel=tgt_mel,
-        s_sp_id=utt_id.split("_")[0], t_sp_id=utt_id.split("_")[1],
-        s_em_id=utt_id.split("_")[-2], t_em_id=utt_id.split("_")[-1]
-    )
-    return duration
-
-
 def get_sentence_duration(
     utt_id, tgt_wav, sr, hop_length, reduction_factor,
     min_silence_len, silence_thresh, duration

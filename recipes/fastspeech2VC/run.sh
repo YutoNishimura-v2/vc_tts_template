@@ -92,7 +92,7 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
             --reduction_factor $reduction_factor  --sentence_duration $sentence_duration \
             --min_silence_len $min_silence_len \
             --model_config_path $model_config_path --pretrained_checkpoint $pretrained_checkpoint \
-            --in_scaler_path $in_scaler_path --out_scaler_path $out_scaler_path
+            --in_scaler_path $in_scaler_path --out_scaler_path $out_scaler_path --batch_size $fastspeech2_data_batch_size
     done
     # preprocess実行時にのみcopyするようにする.
     mkdir -p $expdir/data

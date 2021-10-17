@@ -46,6 +46,11 @@
         - min_silence_len: 500
         - reduction_factor: 3
         - N2C_6でなぜか80melで計算して爆死していたので, 20に戻して再挑戦.
+    - N2C_8
+        - silence_thresh_t: -100
+        - min_silence_len: 500
+        - reduction_factor: 3
+        - durationをTacotron2のteacher forcingによって計算してみる.
 
 - tag
     - jsut_jsss_1
@@ -336,6 +341,12 @@
         - 研究であれば、「じゃあきれいなデータを用意しろ」で済むけれど、これは僕の趣味用でもあり、プロダクト化も見据えている
             - なので, 可能ならノイズが多少あってもちゃんと動くようなものがいい.
         - そこで、原点回帰だけれど, Tacotron2VCを訓練して, そこからアライメントをとる方向にします.
+    - N2C_37
+        - spk: N2C_8
+        - pretrain: なし
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 3
+        - get_durationをTacotron2VCによるものとして計算してみる.
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.

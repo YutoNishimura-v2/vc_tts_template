@@ -31,7 +31,7 @@ def get_text_embeddings(input_txt_file_path, output_dir, BERT_weight, batch_size
     for i, (id_, text) in tqdm(enumerate(zip(file_names, texts))):
         batch_id.append(id_)
         batch_text.append(text)
-        if ((i+1) % batch_size) or (i == len(file_names)-1):
+        if ((i+1) % batch_size == 0) or (i == len(file_names)-1):
             output = model.encode(batch_text)
             for filename, text_emb in zip(batch_id, output):
                 np.save(

@@ -1,6 +1,6 @@
 import argparse
-from functools import partial
 import sys
+import shutil
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
@@ -8,12 +8,13 @@ import torch
 import librosa
 import numpy as np
 import pyworld as pw
+from scipy.io import wavfile
 from pydub import AudioSegment, silence
 
 sys.path.append("../..")
 from recipes.fastspeech2VC.utils import pydub_to_np, get_alignment_model, get_alignment
 from recipes.fastspeech2VC.duration_preprocess import (
-    get_duration_wARmodel, get_duration, get_sentence_duration
+    get_duration, get_sentence_duration
 )
 from scipy.interpolate import interp1d
 from tqdm import tqdm
@@ -50,6 +51,7 @@ def get_parser():
     parser.add_argument("--pretrained_checkpoint", type=str)
     parser.add_argument("--in_scaler_path", type=str)
     parser.add_argument("--out_scaler_path", type=str)
+    parser.add_argument("--batch_size", type=int)
     return parser
 
 
@@ -205,8 +207,6 @@ def preprocess(
     )
     if tgt_pitch is None:
         return None, tgt_wav_file
-    duration = get_duration(utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
-                            fmin, fmax, clip_thresh, log_base, reduction_factor)
 
     np.save(
         in_dir / "mel" / f"{utt_id}-feats.npy",
@@ -238,26 +238,33 @@ def preprocess(
         tgt_energy.astype(np.float32),
         allow_pickle=False,
     )
-    np.save(
-        out_dir / "duration" / f"{utt_id}-feats.npy",
-        duration.astype(np.int16),
-        allow_pickle=False,
-    )
-    if sentence_duration is True:
-        src_sent_durations, tgt_sent_durations = get_sentence_duration(
-            utt_id, tgt_wav, sr, hop_length, reduction_factor,
-            min_silence_len, silence_thresh_t, duration
-        )
+    if get_duration is not None:
+        duration = get_duration(utt_id, src_wav, tgt_wav, sr, n_fft, hop_length, win_length,
+                                fmin, fmax, clip_thresh, log_base, reduction_factor)
         np.save(
-            in_dir / "sent_duration" / f"{utt_id}-feats.npy",
-            src_sent_durations.astype(np.int16),
-            allow_pickle=False
-        )
-        np.save(
-            out_dir / "sent_duration" / f"{utt_id}-feats.npy",
-            tgt_sent_durations.astype(np.int16),
+            out_dir / "duration" / f"{utt_id}-feats.npy",
+            duration.astype(np.int16),
             allow_pickle=False,
         )
+        if sentence_duration is True:
+            src_sent_durations, tgt_sent_durations = get_sentence_duration(
+                utt_id, tgt_wav, sr, hop_length, reduction_factor,
+                min_silence_len, silence_thresh_t, duration
+            )
+            np.save(
+                in_dir / "sent_duration" / f"{utt_id}-feats.npy",
+                src_sent_durations.astype(np.int16),
+                allow_pickle=False
+            )
+            np.save(
+                out_dir / "sent_duration" / f"{utt_id}-feats.npy",
+                tgt_sent_durations.astype(np.int16),
+                allow_pickle=False,
+            )
+    else:
+        # 後で利用するので, tgt_wavを保存しておく.
+        (out_dir / "tgt_wavs").mkdir(parents=True, exist_ok=True)
+        wavfile.write(out_dir / "tgt_wavs" / f"{utt_id}.wav", sr, tgt_wav)
     return None, None
 
 
@@ -299,21 +306,7 @@ if __name__ == "__main__":
     failed_src_lst = []
     failed_tgt_lst = []
 
-    if args.model_config_path is not None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        model, acoustic_in_scaler, acoustic_out_scaler = get_alignment_model(
-            args.model_config_path, args.pretrained_checkpoint, device,
-            args.in_scaler_path, args.out_scaler_path
-        )
-        _get_alignment = partial(
-            get_alignment, model=model,
-            acoustic_in_scaler=acoustic_in_scaler, acoustic_out_scaler=acoustic_out_scaler
-        )
-        _get_duration = partial(
-            get_duration_wARmodel, n_mel_channels=args.n_mel_channels, get_alignment=_get_alignment
-        )
-    else:
-        _get_duration = get_duration
+    _get_duration = get_duration if args.model_config_path is None else None
 
     with ProcessPoolExecutor(args.n_jobs) as executor:
         futures = [
@@ -354,3 +347,83 @@ if __name__ == "__main__":
         f.writelines(failed_src_lst)
     with open(in_dir.parent / "failed_tgt_lst.txt", 'w') as f:
         f.writelines(failed_tgt_lst)
+
+    if args.model_config_path is not None:
+        # 最後にまとめて計算する.
+        print("calc duration with ARmodel!!")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        model, acoustic_in_scaler, acoustic_out_scaler = get_alignment_model(
+            args.model_config_path, args.pretrained_checkpoint, device,
+            args.in_scaler_path, args.out_scaler_path
+        )
+
+        batch_utt_id = []
+        batch_in_mel = []
+        batch_out_mel = []
+        in_mel_pathes = list(in_mel_dir.glob("*.npy"))
+        for i, in_mel_path in tqdm(enumerate(in_mel_pathes)):
+            out_mel_path = out_mel_dir / in_mel_path.name
+            in_mel = np.load(in_mel_path)
+            out_mel = np.load(out_mel_path)
+
+            batch_utt_id.append(in_mel_path.stem.replace("-feats", ""))
+            batch_in_mel.append(in_mel)
+            batch_out_mel.append(out_mel)
+            if ((i+1) % args.batch_size == 0) or (i == len(in_mel_pathes)-1):
+                s_sp_ids = [utt_id.split("_")[0] for utt_id in batch_utt_id]
+                t_sp_ids = [utt_id.split("_")[1] for utt_id in batch_utt_id]
+                s_em_ids = [utt_id.split("_")[-2] for utt_id in batch_utt_id]
+                t_em_ids = [utt_id.split("_")[-1] for utt_id in batch_utt_id]
+                durations = get_alignment(
+                    model, device, acoustic_in_scaler, acoustic_out_scaler,
+                    batch_in_mel, batch_out_mel,
+                    s_sp_ids, t_sp_ids, s_em_ids, t_em_ids
+                )
+                for i, duration in enumerate(durations):
+                    utt_id = batch_utt_id[i]
+                    np.save(
+                        out_dir / "duration" / f"{utt_id}-feats.npy",
+                        duration.astype(np.int16),
+                        allow_pickle=False,
+                    )
+        if args.sentence_duration > 0:
+            print("calc sentence durations!!")
+            utt_ids = []
+            tgt_wavs = []
+            durations = []
+            in_mel_pathes = list(in_mel_dir.glob("*.npy"))
+            for in_mel_path in enumerate(in_mel_pathes):
+                utt_id = in_mel_path.stem.replace("-feats", "")
+                _, tgt_wav = wavfile.read(out_dir / "tgt_wavs" / f"{utt_id}.wav")
+                if tgt_wav.dtype in [np.int16, np.int32]:
+                    tgt_wav = (tgt_wav / np.iinfo(tgt_wav.dtype).max).astype(np.float64)
+                duration = np.load(out_dir / "duration" / f"{utt_id}-feats.npy")
+
+                utt_ids.append(utt_id)
+                tgt_wavs.append(tgt_wav)
+                durations.append(duration)
+
+            with ProcessPoolExecutor(args.n_jobs) as executor:
+                futures = [
+                    executor.submit(
+                        get_sentence_duration,
+                        utt_id, tgt_wav, args.sample_rate, args.hop_length,
+                        args.reduction_factor, args.min_silence_len,
+                        args.silence_thresh_t, duration
+                    )
+                    for utt_id, tgt_wav, duration in zip(utt_ids, tgt_wavs, durations)
+                ]
+                for future in tqdm(futures):
+                    src_sent_durations, tgt_sent_durations = future.result()
+                    np.save(
+                        in_dir / "sent_duration" / f"{utt_id}-feats.npy",
+                        src_sent_durations.astype(np.int16),
+                        allow_pickle=False
+                    )
+                    np.save(
+                        out_dir / "sent_duration" / f"{utt_id}-feats.npy",
+                        tgt_sent_durations.astype(np.int16),
+                        allow_pickle=False,
+                    )
+            # 最後tmpフォルダは消しておく.
+            shutil.rmtree(str(out_dir / "tgt_wavs"))
