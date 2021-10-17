@@ -104,7 +104,7 @@ class Decoder(nn.Module):
         # デコーダの系列長を保持
         # 推論時は、エンコーダの系列長から経験的に上限を定める
         if decoder_targets is None:
-            max_decoder_time_steps = int(encoder_outs.shape[1] * 10.0)
+            max_decoder_time_steps = int(encoder_outs.shape[1] * 1.5)
         else:
             max_decoder_time_steps = decoder_targets.shape[1]
 
