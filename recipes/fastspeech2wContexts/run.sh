@@ -24,6 +24,7 @@ testsets=($eval_set)
 
 stage=0
 stop_stage=0
+local_dir=""
 
 . $COMMON_ROOT/parse_options.sh || exit 1;
 
@@ -104,7 +105,6 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
 fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
-    echo "stage 3: finetuning hifigan"
     xrun python train_hifigan.py model=$vocoder_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
@@ -129,20 +129,40 @@ fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     echo "stage 4: Training fastspeech2"
+    if [ ! -z ${local_dir} ]; then
+        echo "copy dataset to ${local_dir}"
+        # mkdir
+        # input data dirs
+        mkdir -p ${local_dir}$dump_norm_dir/$train_set/in_fastspeech2/
+        mkdir -p ${local_dir}$dump_norm_dir/$train_set/out_fastspeech2/
+        mkdir -p ${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2/
+        mkdir -p ${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/
+        mkdir -p ${local_dir}$dumpdir/${spk}_sr${sample_rate}/text_emb
+        # output data dirs
+        mkdir -p ${local_dir}$expdir/${acoustic_model}
+        mkdir -p ${local_dir}tensorboard/${expname}_${acoustic_model}
+
+        # copy data
+        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$train_set/in_fastspeech2/ ${local_dir}$dump_norm_dir/$train_set/in_fastspeech2/
+        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$train_set/out_fastspeech2/ ${local_dir}$dump_norm_dir/$train_set/out_fastspeech2/
+        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$dev_set/in_fastspeech2/ ${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2/
+        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$dev_set/out_fastspeech2/ ${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/
+        rsync -ah --no-i-r --info=progress2 $dumpdir/${spk}_sr${sample_rate}/text_emb/ ${local_dir}$dumpdir/${spk}_sr${sample_rate}/text_emb/
+    fi
     xrun python train_fastspeech2wContexts.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
-        data.train.in_dir=$dump_norm_dir/$train_set/in_fastspeech2/ \
-        data.train.out_dir=$dump_norm_dir/$train_set/out_fastspeech2/ \
+        data.train.in_dir=${local_dir}$dump_norm_dir/$train_set/in_fastspeech2/ \
+        data.train.out_dir=${local_dir}$dump_norm_dir/$train_set/out_fastspeech2/ \
         data.dev.utt_list=data/dev.list \
-        data.dev.in_dir=$dump_norm_dir/$dev_set/in_fastspeech2/ \
-        data.dev.out_dir=$dump_norm_dir/$dev_set/out_fastspeech2/ \
+        data.dev.in_dir=${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2/ \
+        data.dev.out_dir=${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/ \
         data.batch_size=$fastspeech2_data_batch_size \
         data.accent_info=$accent_info \
-        data.emb_dir=$dumpdir/${spk}_sr${sample_rate} \
+        data.emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/text_emb \
         data.dialogue_info=$dialogue_info \
-        train.out_dir=$expdir/${acoustic_model} \
-        train.log_dir=tensorboard/${expname}_${acoustic_model} \
+        train.out_dir=${local_dir}$expdir/${acoustic_model} \
+        train.log_dir=${local_dir}tensorboard/${expname}_${acoustic_model} \
         train.nepochs=$fastspeech2_train_nepochs \
         train.sampling_rate=$sample_rate \
         train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
@@ -158,6 +178,15 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     
     # save config
     cp -r conf/train_fastspeech2 $expdir/conf
+
+    if [ ! -z ${local_dir} ]; then
+        echo "copy results"
+        mkdir -p $expdir/${acoustic_model}
+        mkdir -p tensorboard/${expname}_${acoustic_model}
+
+        rsync -ah --no-i-r --info=progress2 ${local_dir}$expdir/${acoustic_model}/ $expdir/${acoustic_model}/
+        rsync -ah --no-i-r --info=progress2 ${local_dir}tensorboard/${expname}_${acoustic_model}/ tensorboard/${expname}_${acoustic_model}/
+    fi
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
