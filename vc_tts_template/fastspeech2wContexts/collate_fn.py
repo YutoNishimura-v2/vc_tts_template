@@ -147,7 +147,7 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
         out_energy_paths = [out_dir / "energy" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_duration_paths = [out_dir / "duration" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
 
-        text_emb_paths = list((emb_dir / "text_emb").glob("*.npy"))
+        text_emb_paths = list(emb_dir.glob("*.npy"))
 
         dataset = fastspeech2wContexts_Dataset(
             in_feats_paths,
