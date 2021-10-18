@@ -33,7 +33,7 @@ netG:
   # other
   n_mel_channel:
   encoder_fix: False
-  stats: 
+  stats: {"pitch_min": -0.8101340727883142, "pitch_max": 0.6807661116060764, "energy_min": -0.7406348586082458, "energy_max": 0.4284781515598297}
   speakers: {"JSUT": 0, "NICT": 1, "Teacher": 2, "MStudent": 3, "FStudent": 4}
   emotions:
   accent_info:
