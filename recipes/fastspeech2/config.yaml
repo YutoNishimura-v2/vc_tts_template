@@ -2,7 +2,7 @@
 spk: "LINE_4"
 
 # exp tag(for managing experiments)
-tag: "LINE_5"
+tag: "LINE_test"
 
 sample_rate: 22050
 
@@ -49,7 +49,7 @@ accent_info: 1
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wEmotion
+acoustic_model: fastspeech2forVC
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.

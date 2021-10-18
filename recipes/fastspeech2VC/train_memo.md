@@ -428,6 +428,19 @@
         - 実行時間: min/50epoch
         - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 50, reduction_factor: 3, pitch_AR: False
         - min_silence_len=200+pitchAR=Falseでうまくいったので、これも一応確かめておく.
+        - 結果:
+            - N2C_40と比べて, どっこいどっこい. この二つは得意不得意がありそう.
+            - まぁどちらでもよいといえばいいが, こちらでうまくいかせたい気持ちがあるので, 今後は200と50で比較していく.
+    - ここまでで, できる実験はあらかたやって、結果もある程度出せたと思われる.
+
+    - ここまでの大まかなまとめ
+        - pitchAR < wGMM
+            - ↑こちら二つは同居させず, wGMM onlyのがよい
+        - dtw < Tacotron2
+            - ↑これによってlen=50msのsnt_durationも作成可能に.
+
+    - あとは, pretrainのいいやり方を試してみて, sotaを作り上げてみる.
+    - 具体的には, [Voice Transformer Network: Sequence-to-Sequence Voice Conversion Using Transformer with Text-to-Speech Pretraining](https://aria3366.hatenablog.com/entry/2020/10/20/172807)
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.
