@@ -1,8 +1,8 @@
 # General settings.
-spk: "N2C_8"
+spk: "N2C_9"
 
 # exp tag(for managing experiments)
-tag: "N2C_37"
+tag: "N2C_43"
 
 sample_rate: 22050
 
@@ -29,7 +29,7 @@ tgt_wav_root: "downloads/N2C/target"
 
 n_jobs: 16
 
-train_num: 999
+train_num: 1000
 deveval_num: 180
 dev_num: 120
 eval_num: 60
@@ -54,7 +54,7 @@ reduction_factor: 3
 # ↓set 0 if you do not need sentence_duration
 sentence_duration: 1
 # ↓use if sentence_duration > 0
-min_silence_len: 500
+min_silence_len: 50
 
 # ↓if you set this, duration is calc by AR model
 model_config_path: ../tacotronVC/exp/N2C_sr22050_N2C_4/tacotron2VC/model.yaml

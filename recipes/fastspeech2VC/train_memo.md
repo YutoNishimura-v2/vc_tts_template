@@ -51,11 +51,16 @@
         - min_silence_len: 500
         - reduction_factor: 3
         - durationをTacotron2のteacher forcingによって計算してみる.
-    - N2C_9(未作成)
+    - N2C_9
         - silence_thresh_t: -100
         - min_silence_len: 50
         - reduction_factor: 3
         - durationをTacotron2のteacher forcingによって計算してみた.
+    - N2C_10
+        - silence_thresh_t: -100
+        - min_silence_len: 200
+        - reduction_factor: 3
+        - 適度なmin_silence_lenでやったらどうなるのか見てみる.
 
 - tag
     - jsut_jsss_1
@@ -349,15 +354,83 @@
     - N2C_37
         - spk: N2C_8
         - pretrain: なし
-        - 実行時間: min/50epoch
+        - 実行時間: 40min/50epoch
         - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 3
         - get_durationをTacotron2VCによるものとして計算してみる.
+        - 結果:
+            - 発話が割と改善されている(まだ少し漏れはある).
+            - prosodyも同等か改善という感じ(モノによっては大分マシになっている).
+            - 総合的には、改善！(lossは高いが...。)
+    - N2C_38
+        - spk: N2C_9
+        - pretrain: なし
+        - 実行時間: 40min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 50, reduction_factor: 3
+        - get_durationをTacotron2VCによるものとして計算してみる.
+        - 結果:
+            - 発話の崩れは完璧になくなった.
+            - その一方で, prosodyは問題点二つ
+                - durationがおかしい
+                    - 細かく区切ってそこ毎に制御しているので仕方ないか?
+                - pitchが全体的に低め
+                    - これは謎. なんで?
+            - 総合的には, 悪化と言えそう.
+                - durationを学習ありにしたりしたらマシになるか?
+                - pitchはよくわからんけど...。
+                - teacher forcingでも, 細かすぎるのが目立っていたので.
+    - N2C_39
+        - spk: N2C_8
+        - pretrain: なし
+        - 実行時間: 31min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 3, pitch_AR: False
+        - N2C_37にて, pitchがcontinuousになっていないのが気になったので, pitch_ARをFalseにしたらどうなるのかやってみる.
+    - N2C_40
+        - spk: N2C_10
+        - pretrain: なし
+        - 実行時間: 30min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 200, reduction_factor: 3, pitch_AR: False
+            - ある程度の細かさで試したらどうなるのか.
+        - 結果:
+            - loss: prosodyがヤバい. 暴れまくっている.
+            - 音質: かなり改善！！！めちゃくちゃexpressive
+                - 正直いいところしかなくない気がする.
+                - もちろんこれでも完ぺきではないが, それを言い出したら他はもっとミスがあるので.
+                - durationも改善されていた. N2C_41はいらないかも.
+            - やはり, 適度にwGMMをフル活用するのが一番よい結果になる.
+        - 結論: 今後はmin_silence_len=200で行く.
+    - N2C_41
+        - spk: N2C_8
+        - pretrain: なし
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 3, pitch_AR: False
+        - durationとenergyもstop grad flow=Trueにしてみる.
+        - 結果:
+            - loss: 微悪化? 当然ながらより学習は困難になるので.
+            - 音質: 改善!
+                - prosodyがより自然になっている(不自然にふらふらしていないという意味)
+                - 何よりdurationが自然!
+            - だだ, それに伴って(?) 少し感情を失ってしまっている印象がある.
+        - 結論: 手放しには褒められない. 正直どちらでもいいかも.
+        - 追記: duration問題はN2C_40で改善したので, 今後はN2C_40でいく. grad flowとかはそのまま.
+    - N2C_42
+        - spk: N2C_8
+        - pretrain: なし
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 3, pitch_AR: False
+        - すべてのgrad flowを逆にFalseにしてみる. 念のための実験.
+    - N2C_43
+        - spk: N2C_9
+        - pretrain: なし
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 50, reduction_factor: 3, pitch_AR: False
+        - min_silence_len=200+pitchAR=Falseでうまくいったので、これも一応確かめておく.
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.
 - N2C_23: batch_size: 32におけるpitchARの訓練. pre-train用.
 - N2C_30: wGMMの正しい初訓練(ELUで). 完全にN2C_23の上位互換. 成功.
 - N2C_33: 現状のsota. pitchAR+wGMM+pretrain
+- N2C_40: ↑さらなるsota. wGMM+min_silence_len=200
 
 ## 知見
 - silence_thresh_tは-80より-100のがよい(N2C_20)
@@ -433,6 +506,30 @@
     - pitchARくんもかなり大こけしているが、pitchARNARはやはり途中で切ってしまうことでテンションがガラッと変わったりしてしまい、不自然.
     - 実行時間も結局高速化！どころか逆に遅くなってしまっているし微妙すぎた.
     - 結論: 今後はpitchARでいく.
+
+- min_silence_lenは, 「細か過ぎず、適度な」方がよい
+    - N2C_37: min_silence_len=500
+    - N2C_38: min_silence_len=50
+    - 細かいことで, 発話は保存されやすくなった.
+    - その一方で, durationがバラバラだったり, pitchも.
+        - AR化しているのに...という感じだが, 実際はテンションバラバラという感じ.
+        - teacher forcingにすら細かいことでなんか変な感じになっている影響があった.
+        - 恐らく, 細かくなればなるほどコンテントリークが激しくなるのだろう.
+    - 諸々を考慮すると, 長い方が良さそう.
+    - 長い方の発話崩れは, pretrainによって改善するので問題なし.
+    - 結論: 今後は長い方で行く.
+    - 追記: 適度な長さで見たら, N2C_40, 滅茶苦茶よかった！！！
+    - 使う使わないメリット両取りって感じ. 今後はこれで行く.
+
+- wGMMの下では, PitchARは「いらない」。
+    - N2C_37: Tacotron2のdurationで, pitchAR=True
+    - N2C_39: pitchARのみFalse
+    - 明らかな改善でびっくりしている.
+    - 直感的にも, 二重にARは明らかに不要だし.
+    - pitchがARになっていない分, lossの伝播がすくない. そのため、情緒不安定みたいなことにあまりなっていないという感じ.
+        - 一方で, AR出なくなったためにpitchがゆらゆらしたりするマイナス面も.
+    - pitchARで訓練したものをpretrainとするととてもよさそうな予感
+    - 結論: wGMMの時は, pitchAR=Falseで.
 
 - get_duration時に使うmelの次元は, 20でも80でも変わらない
     - N2C_36で検証.
