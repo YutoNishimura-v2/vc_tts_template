@@ -418,6 +418,10 @@
         - 実行時間: min/50epoch
         - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 500, reduction_factor: 3, pitch_AR: False
         - すべてのgrad flowを逆にFalseにしてみる. 念のための実験.
+        - 比較対象はN2C_39
+        - だめ. 過学習の鬼.
+        - 結論: 
+            - 元パラメタは偉大. 今後もpitchのgradflowは止めよう.
     - N2C_43
         - spk: N2C_9
         - pretrain: なし

@@ -25,6 +25,41 @@ def make_dialogue_dict(dialogue_info):
     return utt2id, id2utt
 
 
+def get_path_from_uttid(utt_id, emb_paths):
+    answer = None
+    for path_ in emb_paths:
+        answer = path_
+        if utt_id in path_.name:
+            break
+    return answer
+
+
+def get_embs(utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use_hist_num: int):
+    current_d_id, current_in_d_id = utt2id[utt_id]
+    current_emb = np.load(get_path_from_uttid(utt_id, emb_paths))
+
+    range_ = range(int(current_in_d_id)-1, max(-1, int(current_in_d_id)-1-use_hist_num), -1)
+    hist_embs = []
+    hist_emb_len = 0
+    history_speakers = []
+    history_emotions = []
+    for hist_in_d_id in range_:
+        utt_id = id2utt[(current_d_id, str(hist_in_d_id))]
+        hist_embs.append(np.load(get_path_from_uttid(utt_id, emb_paths)))
+        history_speakers.append(utt_id.split('_')[0])
+        history_emotions.append(utt_id.split('_')[-1])
+        hist_emb_len += 1
+
+    for _ in range(use_hist_num - len(hist_embs)):
+        hist_embs.append(np.zeros_like(current_emb))
+        history_speakers.append("PAD")
+        history_emotions.append("PAD")
+    return (
+        np.array(current_emb), np.stack(hist_embs), hist_emb_len,
+        np.array(history_speakers), np.array(history_emotions)
+    )
+
+
 class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
     """Dataset for numpy files
 
@@ -86,39 +121,6 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             int: size of the dataset
         """
         return len(self.in_paths)
-
-    def get_embs(self, utt_id, emb_paths):
-        current_d_id, current_in_d_id = self.utt2id[utt_id]
-        current_emb = np.load(self.get_path_from_uttid(utt_id, emb_paths))
-
-        range_ = range(int(current_in_d_id)-1, max(-1, int(current_in_d_id)-1-self.use_hist_num), -1)
-        hist_embs = []
-        hist_emb_len = 0
-        history_speakers = []
-        history_emotions = []
-        for hist_in_d_id in range_:
-            utt_id = self.id2utt[(current_d_id, str(hist_in_d_id))]
-            hist_embs.append(np.load(self.get_path_from_uttid(utt_id, emb_paths)))
-            history_speakers.append(utt_id.split('_')[0])
-            history_emotions.append(utt_id.split('_')[-1])
-            hist_emb_len += 1
-
-        for _ in range(self.use_hist_num - len(hist_embs)):
-            hist_embs.append(np.zeros_like(current_emb))
-            history_speakers.append("PAD")
-            history_emotions.append("PAD")
-        return (
-            np.array(current_emb), np.stack(hist_embs), hist_emb_len,
-            np.array(history_speakers), np.array(history_emotions)
-        )
-
-    def get_path_from_uttid(self, utt_id, emb_paths):
-        answer = None
-        for path_ in emb_paths:
-            answer = path_
-            if utt_id in path_.name:
-                break
-        return answer
 
 
 def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data_utils.DataLoader]:
