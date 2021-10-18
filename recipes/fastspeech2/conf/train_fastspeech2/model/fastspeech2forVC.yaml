@@ -1,5 +1,5 @@
 netG:
-  _target_: vc_tts_template.fastspeech2forVC.FastSpeech2ForVC
+  _target_: vc_tts_template.fastspeech2.FastSpeech2ForVC
   max_seq_len: 1000
   num_vocab: 53
   # encoder

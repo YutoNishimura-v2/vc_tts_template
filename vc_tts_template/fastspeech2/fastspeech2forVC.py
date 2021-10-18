@@ -85,6 +85,10 @@ class FastSpeech2ForVC(nn.Module):
             n_bins,
             stats  # type: ignore
         )
+        self.before_decoder_linear = nn.Linear(
+            encoder_hidden_dim * self.reduction_factor,
+            decoder_hidden_dim,
+        )
         self.decoder = Decoder(
             decoder_hidden_dim, attention_dim, decoder_num_layer, decoder_num_head,
             conv_kernel_size, ff_expansion_factor, conv_expansion_factor,
@@ -141,11 +145,6 @@ class FastSpeech2ForVC(nn.Module):
             if mel_lens is not None
             else None
         )
-        if self.reduction_factor > 1:
-            if mel_lens is not None:
-                max_t_mel_len = max_mel_len // self.reduction_factor
-                mel_lens = torch.trunc(mel_lens / self.reduction_factor)
-                mel_masks = make_pad_mask(mel_lens, max_t_mel_len)
         return (
             src_lens,
             max_src_len,
@@ -188,6 +187,13 @@ class FastSpeech2ForVC(nn.Module):
         mel_lens,
         mel_masks,
     ):
+        if self.reduction_factor > 1:
+            mel_lens = torch.trunc(mel_lens / self.reduction_factor).long()
+            mel_masks = make_pad_mask(mel_lens)
+            output = output[:, :mel_masks.size(1) * self.reduction_factor]
+            output = output.contiguous().view(output.size(0), -1, output.size(2)*self.reduction_factor)
+        output = self.before_decoder_linear(output)
+
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
         if self.emotion_emb is not None:
