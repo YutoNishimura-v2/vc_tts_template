@@ -24,6 +24,7 @@ testsets=($eval_set)
 
 stage=0
 stop_stage=0
+local_dir=""
 
 . $COMMON_ROOT/parse_options.sh || exit 1;
 
@@ -159,18 +160,36 @@ fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     echo "stage 4: Training fastspeech2"
+    if [ ! -z ${local_dir} ]; then
+        echo "copy dataset to ${local_dir}"
+        # mkdir
+        # input data dirs
+        mkdir -p ${local_dir}$dump_norm_dir/$train_set/in_fastspeech2/
+        mkdir -p ${local_dir}$dump_norm_dir/$train_set/out_fastspeech2/
+        mkdir -p ${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2/
+        mkdir -p ${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/
+        # output data dirs
+        mkdir -p ${local_dir}$expdir/${acoustic_model}
+        mkdir -p ${local_dir}tensorboard/${expname}_${acoustic_model}
+
+        # copy data
+        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$train_set/in_fastspeech2/ ${local_dir}$dump_norm_dir/$train_set/in_fastspeech2/
+        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$train_set/out_fastspeech2/ ${local_dir}$dump_norm_dir/$train_set/out_fastspeech2/
+        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$dev_set/in_fastspeech2/ ${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2/
+        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$dev_set/out_fastspeech2/ ${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/
+    fi
     xrun python train_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
-        data.train.in_dir=$dump_norm_dir/$train_set/in_fastspeech2/ \
-        data.train.out_dir=$dump_norm_dir/$train_set/out_fastspeech2/ \
+        data.train.in_dir=${local_dir}$dump_norm_dir/$train_set/in_fastspeech2/ \
+        data.train.out_dir=${local_dir}$dump_norm_dir/$train_set/out_fastspeech2/ \
         data.dev.utt_list=data/dev.list \
-        data.dev.in_dir=$dump_norm_dir/$dev_set/in_fastspeech2/ \
-        data.dev.out_dir=$dump_norm_dir/$dev_set/out_fastspeech2/ \
+        data.dev.in_dir=${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2/ \
+        data.dev.out_dir=${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/ \
         data.batch_size=$fastspeech2_data_batch_size \
         data.accent_info=$accent_info \
-        train.out_dir=$expdir/${acoustic_model} \
-        train.log_dir=tensorboard/${expname}_${acoustic_model} \
+        train.out_dir=${local_dir}$expdir/${acoustic_model} \
+        train.log_dir=${local_dir}tensorboard/${expname}_${acoustic_model} \
         train.nepochs=$fastspeech2_train_nepochs \
         train.sampling_rate=$sample_rate \
         train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
@@ -186,15 +205,38 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     
     # save config
     cp -r conf/train_fastspeech2 $expdir/conf
+    if [ ! -z ${local_dir} ]; then
+        echo "copy results"
+        mkdir -p $expdir/${acoustic_model}
+        mkdir -p tensorboard/${expname}_${acoustic_model}
+
+        rsync -ah --no-i-r --info=progress2 ${local_dir}$expdir/${acoustic_model}/ $expdir/${acoustic_model}/
+        rsync -ah --no-i-r --info=progress2 ${local_dir}tensorboard/${expname}_${acoustic_model}/ tensorboard/${expname}_${acoustic_model}/
+    fi
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     echo "stage 5: Synthesis waveforms by hifigan"
+    if [ ! -z ${local_dir} ]; then
+        echo "copy dataset to ${local_dir}"
+        # mkdir
+        # input data dirs
+        for s in ${testsets[@]}; do
+            mkdir -p ${local_dir}$dump_norm_dir/$s/in_fastspeech2/
+            mkdir -p ${local_dir}$dump_norm_dir/$s/out_fastspeech2/mel
+            # output data dirs
+            mkdir -p ${local_dir}$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s/
+            # copy data
+            rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$s/in_fastspeech2/ ${local_dir}$dump_norm_dir/$s/in_fastspeech2/
+            rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$s/out_fastspeech2/mel/ ${local_dir}$dump_norm_dir/$s/out_fastspeech2/mel/
+        done
+    fi
+
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
-            in_dir=$dump_norm_dir/$s/in_fastspeech2 \
-            in_mel_dir=$dump_norm_dir/$s/out_fastspeech2/mel \
-            out_dir=$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s \
+            in_dir=${local_dir}$dump_norm_dir/$s/in_fastspeech2 \
+            in_mel_dir=${local_dir}$dump_norm_dir/$s/out_fastspeech2/mel \
+            out_dir=${local_dir}$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
             acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
@@ -205,6 +247,15 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     done
     # save config
     cp -r conf/synthesis $expdir/conf
+
+    if [ ! -z ${local_dir} ]; then
+        echo "copy results"
+        for s in ${testsets[@]}; do
+            mkdir -p $expdir/synthesis_${acoustic_model}_${vocoder_model}/$s/
+
+            rsync -ah --no-i-r --info=progress2 ${local_dir}$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s/ $expdir/synthesis_${acoustic_model}_${vocoder_model}/$s/
+        done
+    fi
 fi
 
 if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then

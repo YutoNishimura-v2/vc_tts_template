@@ -46,7 +46,9 @@ log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
 accent_info: 1
+# for with Contexts
 BERT_weight: "colorfulscoop/sbert-base-ja"
+use_hist_num: 10
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################

@@ -25,17 +25,17 @@ def make_dialogue_dict(dialogue_info):
     return utt2id, id2utt
 
 
-def get_path_from_uttid(utt_id, emb_paths):
-    answer = None
-    for path_ in emb_paths:
-        answer = path_
-        if utt_id in path_.name:
-            break
-    return answer
-
-
 def get_embs(utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use_hist_num: int):
     current_d_id, current_in_d_id = utt2id[utt_id]
+
+    def get_path_from_uttid(utt_id, emb_paths):
+        answer = None
+        for path_ in emb_paths:
+            answer = path_
+            if utt_id in path_.name:
+                break
+        return answer
+
     current_emb = np.load(get_path_from_uttid(utt_id, emb_paths))
 
     range_ = range(int(current_in_d_id)-1, max(-1, int(current_in_d_id)-1-use_hist_num), -1)
@@ -97,8 +97,9 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         Returns:
             tuple: input and target in numpy format
         """
-        current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions = self.get_embs(
-            self.in_paths[idx].name.replace("-feats.npy", ""), self.text_emb_paths
+        current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions = get_embs(
+            self.in_paths[idx].name.replace("-feats.npy", ""), self.text_emb_paths,
+            self.utt2id, self.id2utt, self.use_hist_num
         )
         return (
             self.in_paths[idx].name,
@@ -191,7 +192,7 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in ids])
         h_speakers = np.array([[speaker_dict[spk] for spk in speakers] for speakers in h_speakers])
     else:
-        raise ValueError("You Need emotion_dict")
+        raise ValueError("You Need speaker_dict")
     if emotion_dict is not None:
         emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
         h_emotions = np.array([[emotion_dict[emo] for emo in emotions] for emotions in h_emotions])
