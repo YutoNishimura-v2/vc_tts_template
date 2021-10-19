@@ -35,7 +35,7 @@ data:
   
   emb_dir:
   dialogue_info:
-  use_hist_num: 10
+  use_hist_num:
 
   # data loader
   num_workers: 5

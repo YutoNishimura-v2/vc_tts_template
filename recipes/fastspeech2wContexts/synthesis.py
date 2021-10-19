@@ -10,7 +10,10 @@ from omegaconf import DictConfig, OmegaConf
 from scipy.io import wavfile
 
 sys.path.append("../..")
-from vc_tts_template.fastspeech2.gen import synthesis
+from vc_tts_template.fastspeech2wContexts.gen import synthesis
+from vc_tts_template.fastspeech2wContexts.collate_fn import (
+    make_dialogue_dict, get_embs
+)
 from vc_tts_template.utils import load_utt_list, optional_tqdm
 
 
@@ -47,18 +50,35 @@ def my_app(config: DictConfig) -> None:
     out_dir = Path(to_absolute_path(config.out_dir))
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    # data prepare
     utt_ids = load_utt_list(to_absolute_path(config.utt_list))
     if config.reverse:
         utt_ids = utt_ids[::-1]
 
     lab_files = [in_dir / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
+
+    # read text embeddings
+    dialogue_info = to_absolute_path(config.dialogue_info)
+    utt2id, id2utt = make_dialogue_dict(dialogue_info)
+    text_emb_paths = list(Path(to_absolute_path(config.emb_dir)).glob("*.npy"))
+    use_hist_num = config.use_hist_num
+
+    context_embeddings = []
+    for utt_id in utt_ids:
+        current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions = get_embs(
+            utt_id, text_emb_paths,
+            utt2id, id2utt, use_hist_num
+        )
+        context_embeddings.append([current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions])
+
     if config.num_eval_utts is not None and config.num_eval_utts > 0:
         lab_files = lab_files[: config.num_eval_utts]
 
     # Run synthesis for each utt.
-    for lab_file in optional_tqdm(config.tqdm, desc="Utterance")(lab_files):
+    for lab_file, context_embedding in optional_tqdm(config.tqdm, desc="Utterance")(zip(lab_files, context_embeddings)):
         wav = synthesis(
-            device, lab_file, acoustic_config.netG.speakers, acoustic_config.netG.emotions,
+            device, lab_file, context_embedding,
+            acoustic_config.netG.speakers, acoustic_config.netG.emotions,
             acoustic_model, acoustic_out_scaler, vocoder_model
         )
 
