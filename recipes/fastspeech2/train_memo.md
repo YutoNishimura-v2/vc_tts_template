@@ -20,6 +20,9 @@
         - corpus評価用のwoITAKO_before_emotion.
         - accent info付き.
         - emotionを変えたのでdataをコピーしなおしていることに注意
+    
+    - JSUT_NICT_LINE
+        - VCのpretrain用の大規模TTS. textgrid.
 
 - exp
     - jsut_1
@@ -90,7 +93,11 @@
         - pretrain: None
         - +accent info + before_emotion
         - batch_size: 8
-
+    
+    - 以下は趣味のVC用.
+    - JSUT_NICT_LINE_1
+        - spk: JSUT_NICT_LINE
+        - pretrain用.
 
 ## 主要な実験
 

@@ -365,8 +365,18 @@ if __name__ == "__main__":
             out_mel_path = out_mel_dir / in_mel_path.name
             in_mel = np.load(in_mel_path)
             out_mel = np.load(out_mel_path)
+            utt_id = in_mel_path.stem.replace("-feats", "")
 
-            batch_utt_id.append(in_mel_path.stem.replace("-feats", ""))
+            if args.src_wav_root == args.tgt_wav_root:
+                duration = np.ones(len(in_mel)//args.reduction_factor)
+                np.save(
+                    out_dir / "duration" / f"{utt_id}-feats.npy",
+                    duration.astype(np.int16),
+                    allow_pickle=False,
+                )
+                continue
+
+            batch_utt_id.append(utt_id)
             batch_in_mel.append(in_mel)
             batch_out_mel.append(out_mel)
             if ((i+1) % args.batch_size == 0) or (i == len(in_mel_pathes)-1):
