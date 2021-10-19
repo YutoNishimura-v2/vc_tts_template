@@ -44,7 +44,8 @@ class fastspeech2VC(nn.Module):
         stop_gradient_flow_e: bool,
         reduction_factor: int,
         # other
-        encoder_fix: bool,
+        encoder_fix: bool = False,
+        decoder_fix: bool = False,
         pitch_AR: bool = False,
         pitch_ARNAR: bool = False,
         lstm_layers: int = 2,
@@ -72,6 +73,10 @@ class fastspeech2VC(nn.Module):
             conv_kernel_size, ff_expansion_factor, conv_expansion_factor,
             ff_dropout, attention_dropout, conv_dropout
         )
+        if decoder_fix is True:
+            for p in self.decoder.parameters():
+                p.requires_grad = False
+
         self.mel_linear_1 = nn.Linear(
             self.mel_num * self.reduction_factor,
             encoder_hidden_dim,
