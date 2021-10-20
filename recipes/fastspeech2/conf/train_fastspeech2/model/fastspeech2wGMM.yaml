@@ -1,7 +1,7 @@
 netG:
   _target_: vc_tts_template.fastspeech2wGMM.FastSpeech2wGMM
   max_seq_len: 1000
-  num_vocab: 52
+  num_vocab: 53
   # encoder
   encoder_hidden_dim: 256
   encoder_num_layer: 4
@@ -46,7 +46,7 @@ netG:
   # other
   encoder_fix: False
   global_prosody: True
-  stats: {"pitch_min": 70, "pitch_max": 750, "energy_min": 10, "energy_max": 27}
+  stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
   speakers:
   emotions:
   accent_info:

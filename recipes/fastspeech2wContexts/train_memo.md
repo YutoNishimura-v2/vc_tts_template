@@ -21,6 +21,6 @@
         - +accent+Emotion
         - 初実行. wEmotionは次かな?
     - LINE_wContext_3
-        - spk: LINE_wContext
+        - spk: LINE_wContext_2
         - pretrain: None
         - +accent+before_Emotion

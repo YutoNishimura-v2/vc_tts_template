@@ -102,6 +102,10 @@
         - +accent info + before_emotion
         - batch_size: 8
     
+    - LINE_Teacher_1
+        - spk: LINE_Teacher
+        - pretrain: None
+    
     - 以下は趣味のVC用.
     - JSUT_NICT_LINE_1
         - spk: JSUT_NICT_LINE

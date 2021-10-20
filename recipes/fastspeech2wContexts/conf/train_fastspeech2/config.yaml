@@ -86,5 +86,5 @@ train:
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
     # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
-    checkpoint:
-    optimizer_reset:
+    checkpoint: exp/LINE_wContext_2_sr22050_LINE_wContext_3/fastspeech2wContexts/latest.pth
+    optimizer_reset: False

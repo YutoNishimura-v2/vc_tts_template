@@ -141,6 +141,8 @@ fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
     echo "stage 3: finetuning hifigan"
+    # save config
+    cp -r conf/train_hifigan $expdir/conf
     xrun python train_hifigan.py model=$vocoder_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
@@ -158,13 +160,12 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
         train.out_dir=$expdir/${vocoder_model} \
         train.log_dir=tensorboard/${expname}_${vocoder_model} \
         train.nepochs=$hifigan_train_nepochs
-
-    # save config
-    cp -r conf/train_hifigan $expdir/conf
 fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     echo "stage 4: Training fastspeech2VC"
+    # save config
+    cp -r conf/train_fastspeech2VC $expdir/conf
     xrun python train_fastspeech2VC.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
@@ -185,13 +186,12 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         train.vocoder_weight_path=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
         model.netG.n_mel_channel=$n_mel_channels \
         model.netG.reduction_factor=$reduction_factor
-    
-    # save config
-    cp -r conf/train_fastspeech2VC $expdir/conf
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     echo "stage 5: Synthesis waveforms by hifigan"
+    # save config
+    cp -r conf/synthesis $expdir/conf
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
             in_dir=$dump_norm_dir/$s/in_fastspeech2VC \
@@ -205,12 +205,12 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             vocoder.model_yaml=$vocoder_config \
             reverse=$reverse num_eval_utts=$num_eval_utts
     done
-    # save config
-    cp -r conf/synthesis $expdir/conf
 fi
 
 if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
     echo "Tuning fastspeech2VC by optuna"
+    # save config
+    cp -r conf/train_fastspeech2VC $expdir/conf
     mkdir -p $expdir/${acoustic_model}
 
     xrun python tuning_fastspeech2VC.py model=$acoustic_model tqdm=$tqdm \
@@ -235,8 +235,6 @@ if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
         train.vocoder_weight_path=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
         model.netG.n_mel_channel=$n_mel_channels \
         model.netG.reduction_factor=$reduction_factor
-    # save config
-    cp -r conf/train_fastspeech2VC $expdir/conf
 fi
 
 if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ]; then
