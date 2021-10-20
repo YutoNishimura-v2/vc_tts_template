@@ -457,6 +457,12 @@
                 - durationの中身が固定されてしまっている以上, pitchの方を合わせに行くべき.
                 - mel < pitch: この時は, reductionの時に削ってくれるので問題なし.
                 - mel > pitch: これがエラー起こるので, reprocessにてs_mel_max_lenでpadすることで対処.
+    - N2C_44
+        - spk: N2C_9
+        - pretrain: JSUT_NICT_LINE_1
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 50, reduction_factor: 3, pitch_AR: False
+        - 結果:
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.

@@ -48,6 +48,7 @@ netG:
   reduction_factor:
 
   encoder_fix: False
+  decoder_fix: False
   global_prosody: True
   pitch_AR: False
   pitch_ARNAR: False

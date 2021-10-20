@@ -1,8 +1,8 @@
 # General settings.
-spk: "JSUT_NICT_LINE"
+spk: "N2C_9"
 
 # exp tag(for managing experiments)
-tag: "JSUT_NICT_LINE_1"
+tag: "N2C_44"
 
 sample_rate: 22050
 
@@ -24,8 +24,8 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-src_wav_root: "../../../dataset/out_JSUT_NICT_LINE_for_VC/JSUT_NICT_LINE_for_VC/wav/22050"
-tgt_wav_root: "../../../dataset/out_JSUT_NICT_LINE_for_VC/JSUT_NICT_LINE_for_VC/wav/22050"
+src_wav_root: "recipes/fastspeech2VC/downloads/N2C/source"
+tgt_wav_root: "recipes/fastspeech2VC/downloads/N2C/target"
 
 n_jobs: 16
 
@@ -65,7 +65,7 @@ out_scaler_path: ../tacotronVC/dump/N2C_sr22050/norm/out_tacotron2VC_scaler.jobl
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2VCwGMMforPre
+acoustic_model: fastspeech2VCwGMM
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
@@ -74,7 +74,7 @@ vocoder_weight_base_path: "exp/N2C_sr22050_N2C_2/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 200
+fastspeech2_train_nepochs: 500
 fastspeech2_data_batch_size: 32
 
 ### hifigan ###
