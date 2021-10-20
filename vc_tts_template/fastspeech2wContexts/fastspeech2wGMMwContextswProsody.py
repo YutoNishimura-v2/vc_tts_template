@@ -4,6 +4,7 @@ import torch.nn as nn
 
 from vc_tts_template.fastspeech2wGMM.fastspeech2wGMM import FastSpeech2wGMM
 from vc_tts_template.fastspeech2wContexts.context_encoder import ConversationalProsodyContextEncoder
+from vc_tts_template.fastspeech2wContexts.prosody_model import ProsodyPredictorwAttention
 
 
 class fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
@@ -26,7 +27,6 @@ class fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         context_num_layer: int,
         context_encoder_dropout: float,
         text_emb_dim: int,
-        prosody_emb_size: int,
         g_prosody_emb_size: int,
         # prosody extractor
         prosody_emb_dim: int,
@@ -46,6 +46,10 @@ class fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         global_gru_n_layers: int,
         global_d_gru: int,
         global_num_gaussians: int,
+        prosody_emb_size: int,
+        attention_hidden_dim: int,
+        attention_conv_channels: int,
+        attention_conv_kernel_size: int,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -140,6 +144,26 @@ class fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
             g_prosody_emb_size=g_prosody_emb_size,
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
+        )
+        self.prosody_predictor = ProsodyPredictorwAttention(
+            encoder_hidden_dim,
+            gru_hidden_dim,
+            prosody_emb_dim,
+            pp_conv_out_channels,
+            conv_kernel_size=pp_conv_kernel_size,
+            conv_n_layers=pp_conv_n_layers,
+            conv_dropout=pp_conv_dropout,
+            gru_layers=gru_n_layers,
+            zoneout=pp_zoneout,
+            num_gaussians=num_gaussians,
+            global_prosody=global_prosody,
+            global_gru_layers=global_gru_n_layers,
+            global_d_gru=global_d_gru,
+            global_num_gaussians=global_num_gaussians,
+            h_prosody_emb_size=prosody_emb_size,
+            attention_hidden_dim=attention_hidden_dim,
+            attention_conv_channels=attention_conv_channels,
+            attention_conv_kernel_size=attention_conv_kernel_size,
         )
 
     def contexts_forward(
