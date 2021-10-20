@@ -136,6 +136,8 @@ fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
     echo "stage 3: finetuning hifigan"
+    # save config
+    cp -r conf/train_hifigan $expdir/conf
     xrun python train_hifigan.py model=$vocoder_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
@@ -153,30 +155,37 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
         train.out_dir=$expdir/${vocoder_model} \
         train.log_dir=tensorboard/${expname}_${vocoder_model} \
         train.nepochs=$hifigan_train_nepochs
-
-    # save config
-    cp -r conf/train_hifigan $expdir/conf
 fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     echo "stage 4: Training fastspeech2"
+    # save config
+    cp -r conf/train_fastspeech2 $expdir/conf
     if [ ! -z ${local_dir} ]; then
         echo "copy dataset to ${local_dir}"
-        # mkdir
-        # input data dirs
-        mkdir -p ${local_dir}$dump_norm_dir/$train_set/in_fastspeech2/
-        mkdir -p ${local_dir}$dump_norm_dir/$train_set/out_fastspeech2/
-        mkdir -p ${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2/
-        mkdir -p ${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/
-        # output data dirs
-        mkdir -p ${local_dir}$expdir/${acoustic_model}
-        mkdir -p ${local_dir}tensorboard/${expname}_${acoustic_model}
-
         # copy data
-        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$train_set/in_fastspeech2/ ${local_dir}$dump_norm_dir/$train_set/in_fastspeech2/
-        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$train_set/out_fastspeech2/ ${local_dir}$dump_norm_dir/$train_set/out_fastspeech2/
-        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$dev_set/in_fastspeech2/ ${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2/
-        rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$dev_set/out_fastspeech2/ ${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/
+        # first zip
+        if [ ! -e ${dump_norm_dir}/${train_set}/in_fastspeech2.zip ]; then
+            echo "zip ${dump_norm_dir}/${train_set}/in_fastspeech2.zip"
+            zip -rq ${dump_norm_dir}/${train_set}/in_fastspeech2.zip $dump_norm_dir/$train_set/in_fastspeech2/
+        fi
+        if [ ! -e ${dump_norm_dir}/${train_set}/out_fastspeech2.zip ]; then
+            echo "zip ${dump_norm_dir}/${train_set}/out_fastspeech2.zip"
+            zip -rq ${dump_norm_dir}/${train_set}/out_fastspeech2.zip $dump_norm_dir/$train_set/out_fastspeech2/
+        fi
+        if [ ! -e ${dump_norm_dir}/${dev_set}/in_fastspeech2.zip ]; then
+            echo "zip ${dump_norm_dir}/${dev_set}/in_fastspeech2.zip"
+            zip -rq ${dump_norm_dir}/${dev_set}/in_fastspeech2.zip $dump_norm_dir/$dev_set/in_fastspeech2/
+        fi
+        if [ ! -e ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip ]; then
+            echo "zip ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip"
+            zip -rq ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip $dump_norm_dir/$dev_set/out_fastspeech2/
+        fi
+        # unzip
+        unzip -q  -d ${local_dir} ${dump_norm_dir}/${train_set}/in_fastspeech2.zip
+        unzip -q  -d ${local_dir} ${dump_norm_dir}/${train_set}/out_fastspeech2.zip
+        unzip -q -d ${local_dir} ${dump_norm_dir}/${dev_set}/in_fastspeech2.zip
+        unzip -q -d ${local_dir} ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip
     fi
     xrun python train_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
@@ -202,9 +211,6 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         model.netG.energy_feature_level=$energy_phoneme_averaging \
         model.netG.n_mel_channel=$n_mel_channels \
         model.netG.accent_info=$accent_info
-    
-    # save config
-    cp -r conf/train_fastspeech2 $expdir/conf
     if [ ! -z ${local_dir} ]; then
         echo "copy results"
         mkdir -p $expdir/${acoustic_model}
@@ -217,18 +223,22 @@ fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     echo "stage 5: Synthesis waveforms by hifigan"
+    # save config
+    cp -r conf/synthesis $expdir/conf
     if [ ! -z ${local_dir} ]; then
         echo "copy dataset to ${local_dir}"
-        # mkdir
         # input data dirs
         for s in ${testsets[@]}; do
-            mkdir -p ${local_dir}$dump_norm_dir/$s/in_fastspeech2/
-            mkdir -p ${local_dir}$dump_norm_dir/$s/out_fastspeech2/mel
-            # output data dirs
-            mkdir -p ${local_dir}$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s/
-            # copy data
-            rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$s/in_fastspeech2/ ${local_dir}$dump_norm_dir/$s/in_fastspeech2/
-            rsync -ah --no-i-r --info=progress2 $dump_norm_dir/$s/out_fastspeech2/mel/ ${local_dir}$dump_norm_dir/$s/out_fastspeech2/mel/
+            if [ ! -e $dump_norm_dir/$s/in_fastspeech2.zip ]; then
+                echo "zip $dump_norm_dir/$s/in_fastspeech2.zip"
+                zip -rq $dump_norm_dir/$s/in_fastspeech2.zip $dump_norm_dir/$s/in_fastspeech2/
+            fi
+            if [ ! -e $dump_norm_dir/$s/out_fastspeech2/mel.zip ]; then
+                echo "zip $dump_norm_dir/$s/out_fastspeech2/mel.zip"
+                zip -rq $dump_norm_dir/$s/out_fastspeech2/mel.zip $dump_norm_dir/$s/out_fastspeech2/mel
+            fi
+            unzip -q  -d ${local_dir} $dump_norm_dir/$s/in_fastspeech2.zip
+            unzip -q  -d ${local_dir} $dump_norm_dir/$s/out_fastspeech2/mel.zip
         done
     fi
 
@@ -245,8 +255,6 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             vocoder.model_yaml=$vocoder_config \
             reverse=$reverse num_eval_utts=$num_eval_utts
     done
-    # save config
-    cp -r conf/synthesis $expdir/conf
 
     if [ ! -z ${local_dir} ]; then
         echo "copy results"
@@ -260,6 +268,8 @@ fi
 
 if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
     echo "Tuning fastspeech2 by optuna"
+    # save config
+    cp -r conf/train_fastspeech2 $expdir/conf
     mkdir -p $expdir/${acoustic_model}
 
     xrun python tuning_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
@@ -288,9 +298,6 @@ if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
         model.netG.energy_feature_level=$energy_phoneme_averaging \
         model.netG.n_mel_channel=$n_mel_channels \
         model.netG.accent_info=$accent_info
-    
-    # save config
-    cp -r conf/train_fastspeech2 $expdir/conf
 fi
 
 if [ ${stage} -le 98 ] && [ ${stop_stage} -ge 98 ]; then
