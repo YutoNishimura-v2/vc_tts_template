@@ -158,7 +158,8 @@ def pad_1d(x: Union[np.ndarray, List], max_len: Optional[int] = None, constant_v
         return x
 
     if type(x) is list:
-        max_len = max((len(x_) for x_ in x))
+        if max_len is None:
+            max_len = max((len(x_) for x_ in x))
         x = np.stack([pad(x_, max_len, constant_values) for x_ in x])
     elif type(x) is np.ndarray:
         assert max_len is not None, "you cant pad without maxlen"

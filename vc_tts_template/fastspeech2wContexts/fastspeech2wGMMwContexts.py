@@ -178,6 +178,8 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
         h_txt_emb_lens,
         h_speakers,
         h_emotions,
+        h_prosody_emb=None,
+        h_g_prosody_embs=None,
         mels=None,
         mel_lens=None,
         max_mel_len=None,

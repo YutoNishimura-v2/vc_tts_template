@@ -179,6 +179,7 @@ class VarianceAdaptor(nn.Module):
 
     def reshape_with_reduction_factor(self, x, max_len):
         assert len(x.size()) == 2
+        assert max_len*self.reduction_factor <= x.size(1), f"{max_len*self.reduction_factor}, {x.size(1)}"
         x = x[:, :max_len*self.reduction_factor]
         x = x.unsqueeze(-1).contiguous().view(x.size(0), -1, self.reduction_factor)
         return x

@@ -23,6 +23,14 @@
     
     - JSUT_NICT_LINE
         - VCのpretrain用の大規模TTS. textgrid.
+    
+    - LINE_Teacher
+        - wContexts用に, ProsodyExtractorを学習するためのコーパス
+        - +accent info, +ITAKO
+    - LINE_MStudent
+        - 同様
+    - LINE_FStudent
+        - 同様
 
 - exp
     - jsut_1

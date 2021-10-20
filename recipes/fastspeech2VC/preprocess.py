@@ -153,6 +153,9 @@ def process_utterance(wav, sr, n_fft, hop_length, win_length,
 
     pitch = np.log(pitch+1e-6)
 
+    if (len(mel_spectrogram) != len(pitch)) or (len(mel_spectrogram) != len(energy)):
+        return None, None, None
+
     return (
         mel_spectrogram,  # (T, mel)
         pitch,
