@@ -25,7 +25,10 @@ def make_dialogue_dict(dialogue_info):
     return utt2id, id2utt
 
 
-def get_embs(utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use_hist_num: int):
+def get_embs(
+    utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use_hist_num: int,
+    start_index: int = 0, only_latest: bool = False
+):
     current_d_id, current_in_d_id = utt2id[utt_id]
 
     def get_path_from_uttid(utt_id, emb_paths):
@@ -38,7 +41,7 @@ def get_embs(utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use
 
     current_emb = np.load(get_path_from_uttid(utt_id, emb_paths))
 
-    range_ = range(int(current_in_d_id)-1, max(-1, int(current_in_d_id)-1-use_hist_num), -1)
+    range_ = range(int(current_in_d_id)-1, max(start_index-1, int(current_in_d_id)-1-use_hist_num), -1)
     hist_embs = []
     hist_emb_len = 0
     history_speakers = []
@@ -54,8 +57,13 @@ def get_embs(utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use
         hist_embs.append(np.zeros_like(current_emb))
         history_speakers.append("PAD")
         history_emotions.append("PAD")
+
+    if only_latest is True:
+        hist_embs = hist_embs[0]
+    else:
+        hist_embs = np.stack(hist_embs)  # type: ignore
     return (
-        np.array(current_emb), np.stack(hist_embs), hist_emb_len,
+        np.array(current_emb), hist_embs, hist_emb_len,
         np.array(history_speakers), np.array(history_emotions)
     )
 
@@ -77,6 +85,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         out_duration_paths: List,
         dialogue_info: Path,
         text_emb_paths: List,
+        prosody_emb_paths: List,
+        g_prosody_emb_paths: List,
         use_hist_num: int,
     ):
         self.in_paths = in_paths
@@ -86,6 +96,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         self.out_duration_paths = out_duration_paths
         self.utt2id, self.id2utt = make_dialogue_dict(dialogue_info)
         self.text_emb_paths = text_emb_paths
+        self.prosody_emb_paths = prosody_emb_paths
+        self.g_prosody_emb_paths = g_prosody_emb_paths
         self.use_hist_num = use_hist_num
 
     def __getitem__(self, idx: int):
@@ -101,6 +113,21 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             self.in_paths[idx].name.replace("-feats.npy", ""), self.text_emb_paths,
             self.utt2id, self.id2utt, self.use_hist_num
         )
+        if len(self.prosody_emb_paths) > 0:
+            _, history_prosody_embs, _, _, _ = get_embs(
+                self.in_paths[idx].name.replace("-feats.npy", ""), self.prosody_emb_paths,
+                self.utt2id, self.id2utt, self.use_hist_num, start_index=1, only_latest=True
+            )
+            history_prosody_emb = history_prosody_embs[0]  # only use latest one.
+            assert len(self.g_prosody_emb_paths) > 0, "this mode require global prosody"
+            _, history_g_prosody_embs, _, _, _ = get_embs(
+                self.in_paths[idx].name.replace("-feats.npy", ""), self.g_prosody_emb_paths,
+                self.utt2id, self.id2utt, self.use_hist_num, start_index=1
+            )
+        else:
+            history_prosody_emb = None
+            history_g_prosody_embs = None
+
         return (
             self.in_paths[idx].name,
             np.load(self.in_paths[idx]),
@@ -113,6 +140,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             hist_emb_len,
             history_speakers,
             history_emotions,
+            history_prosody_emb,
+            history_g_prosody_embs,
         )
 
     def __len__(self):
@@ -142,6 +171,7 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
         out_dir = Path(to_absolute_path(data_config[phase].out_dir))
 
         emb_dir = Path(to_absolute_path(data_config.emb_dir))  # type:ignore
+        prosody_emb_dir = Path(to_absolute_path(data_config.prosody_emb_dir))  # type:ignore
         dialogue_info = Path(to_absolute_path(data_config.dialogue_info))  # type:ignore
 
         in_feats_paths = [in_dir / f"{utt_id}-feats.npy" for utt_id in utt_ids]
@@ -151,6 +181,8 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
         out_duration_paths = [out_dir / "duration" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
 
         text_emb_paths = list(emb_dir.glob("*.npy"))
+        prosody_emb_paths = list((prosody_emb_dir / "prosody_emb").glob("*.npy"))
+        g_prosody_emb_paths = list((prosody_emb_dir / "g_prosody_emb").glob("*.npy"))
 
         dataset = fastspeech2wContexts_Dataset(
             in_feats_paths,
@@ -160,6 +192,8 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
             out_duration_paths,
             dialogue_info,
             text_emb_paths,
+            prosody_emb_paths,
+            g_prosody_emb_paths,
             use_hist_num=data_config.use_hist_num  # type:ignore
         )
         data_loaders[phase] = data_utils.DataLoader(
@@ -186,6 +220,8 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     h_txt_emb_lens = [batch[idx][8] for idx in idxs]
     h_speakers = [batch[idx][9] for idx in idxs]
     h_emotions = [batch[idx][10] for idx in idxs]
+    h_prosody_emb = [batch[idx][11] for idx in idxs]
+    h_g_prosody_embs = [batch[idx][12] for idx in idxs]
 
     ids = np.array([fname.replace("-feats.npy", "") for fname in file_names])
     if speaker_dict is not None:
@@ -210,7 +246,7 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     pitches = pad_1d(pitches)
     energies = pad_1d(energies)
     durations = pad_1d(durations)
-    c_txt_embs = np.array(c_txt_embs)
+    h_prosody_emb = pad_2d(h_prosody_emb) if h_prosody_emb[0] is not None else None
 
     return (
         ids,
@@ -225,11 +261,13 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         pitches,
         energies,
         durations,
-        c_txt_embs,
+        np.array(c_txt_embs),
         np.array(h_txt_embs),
         np.array(h_txt_emb_lens),
         h_speakers,
         h_emotions,
+        h_prosody_emb,
+        np.array(h_g_prosody_embs) if h_g_prosody_embs[0] is not None else None,
     )
 
 

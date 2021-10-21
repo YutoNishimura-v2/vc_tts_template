@@ -1,8 +1,8 @@
 # General settings.
-spk: "JSUT_NICT_LINE"
+spk: "JSUT_NICT_LINE_2"
 
 # exp tag(for managing experiments)
-tag: "JSUT_NICT_LINE_1"
+tag: "JSUT_NICT_LINE_2"
 
 sample_rate: 22050
 
@@ -54,7 +54,7 @@ reduction_factor: 3
 # ↓set 0 if you do not need sentence_duration
 sentence_duration: 1
 # ↓use if sentence_duration > 0
-min_silence_len: 50
+min_silence_len: 200
 
 # ↓if you set this, duration is calc by AR model
 model_config_path: ../tacotronVC/exp/N2C_sr22050_N2C_4/tacotron2VC/model.yaml

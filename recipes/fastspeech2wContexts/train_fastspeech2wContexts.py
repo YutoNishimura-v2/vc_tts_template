@@ -35,6 +35,8 @@ def to_device(data, phase, device):
         h_txt_emb_lens,
         h_speakers,
         h_emotions,
+        h_prosody_emb,
+        h_g_prosody_embs,
     ) = data
     speakers = torch.from_numpy(speakers).long().to(device, non_blocking=True)
     emotions = torch.from_numpy(emotions).long().to(device, non_blocking=True)
@@ -51,6 +53,10 @@ def to_device(data, phase, device):
     h_speakers = torch.from_numpy(h_speakers).long().to(device, non_blocking=True)
     h_emotions = torch.from_numpy(h_emotions).long().to(device, non_blocking=True)
 
+    if h_prosody_emb is not None:
+        h_prosody_emb = torch.from_numpy(h_prosody_emb).float().to(device, non_blocking=True)
+        h_g_prosody_embs = torch.from_numpy(h_g_prosody_embs).float().to(device, non_blocking=True)
+
     return (
         ids,
         speakers,
@@ -63,6 +69,8 @@ def to_device(data, phase, device):
         h_txt_emb_lens,
         h_speakers,
         h_emotions,
+        h_prosody_emb,
+        h_g_prosody_embs,
         mels,
         mel_lens,
         max_mel_len,

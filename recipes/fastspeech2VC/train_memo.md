@@ -61,6 +61,16 @@
         - min_silence_len: 200
         - reduction_factor: 3
         - 適度なmin_silence_lenでやったらどうなるのか見てみる.
+    - JSUT_NICT_LINE
+        - silence_thresh_t: -100
+        - min_silence_len: 50
+        - reduction_factor: 3
+        - 全部乗せ. 一部長すぎる発話はメモリに乗らなくなるのを防ぐために除去した. 一番下に乗せておく.
+    - JSUT_NICT_LINE_2
+        - silence_thresh_t: -100
+        - min_silence_len: 200
+        - reduction_factor: 3
+        - 一応min_silence_len: 200でも試してみる.
 
 - tag
     - jsut_jsss_1
@@ -442,6 +452,40 @@
     - あとは, pretrainのいいやり方を試してみて, sotaを作り上げてみる.
     - 具体的には, [Voice Transformer Network: Sequence-to-Sequence Voice Conversion Using Transformer with Text-to-Speech Pretraining](https://aria3366.hatenablog.com/entry/2020/10/20/172807)
 
+    - JSUT_NICT_LINE_1
+        - spk: JSUT_NICT_LINE
+        - pretrain用
+        - 上述のよさげな初期化方法に従って, 今持ちうるすべてのデータを使ってガッツリ初期化してみた. decoderはfixされている.
+        - 実行中に生じた問題
+            - CUDA memory Error
+                - なぜか60epoch回って急にこれが出だす.
+                - 単純に長い発話を削除することで対応
+            - GRU, pad paddedにてRuntime Error
+                - なぜかmelとpitchのshapeがあっていないせいで発生.
+                - durationの中身が固定されてしまっている以上, pitchの方を合わせに行くべき.
+                - mel < pitch: この時は, reductionの時に削ってくれるので問題なし.
+                - mel > pitch: これがエラー起こるので, reprocessにてs_mel_max_lenでpadすることで対処.
+    - N2C_44
+        - spk: N2C_9
+        - pretrain: JSUT_NICT_LINE_1
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 50, reduction_factor: 3, pitch_AR: False
+        - 結果:
+            - 最高. ほぼ完成では? 音質がいいのは500epochも回したからそれはそうなんだけど、発話も壊れていないし、それでいて感情も残されている！！
+            - 一つ気になったのは, duration. なんかうまく学習できていない...。
+            - 場合によっては, durationのgradient_flowを切った方がいいかもしれない.
+            - それよりも, min_silence_lenが細かいというのが原因にありそうなので、200で試してみる↓.
+    - JSUT_NICT_LINE_2
+        - spk: JSUT_NICT_LINE_2
+        - pretrain用
+        - min_silence_len: 200で試してみるお話.
+    - N2C_45
+        - spk: N2C_10
+        - pretrain: JSUT_NICT_LINE_2
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 200, reduction_factor: 3, pitch_AR: False
+        - 結果:
+
 ## 主要な実験
 - N2C_4: 初pitchAR化.
 - N2C_23: batch_size: 32におけるpitchARの訓練. pre-train用.
@@ -558,3 +602,29 @@
     - メモリfreeは対して影響がない. もしかしたら自動でfreeしてくれているのかも.
         - むしろ, [cacheがなくなるせいで次にメモリに乗せる時間が遅くなる](https://kamakuraviel.hatenablog.com/entry/2020/08/23/193446#%E5%9F%BA%E6%9C%AC%E7%9A%84%E3%81%AA%E6%8C%99%E5%8B%95CPU)みたい.
     - 結論: ちょっとやそっとじゃメモリ節約は出来ない. 諦めろ.
+
+### JSUT_NICT_LINEにて削除した長い発話
+
+```
+ 'Teacher_Teacher_SD04-Dialogue-51-Teacher-Turn-02'
+ 'Teacher_Teacher_SD12-Dialogue-30-Teacher-Turn-02'
+ 'FStudent_FStudent_LD13-Dialogue-08-FStudent-Turn-05'
+ 'Teacher_Teacher_SD10-Dialogue-29-Teacher-Turn-02'
+ 'Teacher_Teacher_SD10-Dialogue-40-Teacher-Turn-02'
+ 'Teacher_Teacher_SD09-Dialogue-23-Teacher-Turn-02'
+ 'Teacher_Teacher_SD09-Dialogue-07-Teacher-Turn-02'
+ 'Teacher_Teacher_SD09-Dialogue-25-Teacher-Turn-02'
+ 'Teacher_Teacher_SD03-Dialogue-18-Teacher-Turn-02'
+ 'Teacher_Teacher_SD04-Dialogue-40-Teacher-Turn-02'
+ 'Teacher_Teacher_SD12-Dialogue-01-Teacher-Turn-02'
+ 'FStudent_FStudent_SD10-Dialogue-06-FStudent-Turn-01'
+ 'Teacher_Teacher_SD12-Dialogue-08-Teacher-Turn-02'
+ 'Teacher_Teacher_SD04-Dialogue-34-Teacher-Turn-02'
+ 'Teacher_Teacher_SD06-Dialogue-33-Teacher-Turn-02'
+ 'Teacher_Teacher_SD11-Dialogue-31-Teacher-Turn-02'
+ 'Teacher_Teacher_SD06-Dialogue-29-Teacher-Turn-02'
+ 'FStudent_FStudent_SD09-Dialogue-07-FStudent-Turn-02'
+ 'Teacher_Teacher_SD03-Dialogue-55-Teacher-Turn-02'
+ 'Teacher_Teacher_SD02-Dialogue-32-Teacher-Turn-02'
+ 'Teacher_Teacher_SD04-Dialogue-53-Teacher-Turn-02'
+```

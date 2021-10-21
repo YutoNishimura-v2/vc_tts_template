@@ -143,16 +143,18 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict, sentence_duration):
         t_emotions = np.array([0 for _ in idxs])
 
     s_mel_lens = np.array([s_mel.shape[0] for s_mel in s_mels])
+    s_mel_max_len = max(s_mel_lens)
     t_mel_lens = np.array([t_mel.shape[0] for t_mel in t_mels])
+    t_mel_max_len = max(t_mel_lens)
 
     ids = np.array(file_names)
 
     s_mels = pad_2d(s_mels)
-    s_pitches = pad_1d(s_pitches)
-    s_energies = pad_1d(s_energies)
+    s_pitches = pad_1d(s_pitches, s_mel_max_len)
+    s_energies = pad_1d(s_energies, s_mel_max_len)
     t_mels = pad_2d(t_mels)
-    t_pitches = pad_1d(t_pitches)
-    t_energies = pad_1d(t_energies)
+    t_pitches = pad_1d(t_pitches, t_mel_max_len)
+    t_energies = pad_1d(t_energies, t_mel_max_len)
     t_durations = pad_1d(t_durations)
 
     if (batch[0][4] is not None) and (sentence_duration == 1):
@@ -170,12 +172,12 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict, sentence_duration):
         t_emotions,
         s_mels,
         s_mel_lens,
-        max(s_mel_lens),
+        s_mel_max_len,
         s_pitches,
         s_energies,
         t_mels,
         t_mel_lens,
-        max(t_mel_lens),
+        t_mel_max_len,
         t_pitches,
         t_energies,
         t_durations,

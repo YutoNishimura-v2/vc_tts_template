@@ -2,12 +2,13 @@ from typing import Dict, Optional
 
 import torch.nn as nn
 
-from vc_tts_template.fastspeech2.fastspeech2 import FastSpeech2
-from vc_tts_template.fastspeech2wContexts.context_encoder import ConversationalContextEncoder
+from vc_tts_template.fastspeech2wGMM.fastspeech2wGMM import FastSpeech2wGMM
+from vc_tts_template.fastspeech2wContexts.context_encoder import ConversationalProsodyContextEncoder
+from vc_tts_template.fastspeech2wContexts.prosody_model import ProsodyPredictorwAttention
 
 
-class FastSpeech2wContexts(FastSpeech2):
-    """ FastSpeech2wContexts """
+class fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
+    """ fastspeech2wGMMwContextswProsody """
 
     def __init__(
         self,
@@ -26,6 +27,29 @@ class FastSpeech2wContexts(FastSpeech2):
         context_num_layer: int,
         context_encoder_dropout: float,
         text_emb_dim: int,
+        g_prosody_emb_size: int,
+        # prosody extractor
+        prosody_emb_dim: int,
+        extra_conv_kernel_size: int,
+        extra_conv_n_layers: int,
+        extra_gru_n_layers: int,
+        extra_global_gru_n_layers: int,
+        # prosody predictor
+        gru_hidden_dim: int,
+        gru_n_layers: int,
+        pp_conv_out_channels: int,
+        pp_conv_kernel_size: int,
+        pp_conv_n_layers: int,
+        pp_conv_dropout: float,
+        pp_zoneout: float,
+        num_gaussians: int,
+        global_gru_n_layers: int,
+        global_d_gru: int,
+        global_num_gaussians: int,
+        prosody_emb_size: int,
+        attention_hidden_dim: int,
+        attention_conv_channels: int,
+        attention_conv_kernel_size: int,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -43,6 +67,7 @@ class FastSpeech2wContexts(FastSpeech2):
         n_mel_channel: int,
         # other
         encoder_fix: bool,
+        global_prosody: bool,
         stats: Dict,
         speakers: Dict,
         emotions: Optional[Dict] = None,
@@ -58,6 +83,22 @@ class FastSpeech2wContexts(FastSpeech2):
             conv_kernel_size_1,
             conv_kernel_size_2,
             encoder_dropout,
+            prosody_emb_dim,
+            extra_conv_kernel_size,
+            extra_conv_n_layers,
+            extra_gru_n_layers,
+            extra_global_gru_n_layers,
+            gru_hidden_dim,
+            gru_n_layers,
+            pp_conv_out_channels,
+            pp_conv_kernel_size,
+            pp_conv_n_layers,
+            pp_conv_dropout,
+            pp_zoneout,
+            num_gaussians,
+            global_gru_n_layers,
+            global_d_gru,
+            global_num_gaussians,
             variance_predictor_filter_size,
             variance_predictor_kernel_size,
             variance_predictor_dropout,
@@ -72,6 +113,7 @@ class FastSpeech2wContexts(FastSpeech2):
             decoder_dropout,
             n_mel_channel,
             encoder_fix,
+            global_prosody,
             stats,
             speakers,
             emotions,
@@ -93,14 +135,35 @@ class FastSpeech2wContexts(FastSpeech2):
                 padding_idx=0,
             )
 
-        self.context_encoder = ConversationalContextEncoder(
+        self.context_encoder = ConversationalProsodyContextEncoder(
             d_encoder_hidden=encoder_hidden_dim,
             d_context_hidden=context_encoder_hidden_dim,
             context_layer_num=context_num_layer,
             context_dropout=context_encoder_dropout,
             text_emb_size=text_emb_dim,
+            g_prosody_emb_size=g_prosody_emb_size,
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
+        )
+        self.prosody_predictor = ProsodyPredictorwAttention(
+            encoder_hidden_dim,
+            gru_hidden_dim,
+            prosody_emb_dim,
+            pp_conv_out_channels,
+            conv_kernel_size=pp_conv_kernel_size,
+            conv_n_layers=pp_conv_n_layers,
+            conv_dropout=pp_conv_dropout,
+            gru_layers=gru_n_layers,
+            zoneout=pp_zoneout,
+            num_gaussians=num_gaussians,
+            global_prosody=global_prosody,
+            global_gru_layers=global_gru_n_layers,
+            global_d_gru=global_d_gru,
+            global_num_gaussians=global_num_gaussians,
+            h_prosody_emb_size=prosody_emb_size,
+            attention_hidden_dim=attention_hidden_dim,
+            attention_conv_channels=attention_conv_channels,
+            attention_conv_kernel_size=attention_conv_kernel_size,
         )
 
     def contexts_forward(
@@ -113,7 +176,8 @@ class FastSpeech2wContexts(FastSpeech2):
         h_txt_embs,
         h_txt_emb_lens,
         h_speakers,
-        h_emotions
+        h_emotions,
+        h_g_prosody_embs
     ):
         context_enc = self.context_encoder(
             c_txt_embs,
@@ -123,11 +187,47 @@ class FastSpeech2wContexts(FastSpeech2):
             h_speakers,
             h_emotions,
             h_txt_emb_lens,
+            h_g_prosody_embs,
         )
         output = output + context_enc.unsqueeze(1).expand(
             -1, max_src_len, -1
         )
         return output
+
+    def prosody_forward(
+        self,
+        output,
+        src_lens,
+        src_masks,
+        mels,
+        p_targets,
+        d_targets,
+        h_prosody_emb,
+    ):
+        is_inference = True if p_targets is None else False
+
+        prosody_target, g_prosody_target = self.prosody_extractor(mels, d_targets, src_lens)
+        prosody_prediction, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu = self.prosody_predictor(
+            output, h_prosody_emb,
+            target_prosody=prosody_target, target_global_prosody=g_prosody_target,
+            src_lens=src_lens, src_mask=src_masks, is_inference=is_inference
+        )
+        if is_inference is True:
+            output = output + self.prosody_linear(prosody_prediction)
+        else:
+            output = output + self.prosody_linear(prosody_target)
+
+        return (
+            output,
+            [prosody_target,
+                pi_outs,
+                sigma_outs,
+                mu_outs,
+                g_prosody_target,
+                g_pi,
+                g_sigma,
+                g_mu]
+        )
 
     def forward(
         self,
@@ -142,8 +242,8 @@ class FastSpeech2wContexts(FastSpeech2):
         h_txt_emb_lens,
         h_speakers,
         h_emotions,
-        h_prosody_emb=None,
-        h_g_prosody_embs=None,
+        h_prosody_emb,
+        h_g_prosody_embs,
         mels=None,
         mel_lens=None,
         max_mel_len=None,
@@ -162,7 +262,13 @@ class FastSpeech2wContexts(FastSpeech2):
         )
         output = self.contexts_forward(
             output, max_src_len, c_txt_embs, speakers, emotions,
-            h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions
+            h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
+            h_g_prosody_embs,
+        )
+
+        output, prosody_features = self.prosody_forward(
+            output, src_lens, src_masks,
+            mels, p_targets, d_targets, h_prosody_emb,
         )
         (
             output,
@@ -199,4 +305,5 @@ class FastSpeech2wContexts(FastSpeech2):
             mel_masks,
             src_lens,
             mel_lens,
+            prosody_features,
         )
