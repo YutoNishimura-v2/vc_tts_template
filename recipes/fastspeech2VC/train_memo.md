@@ -62,7 +62,15 @@
         - reduction_factor: 3
         - 適度なmin_silence_lenでやったらどうなるのか見てみる.
     - JSUT_NICT_LINE
+        - silence_thresh_t: -100
+        - min_silence_len: 50
+        - reduction_factor: 3
         - 全部乗せ. 一部長すぎる発話はメモリに乗らなくなるのを防ぐために除去した. 一番下に乗せておく.
+    - JSUT_NICT_LINE_2
+        - silence_thresh_t: -100
+        - min_silence_len: 200
+        - reduction_factor: 3
+        - 一応min_silence_len: 200でも試してみる.
 
 - tag
     - jsut_jsss_1
@@ -462,6 +470,20 @@
         - pretrain: JSUT_NICT_LINE_1
         - 実行時間: min/50epoch
         - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 50, reduction_factor: 3, pitch_AR: False
+        - 結果:
+            - 最高. ほぼ完成では? 音質がいいのは500epochも回したからそれはそうなんだけど、発話も壊れていないし、それでいて感情も残されている！！
+            - 一つ気になったのは, duration. なんかうまく学習できていない...。
+            - 場合によっては, durationのgradient_flowを切った方がいいかもしれない.
+            - それよりも, min_silence_lenが細かいというのが原因にありそうなので、200で試してみる↓.
+    - JSUT_NICT_LINE_2
+        - spk: JSUT_NICT_LINE_2
+        - pretrain用
+        - min_silence_len: 200で試してみるお話.
+    - N2C_45
+        - spk: N2C_10
+        - pretrain: JSUT_NICT_LINE_2
+        - 実行時間: min/50epoch
+        - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 200, reduction_factor: 3, pitch_AR: False
         - 結果:
 
 ## 主要な実験
