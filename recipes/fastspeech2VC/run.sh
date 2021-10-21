@@ -257,6 +257,9 @@ mel_fmax: ${mel_fmax}
 clip: ${clip}
 log_base: ${log_base}
 is_continuous_pitch: ${is_continuous_pitch}
+reduction_factor: ${reduction_factor}
+sentence_duration: ${sentence_duration}
+min_silence_len: ${min_silence_len}
 EOL
 
     # Stats

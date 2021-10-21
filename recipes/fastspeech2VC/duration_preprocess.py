@@ -227,3 +227,50 @@ def get_sentence_duration(
     if return_utt_id is True:
         return utt_id, np.array(src_sent_durations), np.array(tgt_sent_durations)
     return np.array(src_sent_durations), np.array(tgt_sent_durations)
+
+
+def get_sentence_duration_for_synthesis(
+    tgt_wav, tgt_mel_len, sr, hop_length, reduction_factor,
+    min_silence_len, silence_thresh
+):
+    tgt_reducted_mel_len = tgt_mel_len // reduction_factor
+
+    if tgt_wav.dtype in [np.float32, np.float64]:
+        tgt_wav = (tgt_wav * np.iinfo(np.int16).max).astype(np.int16)
+
+    t_audio = AudioSegment(
+        tgt_wav.tobytes(),
+        sample_width=2,
+        frame_rate=sr,
+        channels=1
+    )
+
+    t_silences = np.array(
+        silence.detect_silence(t_audio, min_silence_len=min_silence_len, silence_thresh=silence_thresh)
+    )
+
+    tgt_sent_durations = []
+
+    t_silences = (t_silences / 1000 * sr // hop_length // reduction_factor).astype(np.int16)
+
+    for i, (s_frame, _) in enumerate(t_silences):
+        if s_frame == 0:
+            continue
+        if len(tgt_sent_durations) == 0:
+            tgt_sent_durations.append(s_frame)
+        else:
+            tgt_sent_durations.append(s_frame - np.sum(tgt_sent_durations))
+
+        if i == (len(t_silences) - 1):
+            tgt_sent_durations.append(tgt_reducted_mel_len - s_frame)
+
+    if len(tgt_sent_durations) == 0:
+        tgt_sent_durations = [tgt_reducted_mel_len]
+    assert (np.array(tgt_sent_durations) > 0).all(), f"""
+        tgt_sent_durations: {tgt_sent_durations}
+        t_silences: {t_silences}
+        tgt_mel_len: {tgt_reducted_mel_len}
+    """
+    assert np.sum(tgt_sent_durations) == tgt_reducted_mel_len
+
+    return np.array(tgt_sent_durations)
