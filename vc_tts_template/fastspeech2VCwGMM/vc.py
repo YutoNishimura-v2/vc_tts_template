@@ -9,13 +9,13 @@ import torch
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 import pyworld as pw
-from scipy.interpolate import interp1d
 
 sys.path.append('..')
 from vc_tts_template.dsp import logmelspectrogram
 from vc_tts_template.pretrained import retrieve_pretrained_model
 from vc_tts_template.utils import StandardScaler
 from recipes.fastspeech2VC.duration_preprocess import get_sentence_duration_for_synthesis
+from recipes.fastspeech2VC.preprocess import continuous_pitch
 
 
 class FastSpeech2VCwGMM(object):
@@ -49,13 +49,9 @@ class FastSpeech2VCwGMM(object):
         if isinstance(model_dir, str):
             model_dir = Path(model_dir)
 
-        # search for config.yaml
-        if (model_dir / "config.yaml").exists():
-            config = OmegaConf.load(model_dir / "config.yaml")
-            self.sample_rate = config.sample_rate
-        else:
-            self.sample_rate = 22050
-        self.is_continuous_pitch = config.is_continuous_pitch
+        config = OmegaConf.load(model_dir / "config.yaml")
+        self.sample_rate = config.sample_rate
+        self.is_continuous_pitch = config.is_continuous_pitch > 0
         self.get_mel = partial(
             logmelspectrogram, sr=self.sample_rate, n_fft=config.filter_length,
             hop_length=config.hop_length, win_length=config.win_length, n_mels=config.n_mel_channels,
@@ -159,14 +155,9 @@ Vocoder model: {wavenet_str}
         s_energy = np.log(s_energy+1e-6)
 
         if self.is_continuous_pitch is True:
-            nonzero_ids = np.where(s_energy > -5.0)[0]
-            interp_fn = interp1d(
-                nonzero_ids,
-                s_pitch[nonzero_ids],
-                fill_value=(s_pitch[nonzero_ids[0]], s_pitch[nonzero_ids[-1]]),
-                bounds_error=False,
-            )
-            s_pitch = interp_fn(np.arange(0, len(s_pitch)))
+            no_voice_indexes = np.where(s_energy < -5.0)
+            s_pitch[no_voice_indexes] = 0.0
+            s_pitch = continuous_pitch(s_pitch)
 
         s_pitch = np.log(s_pitch+1e-6)
         s_mel = self.acoustic_in_mel_scaler.transform(s_mel)

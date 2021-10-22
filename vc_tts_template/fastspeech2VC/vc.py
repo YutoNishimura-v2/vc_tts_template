@@ -46,12 +46,9 @@ class FastSpeech2VC(object):
             model_dir = Path(model_dir)
 
         # search for config.yaml
-        if (model_dir / "config.yaml").exists():
-            config = OmegaConf.load(model_dir / "config.yaml")
-            self.sample_rate = config.sample_rate
-        else:
-            self.sample_rate = 22050
-        self.is_continuous_pitch = config.is_continuous_pitch
+        config = OmegaConf.load(model_dir / "config.yaml")
+        self.sample_rate = config.sample_rate
+        self.is_continuous_pitch = config.is_continuous_pitch > 0
         self.get_mel = partial(
             logmelspectrogram, sr=self.sample_rate, n_fft=config.filter_length,
             hop_length=config.hop_length, win_length=config.win_length, n_mels=config.n_mel_channels,
