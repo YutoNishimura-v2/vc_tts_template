@@ -8,7 +8,9 @@
             - あとは今になって思えばこの情報はかなり重要そう
     - LINE_wContext_2
         - out_LINE_woITAKO_before_ITAKOから作ったもの.
-        - 
+    - LINE_wContextwProsody
+        - out_LINE_woITAKOから作ったもの.
+
 - exp
     - LINE_wContext_1
         - spk: LINE_wContext
@@ -24,3 +26,7 @@
         - spk: LINE_wContext_2
         - pretrain: None
         - +accent+before_Emotion
+    - LINE_wContextwProsody_1
+        - spk: LINE_wContextwProsody
+        - pretrain: None
+        - +accent

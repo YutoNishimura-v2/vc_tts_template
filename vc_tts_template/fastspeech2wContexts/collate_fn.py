@@ -114,11 +114,10 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             self.utt2id, self.id2utt, self.use_hist_num
         )
         if len(self.prosody_emb_paths) > 0:
-            _, history_prosody_embs, _, _, _ = get_embs(
+            _, history_prosody_emb, _, _, _ = get_embs(
                 self.in_paths[idx].name.replace("-feats.npy", ""), self.prosody_emb_paths,
                 self.utt2id, self.id2utt, self.use_hist_num, start_index=1, only_latest=True
             )
-            history_prosody_emb = history_prosody_embs[0]  # only use latest one.
             assert len(self.g_prosody_emb_paths) > 0, "this mode require global prosody"
             _, history_g_prosody_embs, _, _, _ = get_embs(
                 self.in_paths[idx].name.replace("-feats.npy", ""), self.g_prosody_emb_paths,
@@ -172,6 +171,7 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
 
         emb_dir = Path(to_absolute_path(data_config.emb_dir))  # type:ignore
         prosody_emb_dir = Path(to_absolute_path(data_config.prosody_emb_dir))  # type:ignore
+        g_prosody_emb_dir = Path(to_absolute_path(data_config.g_prosody_emb_dir))  # type:ignore
         dialogue_info = Path(to_absolute_path(data_config.dialogue_info))  # type:ignore
 
         in_feats_paths = [in_dir / f"{utt_id}-feats.npy" for utt_id in utt_ids]
@@ -181,8 +181,8 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
         out_duration_paths = [out_dir / "duration" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
 
         text_emb_paths = list(emb_dir.glob("*.npy"))
-        prosody_emb_paths = list((prosody_emb_dir / "prosody_emb").glob("*.npy"))
-        g_prosody_emb_paths = list((prosody_emb_dir / "g_prosody_emb").glob("*.npy"))
+        prosody_emb_paths = list(prosody_emb_dir.glob("*.npy"))
+        g_prosody_emb_paths = list(g_prosody_emb_dir.glob("*.npy"))
 
         dataset = fastspeech2wContexts_Dataset(
             in_feats_paths,
@@ -246,8 +246,8 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     pitches = pad_1d(pitches)
     energies = pad_1d(energies)
     durations = pad_1d(durations)
+    h_prosody_lens = np.array([p_emb.shape[0] for p_emb in h_prosody_emb]) if h_prosody_emb[0] is not None else None
     h_prosody_emb = pad_2d(h_prosody_emb) if h_prosody_emb[0] is not None else None
-
     return (
         ids,
         speakers,
@@ -267,6 +267,7 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         h_speakers,
         h_emotions,
         h_prosody_emb,
+        h_prosody_lens,
         np.array(h_g_prosody_embs) if h_g_prosody_embs[0] is not None else None,
     )
 

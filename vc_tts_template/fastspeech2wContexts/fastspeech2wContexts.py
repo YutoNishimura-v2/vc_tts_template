@@ -143,6 +143,7 @@ class FastSpeech2wContexts(FastSpeech2):
         h_speakers,
         h_emotions,
         h_prosody_emb=None,
+        h_prosody_lens=None,
         h_g_prosody_embs=None,
         mels=None,
         mel_lens=None,

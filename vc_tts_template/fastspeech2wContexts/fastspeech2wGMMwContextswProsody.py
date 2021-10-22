@@ -7,8 +7,8 @@ from vc_tts_template.fastspeech2wContexts.context_encoder import ConversationalP
 from vc_tts_template.fastspeech2wContexts.prosody_model import ProsodyPredictorwAttention
 
 
-class fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
-    """ fastspeech2wGMMwContextswProsody """
+class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
+    """ Fastspeech2wGMMwContextswProsody """
 
     def __init__(
         self,
@@ -203,12 +203,13 @@ class fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         p_targets,
         d_targets,
         h_prosody_emb,
+        h_prosody_lens,
     ):
         is_inference = True if p_targets is None else False
 
         prosody_target, g_prosody_target = self.prosody_extractor(mels, d_targets, src_lens)
         prosody_prediction, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu = self.prosody_predictor(
-            output, h_prosody_emb,
+            output, h_prosody_emb, h_prosody_lens,
             target_prosody=prosody_target, target_global_prosody=g_prosody_target,
             src_lens=src_lens, src_mask=src_masks, is_inference=is_inference
         )
@@ -243,6 +244,7 @@ class fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         h_speakers,
         h_emotions,
         h_prosody_emb,
+        h_prosody_lens,
         h_g_prosody_embs,
         mels=None,
         mel_lens=None,
@@ -268,7 +270,7 @@ class fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
 
         output, prosody_features = self.prosody_forward(
             output, src_lens, src_masks,
-            mels, p_targets, d_targets, h_prosody_emb,
+            mels, p_targets, d_targets, h_prosody_emb, h_prosody_lens
         )
         (
             output,

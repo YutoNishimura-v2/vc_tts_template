@@ -10,6 +10,7 @@ import hydra
 from hydra.utils import to_absolute_path
 from omegaconf import OmegaConf
 
+sys.path.append("../..")
 from vc_tts_template.utils import adaptive_load_state_dict, pad_1d, pad_2d
 
 
@@ -19,7 +20,7 @@ def init_for_list(input_):
 
 def get_parser():
     parser = argparse.ArgumentParser(
-        description="Preprocess for Tacotron",
+        description="Preprocess for wContexts",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("dialogue_info", type=str, help="dialogue_info")
@@ -90,16 +91,21 @@ def get_prosody_embeddings(
     """
     if len(input_duration_paths[0]) == 0:
         return
+
+    output_dir = Path(output_dir)
+    (output_dir / "prosody_emb").mkdir(parents=True, exist_ok=True)
+    (output_dir / "g_prosody_emb").mkdir(parents=True, exist_ok=True)
     # model load
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     for (
-        input_duration_path, output_mel_file_path,
+        input_duration_path_base, output_mel_file_path_base,
         model_config_path, pretrained_checkpoint
     ) in zip(
         input_duration_paths, output_mel_file_paths,
         model_config_paths, pretrained_checkpoints
     ):
+        print(f"process {output_mel_file_path_base}...")
         # model init
         checkpoint = torch.load(to_absolute_path(pretrained_checkpoint), map_location=device)
         model_config = OmegaConf.load(to_absolute_path(model_config_path))
@@ -108,59 +114,61 @@ def get_prosody_embeddings(
         model.eval()
         assert model.global_prosody, "this is allowed only for the model which use global prosody"
         # data setting
-        input_duration_path = Path(input_duration_path)
-        output_mel_file_path = Path(output_mel_file_path)
+        for s in ["train", "dev", "eval"]:
+            input_duration_path = Path(input_duration_path_base.format(s))
+            output_mel_file_path = Path(output_mel_file_path_base.format(s))
 
-        batch_id = []
-        batch_src_len = []
-        batch_duration = []
-        batch_mel = []
-        input_duration_paths = list(input_duration_path.glob("*.npy"))
-        for i, input_duration_path_ in tqdm(enumerate(input_duration_paths)):
-            filename = input_duration_path_.name
-            utt_id = filename.replace("-feats.npy", "")
-            input_duration = np.load(input_duration_path_)
-            output_mel = np.load(output_mel_file_path / filename)
-            batch_id.append(utt_id)
-            batch_src_len.append(len(input_duration))
-            batch_duration.append(input_duration)
-            batch_mel.append(output_mel)
-            if ((i+1) % batch_size == 0) or (i == len(input_duration_paths)-1):
-                # prepare start
-                sort_idx = np.argsort(-np.array(batch_src_len))
-                batch_id = [batch_id[idx] for idx in sort_idx]
-                batch_src_len = [batch_src_len[idx] for idx in sort_idx]
-                batch_duration = [batch_duration[idx] for idx in sort_idx]
-                batch_mel = [batch_mel[idx] for idx in sort_idx]
+            batch_id = []
+            batch_src_len = []
+            batch_duration = []
+            batch_mel = []
+            input_duration_paths = list(input_duration_path.glob("*.npy"))
+            for i, input_duration_path_ in tqdm(enumerate(input_duration_paths)):
+                filename = input_duration_path_.name
+                utt_id = filename.replace("-feats.npy", "")
+                input_duration = np.load(input_duration_path_)
+                output_mel = np.load(output_mel_file_path / filename)
+                batch_id.append(utt_id)
+                batch_src_len.append(len(input_duration))
+                batch_duration.append(input_duration)
+                batch_mel.append(output_mel)
+                if ((i+1) % batch_size == 0) or (i == len(input_duration_paths)-1):
+                    # prepare start
+                    sort_idx = np.argsort(-np.array(batch_src_len))
+                    batch_id = [batch_id[idx] for idx in sort_idx]
+                    batch_src_len = [batch_src_len[idx] for idx in sort_idx]
+                    batch_duration = [batch_duration[idx] for idx in sort_idx]
+                    batch_mel = [batch_mel[idx] for idx in sort_idx]
 
-                batch_duration = pad_1d(batch_duration)
-                batch_mel = pad_2d(batch_mel)
+                    batch_duration = pad_1d(batch_duration)
+                    batch_mel = pad_2d(batch_mel)
 
-                batch_src_len = torch.tensor(batch_src_len, dtype=torch.long).to(device)
-                batch_duration = torch.tensor(batch_duration).to(device)
-                batch_mel = torch.tensor(batch_mel).to(device)
+                    batch_src_len = torch.tensor(batch_src_len, dtype=torch.long).to(device)
+                    batch_duration = torch.tensor(batch_duration).to(device)
+                    batch_mel = torch.tensor(batch_mel).to(device)
 
-                prosody_target, g_prosody_target = model.prosody_extractor(
-                    batch_mel, batch_duration, batch_src_len
-                )
-                for filename, prosody_emb, g_prosody_emb in zip(batch_id, prosody_target, g_prosody_target):
-                    np.save(
-                        output_dir / "prosody_emb" / f"{filename}-feats.npy",
-                        prosody_emb.cpu().numpy().astype(np.float32),
-                        allow_pickle=False,
-                    )
-                    np.save(
-                        output_dir / "g_prosody_emb" / f"{filename}-feats.npy",
-                        g_prosody_emb.cpu().numpy().astype(np.float32),
-                        allow_pickle=False,
-                    )
+                    with torch.no_grad():
+                        prosody_target, g_prosody_target = model.prosody_extractor(
+                            batch_mel, batch_duration, batch_src_len
+                        )
+                    for filename, prosody_emb, g_prosody_emb in zip(batch_id, prosody_target, g_prosody_target):
+                        np.save(
+                            output_dir / "prosody_emb" / f"{filename}-feats.npy",
+                            prosody_emb.cpu().numpy().astype(np.float32),
+                            allow_pickle=False,
+                        )
+                        np.save(
+                            output_dir / "g_prosody_emb" / f"{filename}-feats.npy",
+                            g_prosody_emb.cpu().numpy().astype(np.float32),
+                            allow_pickle=False,
+                        )
 
-                batch_id = []
-                batch_src_len = []
-                batch_duration = []
-                batch_mel = []
-            else:
-                continue
+                    batch_id = []
+                    batch_src_len = []
+                    batch_duration = []
+                    batch_mel = []
+                else:
+                    continue
 
 
 if __name__ == "__main__":
@@ -171,8 +179,10 @@ if __name__ == "__main__":
 
     in_dir.mkdir(parents=True, exist_ok=True)
     in_text_emb_dir.mkdir(parents=True, exist_ok=True)
+    print("get text embeddings...")
     get_text_embeddings(args.dialogue_info, in_text_emb_dir, args.BERT_weight)
+    print("get prosody embeddings...")
     get_prosody_embeddings(
         args.input_duration_paths, args.output_mel_file_paths,
-        args.output_dir, args.model_config_paths, args.pretrained_checkpoints
+        args.out_dir, args.model_config_paths, args.pretrained_checkpoints
     )
