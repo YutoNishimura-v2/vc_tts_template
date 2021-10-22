@@ -331,3 +331,69 @@ class fastspeech2VCwGMM(fastspeech2VC):
             t_mel_lens,
             prosody_features
         )
+
+    def sing(
+        self,
+        ids,
+        s_sp_ids,
+        t_sp_ids,
+        s_em_ids,
+        t_em_ids,
+        s_mels,
+        s_mel_lens,
+        max_s_mel_len,
+        s_pitches,
+        s_energies,
+        s_snt_durations,
+        p_control=1.0,
+        e_control=1.0,
+    ):
+        # use source duration, pitch.
+        (
+            s_mels,
+            s_mel_lens,
+            max_s_mel_len,
+            s_mel_masks,
+            _,
+            _,
+            _,
+            _,
+            s_snt_durations,
+        ) = self.init_forward_wGMM(
+            s_mels, s_mel_lens, max_s_mel_len, None, None, None, s_snt_durations
+        )
+
+        output = self.encoder_forward(
+            s_sp_ids, s_em_ids, s_mels, s_mel_masks,
+        )
+        if self.global_prosody is False:
+            prosody_prediction, _, _, _, _ = self.prosody_predictor(
+                output, s_snt_durations, target_prosody=None, is_inference=True
+            )
+        else:
+            prosody_prediction, _, _, _, _, _, _, _ = self.prosody_predictor(
+                output, s_snt_durations, target_prosody=None, target_global_prosody=None,
+                is_inference=True
+            )
+        prosody_prediction_expanded, _ = self.prosody_length_regulator(prosody_prediction, s_snt_durations)
+        output = output + self.prosody_linear(prosody_prediction_expanded)
+        free_tensors_memory([prosody_prediction, prosody_prediction_expanded, s_snt_durations])
+
+        output = self.variance_adaptor.sing(
+            output,
+            max_s_mel_len,
+            s_pitches,
+            s_energies,
+            p_control,
+            e_control,
+        )
+        (
+            _,
+            postnet_output,
+            _,
+            _,
+        ) = self.decoder_forward(
+            output, t_sp_ids, t_em_ids, s_mel_lens, s_mel_masks,
+        )
+
+        return postnet_output

@@ -198,6 +198,26 @@ class VarianceAdaptor(nn.Module):
             t_snt_durations.append(torch.from_numpy(np.array(t_snt_duration)).long().to(s_snt_durations.device))
         return pad(t_snt_durations)
 
+    def sing(
+        self,
+        x,
+        src_max_len,
+        src_pitch,
+        src_energy,
+        p_control=1.0,
+        e_control=1.0,
+    ):
+        # sourceの特徴量で条件付ける.
+        # pitchを, また次元増やしてhiddenに足す.
+        pitch = self.reshape_with_reduction_factor(src_pitch * p_control, src_max_len)
+        energy = self.reshape_with_reduction_factor(src_energy * e_control, src_max_len)
+
+        pitch = self.pitch_conv1d_2(pitch)
+        energy = self.energy_conv1d_2(energy)
+
+        x = x + pitch + energy
+        return x
+
 
 class LengthRegulator(nn.Module):
     def __init__(self):
