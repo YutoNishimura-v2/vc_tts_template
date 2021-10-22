@@ -6,6 +6,7 @@ import torch.nn as nn
 sys.path.append("../..")
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyPredictor
 from vc_tts_template.tacotron.decoder import LocationSensitiveAttention
+from vc_tts_template.utils import make_pad_mask
 
 
 class ProsodyPredictorwAttention(ProsodyPredictor):
@@ -52,7 +53,7 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         self.attn_linear = nn.Linear(h_prosody_emb_size, conv_out_channels+d_out)
 
     def forward(
-        self, encoder_output, h_prosody_emb,
+        self, encoder_output, h_prosody_emb, h_prosody_lens,
         target_prosody=None, target_global_prosody=None,
         src_lens=None, src_mask=None, is_inference=False
     ):
@@ -88,6 +89,8 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         mu_outs = []
         outs = []
 
+        h_prosody_mask = make_pad_mask(h_prosody_lens)
+
         for t in range(encoder_output.size()[1]):
             # Pre-Net
             if target_global_prosody is not None:
@@ -95,7 +98,7 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
             prenet_out = self.prenet(prev_out)
 
             att_c, att_w = self.attention(
-                h_prosody_emb, src_lens, h_list[0], prev_att_w, src_mask
+                h_prosody_emb, h_prosody_lens, h_list[0], prev_att_w, h_prosody_mask
             )
 
             # LSTM

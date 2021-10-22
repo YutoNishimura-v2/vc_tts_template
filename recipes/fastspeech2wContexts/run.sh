@@ -49,7 +49,9 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     echo "stage 1: Feature generation for fastspeech2"
 
     xrun python emb_preprocess.py $dialogue_info \
-        $dumpdir/${spk}_sr${sample_rate} --BERT_weight $BERT_weight
+        $dumpdir/${spk}_sr${sample_rate} --BERT_weight $BERT_weight \
+        --input_duration_paths $input_duration_paths --output_mel_file_paths $output_mel_file_paths \
+        --model_config_paths $model_config_paths --pretrained_checkpoints $pretrained_checkpoints
 
     for s in ${datasets[@]}; do
         xrun python preprocess.py data/$s.list $wav_root $lab_root \
@@ -154,12 +156,22 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
             echo "zip ${dumpdir}/${spk}_sr${sample_rate}/text_emb.zip"
             zip -rq ${dumpdir}/${spk}_sr${sample_rate}/text_emb.zip $dumpdir/${spk}_sr${sample_rate}/text_emb/
         fi
+        if [ -e $dumpdir/${spk}_sr${sample_rate}/prosody_emb ] && [ ! -e $dumpdir/${spk}_sr${sample_rate}/prosody_emb.zip ]; then
+            echo "zip $dumpdir/${spk}_sr${sample_rate}/prosody_emb.zip"
+            zip -rq $$dumpdir/${spk}_sr${sample_rate}/prosody_emb.zip $dumpdir/${spk}_sr${sample_rate}/prosody_emb/
+        fi
+        if [ -e $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb ] && [ ! -e $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb.zip ]; then
+            echo "zip $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb.zip"
+            zip -rq $$dumpdir/${spk}_sr${sample_rate}/g_prosody_emb.zip $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb/
+        fi
         # unzip
         unzip -q  -d ${local_dir} ${dump_norm_dir}/${train_set}/in_fastspeech2.zip
         unzip -q  -d ${local_dir} ${dump_norm_dir}/${train_set}/out_fastspeech2.zip
         unzip -q -d ${local_dir} ${dump_norm_dir}/${dev_set}/in_fastspeech2.zip
         unzip -q -d ${local_dir} ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip
         unzip -q -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/text_emb.zip
+        unzip -q -d ${local_dir} $dumpdir/${spk}_sr${sample_rate}/prosody_emb.zip
+        unzip -q -d ${local_dir} $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb.zip
     fi
     xrun python train_fastspeech2wContexts.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
@@ -172,6 +184,8 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         data.batch_size=$fastspeech2_data_batch_size \
         data.accent_info=$accent_info \
         data.emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/text_emb \
+        data.prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/prosody_emb \
+        data.g_prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/g_prosody_emb \
         data.dialogue_info=$dialogue_info \
         data.use_hist_num=$use_hist_num \
         train.out_dir=${local_dir}$expdir/${acoustic_model} \
