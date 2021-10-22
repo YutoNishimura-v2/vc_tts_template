@@ -35,3 +35,4 @@ types-PyYAML
 pydub
 pyaudio
 sentence-transformers
+sounddevice
