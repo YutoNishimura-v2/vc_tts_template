@@ -485,6 +485,7 @@
         - 実行時間: min/50epoch
         - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 200, reduction_factor: 3, pitch_AR: False
         - 結果:
+            - ほぼ違いはない。ただ、若干こっちのほうが自然なprosodyになっている気がした。ということで、こちらを更に訓練して、完成とする。
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.
@@ -492,6 +493,7 @@
 - N2C_30: wGMMの正しい初訓練(ELUで). 完全にN2C_23の上位互換. 成功.
 - N2C_33: 現状のsota. pitchAR+wGMM+pretrain
 - N2C_40: ↑さらなるsota. wGMM+min_silence_len=200
+- N2C_45: sota. 完成版. pretrain+wGMM+min_silence_len=200
 
 ## 知見
 - silence_thresh_tは-80より-100のがよい(N2C_20)
