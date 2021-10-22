@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContext_2"
+spk: "LINE_wContextwProsody"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContext_3"
+tag: "LINE_wContextwProsody_1"
 
 sample_rate: 22050
 
@@ -23,7 +23,7 @@ cudnn_deterministic: false
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
 wav_root: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050"
 lab_root: "../../../dataset/out_LINE_woITAKO/fullcontext"
-dialogue_info: "../../../dataset/out_LINE_woITAKO_before_emotion/dialogue_info.txt"
+dialogue_info: "../../../dataset/out_LINE_woITAKO/dialogue_info.txt"
 
 n_jobs: 8
 
@@ -49,11 +49,17 @@ accent_info: 1
 # for with Contexts
 BERT_weight: "colorfulscoop/sbert-base-ja"
 use_hist_num: 10
+# for with Prosody
+# plase replace train/dev/eval to {} for emb_preprocess.py
+input_duration_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/duration"
+output_mel_file_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/mel"
+model_config_paths: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_1/fastspeech2wGMM/model.yaml,../fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_1/fastspeech2wGMM/model.yaml,../fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_1/fastspeech2wGMM/model.yaml,"
+pretrained_checkpoints: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_1/fastspeech2wGMM/latest.pth,../fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_1/fastspeech2wGMM/latest.pth,../fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_1/fastspeech2wGMM/latest.pth"
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wContexts
+acoustic_model: fastspeech2wGMMwContextswProsody
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
@@ -62,8 +68,8 @@ vocoder_weight_base_path: "../fastspeech2/exp/LINE_sr22050_LINE_1/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 300
-fastspeech2_data_batch_size: 8
+fastspeech2_train_nepochs: 500
+fastspeech2_data_batch_size: 32
 
 ### hifigan ###
 hifigan_train_nepochs: 50
@@ -85,4 +91,4 @@ reverse: false
 num_eval_utts: -1
 
 acoustic_eval_checkpoint: latest.pth
-vocoder_eval_checkpoint: best_loss.pth
+vocoder_eval_checkpoint: latest.pth

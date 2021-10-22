@@ -34,6 +34,8 @@ data:
     out_dir:
   
   emb_dir:
+  prosody_emb_dir:
+  g_prosody_emb_dir:
   dialogue_info:
   use_hist_num:
 
@@ -73,18 +75,20 @@ train:
         weight_decay: 0.0
     lr_scheduler:
       _target_: vc_tts_template.fastspeech2.optimizer.ScheduledOptim
-      warm_up_step: 4000
-      anneal_steps: [300000, 400000, 500000]
+      warm_up_step: 1000
+      anneal_steps: [75000, 100000, 125000]
       anneal_rate: 0.3
       max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 
   
   criterion:
-    _target_: vc_tts_template.fastspeech2.loss.FastSpeech2Loss
+    _target_: vc_tts_template.fastspeech2wGMM.loss.FastSpeech2Loss
     pitch_feature_level:
     energy_feature_level:
+    beta: 0.02
+    g_beta: 0.02
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
     # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
-    checkpoint: exp/LINE_wContext_2_sr22050_LINE_wContext_3/fastspeech2wContexts/latest.pth
-    optimizer_reset: False
+    checkpoint:
+    optimizer_reset:
