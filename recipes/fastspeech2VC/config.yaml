@@ -1,13 +1,13 @@
 # General settings.
-spk: "N2C_9"
+spk: "N2C_10"
 
 # exp tag(for managing experiments)
-tag: "N2C_44"
+tag: "N2C_45"
 
 sample_rate: 22050
 
 # ttsを共有するためにtar.gzにするときに利用したい名前
-export_model_name: fastspeech2VCwGMM_N2C44
+export_model_name:
 
 # 1) none 2) tqdm
 # NOTE: Jupyterノートブックからrun.shを実行する場合は、none推奨
@@ -54,7 +54,7 @@ reduction_factor: 3
 # ↓set 0 if you do not need sentence_duration
 sentence_duration: 1
 # ↓use if sentence_duration > 0
-min_silence_len: 50
+min_silence_len: 200
 
 # ↓if you set this, duration is calc by AR model
 model_config_path: ../tacotronVC/exp/N2C_sr22050_N2C_4/tacotron2VC/model.yaml
@@ -74,7 +74,7 @@ vocoder_weight_base_path: "exp/N2C_sr22050_N2C_2/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 200
+fastspeech2_train_nepochs: 500
 fastspeech2_data_batch_size: 32
 
 ### hifigan ###
