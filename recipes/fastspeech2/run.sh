@@ -138,12 +138,25 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
     echo "stage 3: finetuning hifigan"
     # save config
     cp -r conf/train_hifigan $expdir/conf
+    if [ ! -z ${local_dir} ]; then
+        echo "copy dataset to ${local_dir}"
+        # copy data
+        # first zip
+        if [ ! -e $wav_root.zip ]; then
+            echo "zip $wav_root.zip"
+            zip -rq $wav_root.zip $wav_root/
+        fi
+        # unzip
+        unzip -q  -d ${local_dir} $wav_root.zip
+        wav_root=${wav_root//"../"/""}
+        echo "new wav_root is ${local_dir}$wav_root"
+    fi
     xrun python train_hifigan.py model=$vocoder_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
-        data.train.in_dir=$wav_root \
+        data.train.in_dir=${local_dir}$wav_root \
         data.dev.utt_list=data/dev.list \
-        data.dev.in_dir=$wav_root \
+        data.dev.in_dir=${local_dir}$wav_root \
         data.batch_size=$hifigan_data_batch_size \
         data.sampling_rate=$sample_rate \
         data.n_fft=$filter_length \
@@ -152,9 +165,18 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
         data.win_size=$win_length \
         data.fmin=$mel_fmin \
         data.fmax=$mel_fmax \
-        train.out_dir=$expdir/${vocoder_model} \
-        train.log_dir=tensorboard/${expname}_${vocoder_model} \
+        train.out_dir=${local_dir}$expdir/${vocoder_model} \
+        train.log_dir=${local_dir}tensorboard/${expname}_${vocoder_model} \
         train.nepochs=$hifigan_train_nepochs
+    
+    if [ ! -z ${local_dir} ]; then
+        echo "copy results"
+        mkdir -p $expdir/${vocoder_model}
+        mkdir -p tensorboard/${expname}_${vocoder_model}
+
+        rsync -ah --no-i-r --info=progress2 ${local_dir}$expdir/${vocoder_model}/ $expdir/${vocoder_model}/
+        rsync -ah --no-i-r --info=progress2 ${local_dir}tensorboard/${expname}_${vocoder_model}/ tensorboard/${expname}_${vocoder_model}/
+    fi
 fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
