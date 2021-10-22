@@ -9,21 +9,25 @@ import torch
 from hydra.utils import instantiate
 from omegaconf import OmegaConf
 import pyworld as pw
-from scipy.interpolate import interp1d
 
 sys.path.append('..')
 from vc_tts_template.dsp import logmelspectrogram
 from vc_tts_template.pretrained import retrieve_pretrained_model
 from vc_tts_template.utils import StandardScaler
+from recipes.fastspeech2VC.duration_preprocess import get_sentence_duration_for_synthesis
+from recipes.fastspeech2VC.preprocess import continuous_pitch
 
 
-class FastSpeech2VC(object):
+class FastSpeech2VCwGMM(object):
     """FastSpeech 2 based text-to-speech
 
     Args:
         model_dir (str): model directory. A pre-trained model (ID: ``fastspeech2``)
             is used if None.
         device (str): cpu or cuda.
+        silence_thresh (int): sentence durationを計算するのに用いるdBのしきい値です。
+            デフォルトは-100ですが、これは無音室で取らないとまず無理だと思われます。
+            上げたり下げたりして、録音環境に合わせて設定してください。
 
     Examples:
 
@@ -32,7 +36,7 @@ class FastSpeech2VC(object):
         >>> wav, sr = engine.tts("一貫学習にチャレンジしましょう！")
     """
 
-    def __init__(self, model_dir=None, model_name=None, device=None):
+    def __init__(self, model_dir=None, model_name=None, device=None, silence_thresh=-100):
         self.device = device
         if device is None:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -41,11 +45,10 @@ class FastSpeech2VC(object):
             if model_name is not None:
                 model_dir = retrieve_pretrained_model(model_name)
             else:
-                model_dir = retrieve_pretrained_model("fastspeech2VC")
+                model_dir = retrieve_pretrained_model("fastspeech2VCwGMM")
         if isinstance(model_dir, str):
             model_dir = Path(model_dir)
 
-        # search for config.yaml
         config = OmegaConf.load(model_dir / "config.yaml")
         self.sample_rate = config.sample_rate
         self.is_continuous_pitch = config.is_continuous_pitch > 0
@@ -58,6 +61,14 @@ class FastSpeech2VC(object):
             pw.dio, fs=self.sample_rate,
             frame_period=config.hop_length / self.sample_rate * 1000
         )
+        if config.sentence_duration > 0:
+            self.get_snt_duration = partial(
+                get_sentence_duration_for_synthesis, sr=self.sample_rate,
+                hop_length=config.hop_length, reduction_factor=config.reduction_factor,
+                min_silence_len=config.min_silence_len, silence_thresh=silence_thresh
+            )
+        else:
+            self.get_snt_duration = None
 
         # 音響モデル
         self.acoustic_config = OmegaConf.load(model_dir / "acoustic_model.yaml")
@@ -134,17 +145,6 @@ Vocoder model: {wavenet_str}
            s_speaker=None, t_speaker=None,
            s_emotion=None, t_emotion=None,
            ):
-        """Run VC
-
-        Args:
-            text (str): Input text
-            speaker (str): you can select speaker if you train with it.
-            tqdm (object, optional): tqdm object. Defaults to None.
-
-        Returns:
-            tuple: audio array (np.int16) and sampling rate (int)
-        """
-        # OpenJTalkを用いて言語特徴量の抽出
         if wav.dtype in [np.int16, np.int32]:
             wav = (wav / np.iinfo(wav.dtype).max).astype(np.float64)
         wav = librosa.resample(wav, wav_sr, self.sample_rate)
@@ -155,14 +155,9 @@ Vocoder model: {wavenet_str}
         s_energy = np.log(s_energy+1e-6)
 
         if self.is_continuous_pitch is True:
-            nonzero_ids = np.where(s_energy > -5.0)[0]
-            interp_fn = interp1d(
-                nonzero_ids,
-                s_pitch[nonzero_ids],
-                fill_value=(s_pitch[nonzero_ids[0]], s_pitch[nonzero_ids[-1]]),
-                bounds_error=False,
-            )
-            s_pitch = interp_fn(np.arange(0, len(s_pitch)))
+            no_voice_indexes = np.where(s_energy < -5.0)
+            s_pitch[no_voice_indexes] = 0.0
+            s_pitch = continuous_pitch(s_pitch)
 
         s_pitch = np.log(s_pitch+1e-6)
         s_mel = self.acoustic_in_mel_scaler.transform(s_mel)
@@ -180,9 +175,6 @@ Vocoder model: {wavenet_str}
         else:
             s_emotions = np.array([self.acoustic_model.emotions[s_emotion]])
             t_emotions = np.array([self.acoustic_model.emotions[t_emotion]])
-        s_mels = np.array([s_mel])
-        s_pitches = np.array([s_pitch])
-        s_energies = np.array([s_energy])
         s_mel_lens = np.array([s_mel.shape[0]])
         max_s_mel_len = max(s_mel_lens)
 
@@ -190,20 +182,25 @@ Vocoder model: {wavenet_str}
         t_speakers = torch.tensor(t_speakers).long().to(self.device)
         s_emotions = torch.tensor(s_emotions).long().to(self.device)
         t_emotions = torch.tensor(t_emotions).long().to(self.device)
-        s_mels = torch.tensor(s_mels).float().to(self.device)
+        s_mels = torch.tensor(s_mel).unsqueeze(0).float().to(self.device)
         s_mel_lens = torch.tensor(s_mel_lens).long().to(self.device)
-        s_pitches = torch.tensor(s_pitches).float().to(self.device)
-        s_energies = torch.tensor(s_energies).float().to(self.device)
+        s_pitches = torch.tensor(s_pitch).unsqueeze(0).float().to(self.device)
+        s_energies = torch.tensor(s_energy).unsqueeze(0).float().to(self.device)
 
-        output = self.acoustic_model(
-            None, s_speakers, t_speakers, s_emotions, t_emotions,
-            s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies
+        s_sent_durations = self.get_snt_duration(
+            wav, max_s_mel_len
         )
 
-        mel_post = output[1]
-        mels = [self.acoustic_out_scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mel_post]  # type: ignore
-        mels = torch.Tensor(np.array(mels)).to(self.device)
-        wav = self.vocoder_model(mels.transpose(1, 2)).squeeze(1).cpu().data.numpy()[0]
+        s_sent_durations = torch.tensor(s_sent_durations).unsqueeze(0).long().to(self.device)
+        mel_post = self.acoustic_model(
+            None, s_speakers, t_speakers, s_emotions, t_emotions,
+            s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies,
+            s_snt_durations=s_sent_durations
+        )[1][0]
+
+        mel = self.acoustic_out_scaler.inverse_transform(mel_post.cpu().data.numpy())  # type: ignore
+        mel = torch.tensor(mel).unsqueeze(0).float().to(self.device)
+        wav = self.vocoder_model(mel.transpose(1, 2)).squeeze(1).cpu().data.numpy()[0]
 
         return self.post_process(wav), self.sample_rate
 
@@ -213,7 +210,7 @@ Vocoder model: {wavenet_str}
         return wav
 
 
-def randomize_tts_engine_(engine: FastSpeech2VC) -> FastSpeech2VC:
+def randomize_tts_engine_(engine: FastSpeech2VCwGMM) -> FastSpeech2VCwGMM:
     # アテンションのパラメータの一部を強制的に乱数で初期化することで、学習済みモデルを破壊する
     torch.nn.init.normal_(engine.acoustic_model.decoder.attention.mlp_dec.weight.data)
     return engine

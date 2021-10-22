@@ -10,3 +10,4 @@ tts_models/
 *.pth
 dataset/
 *.png
+*.tar.gz
