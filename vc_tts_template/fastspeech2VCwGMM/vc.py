@@ -148,8 +148,10 @@ Vocoder model: {wavenet_str}
     @torch.no_grad()
     def vc(self,
            wav, wav_sr,
+           duration_prediction=False, pitch_energy_prediction=True,
            s_speaker=None, t_speaker=None,
            s_emotion=None, t_emotion=None,
+            p_control=1, e_control=1,
            ):
         if wav.dtype in [np.int16, np.int32]:
             wav = (wav / np.iinfo(wav.dtype).max).astype(np.float64)
@@ -198,85 +200,26 @@ Vocoder model: {wavenet_str}
         )
 
         s_sent_durations = torch.tensor(s_sent_durations).unsqueeze(0).long().to(self.device)
-        mel_post = self.acoustic_model(
-            None, s_speakers, t_speakers, s_emotions, t_emotions,
-            s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies,
-            s_snt_durations=s_sent_durations
-        )[1][0]
+
+        if (duration_prediction is True) and (pitch_energy_prediction is True):
+            mel_post = self.acoustic_model(
+                None, s_speakers, t_speakers, s_emotions, t_emotions,
+                s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies,
+                s_snt_durations=s_sent_durations
+            )[1][0]
+        elif duration_prediction is False:
+            mel_post = self.acoustic_model.forward_woDuration(
+                None, s_speakers, t_speakers, s_emotions, t_emotions,
+                s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies,
+                s_snt_durations=s_sent_durations,
+                p_control=p_control, e_control=e_control,
+                pitch_energy_prediction=pitch_energy_prediction
+            )
+            mel_post = mel_post[0]
+        else:
+            raise RuntimeError("sorry! we do not prepare for this!")
 
         mel = self.acoustic_out_mel_scaler.inverse_transform(mel_post.cpu().data.numpy())  # type: ignore
-        mel = torch.tensor(mel).unsqueeze(0).float().to(self.device)
-        wav = self.vocoder_model(mel.transpose(1, 2)).squeeze(1).cpu().data.numpy()[0]
-
-        return self.post_process(wav), self.sample_rate
-
-    @torch.no_grad()
-    def vc_sing(self,
-                wav, wav_sr,
-                s_speaker=None, t_speaker=None,
-                s_emotion=None, t_emotion=None,
-                p_control=1, e_control=1,
-                ):
-        if wav.dtype in [np.int16, np.int32]:
-            wav = (wav / np.iinfo(wav.dtype).max).astype(np.float64)
-        wav = librosa.resample(wav, wav_sr, self.sample_rate)
-        s_mel, s_energy = self.get_mel(wav)
-        s_pitch, t = self.get_pitch(wav.astype(np.float64))
-        s_pitch = pw.stonemask(wav.astype(np.float64),
-                               s_pitch, t, self.sample_rate)
-        s_energy = np.log(s_energy+1e-6)
-
-        if self.is_continuous_pitch is True:
-            no_voice_indexes = np.where(s_energy < -5.0)
-            s_pitch[no_voice_indexes] = 0.0
-            s_pitch = continuous_pitch(s_pitch)
-
-        s_pitch = np.log(s_pitch+1e-6)
-        s_mel = self.acoustic_in_mel_scaler.transform(s_mel)
-        s_pitch = self.acoustic_in_pitch_scaler.transform(s_pitch)
-        s_energy = self.acoustic_in_energy_scaler.transform(s_energy)
-
-        # shift pitch for singing
-        src_pitch_mean = self.acoustic_in_pitch_scaler.mean_
-        tgt_pitch_mean = self.acoustic_out_pitch_scaler.mean_
-        s_pitch = (s_pitch - src_pitch_mean) + tgt_pitch_mean
-
-        if s_speaker is None:
-            s_speakers = np.array([0])
-            t_speakers = np.array([0])
-        else:
-            s_speakers = np.array([self.acoustic_model.speakers[s_speaker]])
-            t_speakers = np.array([self.acoustic_model.speakers[t_speaker]])
-        if s_emotion is None:
-            s_emotions = np.array([0])
-            t_emotions = np.array([0])
-        else:
-            s_emotions = np.array([self.acoustic_model.emotions[s_emotion]])
-            t_emotions = np.array([self.acoustic_model.emotions[t_emotion]])
-        s_mel_lens = np.array([s_mel.shape[0]])
-        max_s_mel_len = int(max(s_mel_lens))
-
-        s_speakers = torch.tensor(s_speakers).long().to(self.device)
-        t_speakers = torch.tensor(t_speakers).long().to(self.device)
-        s_emotions = torch.tensor(s_emotions).long().to(self.device)
-        t_emotions = torch.tensor(t_emotions).long().to(self.device)
-        s_mels = torch.tensor(s_mel).unsqueeze(0).float().to(self.device)
-        s_mel_lens = torch.tensor(s_mel_lens).long().to(self.device)
-        s_pitches = torch.tensor(s_pitch).unsqueeze(0).float().to(self.device)
-        s_energies = torch.tensor(s_energy).unsqueeze(0).float().to(self.device)
-
-        s_sent_durations = self.get_snt_duration(
-            wav, max_s_mel_len
-        )
-
-        s_sent_durations = torch.tensor(s_sent_durations).unsqueeze(0).long().to(self.device)
-        mel_post = self.acoustic_model.sing(
-            None, s_speakers, t_speakers, s_emotions, t_emotions,
-            s_mels, s_mel_lens, max_s_mel_len, s_pitches, s_energies,
-            s_snt_durations=s_sent_durations,
-            p_control=p_control, e_control=e_control
-        )
-        mel = self.acoustic_out_mel_scaler.inverse_transform(mel_post[0].cpu().data.numpy())  # type: ignore
         mel = torch.tensor(mel).unsqueeze(0).float().to(self.device)
         wav = self.vocoder_model(mel.transpose(1, 2)).squeeze(1).cpu().data.numpy()[0]
 
