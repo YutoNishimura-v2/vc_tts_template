@@ -267,6 +267,7 @@ EOL
     python $COMMON_ROOT/scaler_joblib2npy.py $dump_norm_dir/in_fastspeech2VC_mel_scaler.joblib $dst_dir
     python $COMMON_ROOT/scaler_joblib2npy.py $dump_norm_dir/in_fastspeech2VC_pitch_scaler.joblib $dst_dir
     python $COMMON_ROOT/scaler_joblib2npy.py $dump_norm_dir/out_fastspeech2VC_mel_scaler.joblib $dst_dir
+    python $COMMON_ROOT/scaler_joblib2npy.py $dump_norm_dir/out_fastspeech2VC_pitch_scaler.joblib $dst_dir
 
     # Acoustic model
     python $COMMON_ROOT/clean_checkpoint_state.py $expdir/${acoustic_model}/$acoustic_eval_checkpoint \

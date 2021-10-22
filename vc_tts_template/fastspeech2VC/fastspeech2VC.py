@@ -127,7 +127,7 @@ class fastspeech2VC(nn.Module):
         )
         if self.reduction_factor > 1:
             max_s_mel_len = max_s_mel_len // self.reduction_factor
-            s_mel_lens = torch.trunc(s_mel_lens / self.reduction_factor)
+            s_mel_lens = torch.trunc(s_mel_lens / self.reduction_factor).long()
             s_mel_masks = make_pad_mask(s_mel_lens, max_s_mel_len)
             s_mels = s_mels[:, :max_s_mel_len*self.reduction_factor, :]
 
