@@ -68,7 +68,11 @@ model_registry = {
     "fastspeech2VC_N2C_1_N2C22k": {
         "url": f"{_urls['org_v0.1.0']}/fastspeech2VC_N2C_1_N2C22k.tar.gz",
         "_target_": "vc_tts_template.fastspeech2VC:FastSpeech2VC"
-    }
+    },
+    "fastspeech2VCwGMM_N2C": {
+        "url": f"{_urls['org_v0.1.0']}/fastspeech2VCwGMM_N2C.tar.gz",
+        "_target_": "vc_tts_template.fastspeech2VCwGMM:fastspeech2VCwGMM"
+    },
 }
 
 

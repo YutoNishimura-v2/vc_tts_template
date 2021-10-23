@@ -7,7 +7,7 @@ tag: "N2C_45"
 sample_rate: 22050
 
 # ttsを共有するためにtar.gzにするときに利用したい名前
-export_model_name:
+export_model_name: fastspeech2VCwGMM_N2C
 
 # 1) none 2) tqdm
 # NOTE: Jupyterノートブックからrun.shを実行する場合は、none推奨
