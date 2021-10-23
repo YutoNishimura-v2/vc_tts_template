@@ -198,19 +198,42 @@ class VarianceAdaptor(nn.Module):
             t_snt_durations.append(torch.from_numpy(np.array(t_snt_duration)).long().to(s_snt_durations.device))
         return pad(t_snt_durations)
 
-    def sing(
+    def forward_woDuration(
         self,
         x,
+        src_mask,
         src_max_len,
         src_pitch,
         src_energy,
         p_control=1.0,
         e_control=1.0,
+        pitch_energy_prediction=False,
     ):
-        # sourceの特徴量で条件付ける.
-        # pitchを, また次元増やしてhiddenに足す.
-        pitch = self.reshape_with_reduction_factor(src_pitch * p_control, src_max_len)
-        energy = self.reshape_with_reduction_factor(src_energy * e_control, src_max_len)
+        # convして, 次元を合わせる
+        pitch = self.reshape_with_reduction_factor(src_pitch, src_max_len)
+        energy = self.reshape_with_reduction_factor(src_energy, src_max_len)
+
+        if pitch_energy_prediction is True:
+            pitch = self.pitch_conv1d_1(pitch)
+            energy = self.energy_conv1d_1(energy)
+
+            pitch = pitch + x.detach() if self.pitch_stop_gradient_flow is True else pitch + x
+            energy = energy + x.detach() if self.energy_stop_gradient_flow is True else energy + x
+
+            # pitch, energy: (B, T//r, d_enc)
+            if (self.pitch_AR is False) and (self.pitch_ARNAR is False):
+                pitch_prediction = self.pitch_predictor(pitch, src_mask) * p_control
+            elif self.pitch_AR is True:
+                pitch_prediction = self.pitch_predictor(pitch, src_mask, None) * p_control
+            elif self.pitch_ARNAR is True:
+                raise RuntimeError("you cant use this mode without duration")
+
+            energy_prediction = self.energy_predictor(energy, src_mask) * e_control
+            pitch = self.reshape_with_reduction_factor(pitch_prediction, src_max_len)
+            energy = self.reshape_with_reduction_factor(energy_prediction, src_max_len)
+        else:
+            pitch = pitch * p_control
+            energy = energy * e_control
 
         pitch = self.pitch_conv1d_2(pitch)
         energy = self.energy_conv1d_2(energy)

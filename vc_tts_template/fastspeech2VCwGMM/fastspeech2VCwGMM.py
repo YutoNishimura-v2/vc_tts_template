@@ -332,7 +332,7 @@ class fastspeech2VCwGMM(fastspeech2VC):
             prosody_features
         )
 
-    def sing(
+    def forward_woDuration(
         self,
         ids,
         s_sp_ids,
@@ -347,6 +347,7 @@ class fastspeech2VCwGMM(fastspeech2VC):
         s_snt_durations,
         p_control=1.0,
         e_control=1.0,
+        pitch_energy_prediction=False,
     ):
         # use source duration, pitch.
         (
@@ -379,13 +380,15 @@ class fastspeech2VCwGMM(fastspeech2VC):
         output = output + self.prosody_linear(prosody_prediction_expanded)
         free_tensors_memory([prosody_prediction, prosody_prediction_expanded, s_snt_durations])
 
-        output = self.variance_adaptor.sing(
+        output = self.variance_adaptor.forward_woDuration(
             output,
+            s_mel_masks,
             max_s_mel_len,
             s_pitches,
             s_energies,
             p_control,
             e_control,
+            pitch_energy_prediction,
         )
         (
             _,
