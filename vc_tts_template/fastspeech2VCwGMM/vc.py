@@ -46,7 +46,7 @@ class FastSpeech2VCwGMM(object):
             if model_name is not None:
                 model_dir = retrieve_pretrained_model(model_name)
             else:
-                model_dir = retrieve_pretrained_model("fastspeech2VCwGMM")
+                model_dir = retrieve_pretrained_model("fastspeech2VCwGMM_N2C")
         if isinstance(model_dir, str):
             model_dir = Path(model_dir)
 

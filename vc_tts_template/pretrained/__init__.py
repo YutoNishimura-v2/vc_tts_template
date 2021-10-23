@@ -11,7 +11,8 @@ from tqdm.auto import tqdm
 _urls = {
     "v0.2.0": "https://github.com/r9y9/ttslearn/releases/download/v0.2.0",
     "v0.2.1": "https://github.com/r9y9/ttslearn/releases/download/v0.2.1",
-    "org_v0.1.0": "https://github.com/YutoNishimura-v2/vc_tts_template/releases/download/v0.1.0"
+    "org_v0.1.0": "https://github.com/YutoNishimura-v2/vc_tts_template/releases/download/v0.1.0",
+    "org_v0.2.0": "https://github.com/YutoNishimura-v2/vc_tts_template/releases/download/v0.2.0",
 }
 
 DEFAULT_CACHE_DIR = join(os.environ["HOME"], ".cache", "vc_tts_template")
@@ -70,7 +71,7 @@ model_registry = {
         "_target_": "vc_tts_template.fastspeech2VC:FastSpeech2VC"
     },
     "fastspeech2VCwGMM_N2C": {
-        "url": f"{_urls['org_v0.1.0']}/fastspeech2VCwGMM_N2C.tar.gz",
+        "url": f"{_urls['org_v0.2.0']}/fastspeech2VCwGMM_N2C.tar.gz",
         "_target_": "vc_tts_template.fastspeech2VCwGMM:fastspeech2VCwGMM"
     },
 }
