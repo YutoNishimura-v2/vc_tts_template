@@ -75,8 +75,8 @@ train:
         weight_decay: 0.0
     lr_scheduler:
       _target_: vc_tts_template.fastspeech2.optimizer.ScheduledOptim
-      warm_up_step: 1000
-      anneal_steps: [75000, 100000, 125000]
+      warm_up_step: 2000
+      anneal_steps: [150000, 200000, 250000]
       anneal_rate: 0.3
       max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 
   

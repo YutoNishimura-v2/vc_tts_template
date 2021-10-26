@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_4"
+spk: "LINE_3"
 
 # exp tag(for managing experiments)
-tag: "LINE_5"
+tag: "LINE_8"
 
 sample_rate: 22050
 
@@ -22,7 +22,7 @@ cudnn_deterministic: false
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
 wav_root: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050"
-lab_root: "../../../dataset/out_LINE_woITAKO/textgrid"
+lab_root: "../../../dataset/out_LINE_woITAKO/fullcontext"
 
 n_jobs: 8
 
@@ -49,7 +49,7 @@ accent_info: 1
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wEmotion
+acoustic_model: fastspeech2
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
@@ -58,15 +58,15 @@ vocoder_weight_base_path: "exp/LINE_sr22050_LINE_1/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 300
-fastspeech2_data_batch_size: 8
+fastspeech2_train_nepochs: 500
+fastspeech2_data_batch_size: 16
 
 ### hifigan ###
-hifigan_train_nepochs: 200
+hifigan_train_nepochs: 1000
 hifigan_data_batch_size: 128
 
 ### (optional) Optuna Tuning ###
-tuning_config: tuning_fastspeech2wGMM
+tuning_config:
 
 ###########################################################
 #                SYNTHESIS SETTING                        #
@@ -81,4 +81,4 @@ reverse: false
 num_eval_utts: -1
 
 acoustic_eval_checkpoint: latest.pth
-vocoder_eval_checkpoint: best_loss.pth
+vocoder_eval_checkpoint: latest.pth

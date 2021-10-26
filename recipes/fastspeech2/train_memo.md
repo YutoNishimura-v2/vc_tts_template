@@ -110,6 +110,36 @@
     - JSUT_NICT_LINE_1
         - spk: JSUT_NICT_LINE
         - pretrain用.
+    
+    - 以下は自分の研究用
+    - LINE_6
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 32
+        - 500epoch
+        - wGMM. baeslineとして、どの程度の精度が出るのかを確認するために回してみる。
+    - LINE_6(hifigan)
+        - spk: LINE_3
+        - pretrain: None
+        - batch_size: 128
+        - 1000epoch
+        - ちゃんと論文に出せるように、Universal重みからスタートして、train.listを使ってhifiganを訓練してみる.
+    - LINE_7
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - wGMM. baeslineとして、どの程度の精度が出るのかを確認するために回してみる。
+        - 比較できるように, batchを16にして実行.
+    - LINE_8
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2. 比較用としてbatch_size=16として再実行
 
 ## 主要な実験
 
