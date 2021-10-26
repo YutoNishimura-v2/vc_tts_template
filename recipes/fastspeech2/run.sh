@@ -204,10 +204,10 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
             zip -rq ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip $dump_norm_dir/$dev_set/out_fastspeech2/
         fi
         # unzip
-        unzip -q  -d ${local_dir} ${dump_norm_dir}/${train_set}/in_fastspeech2.zip
-        unzip -q  -d ${local_dir} ${dump_norm_dir}/${train_set}/out_fastspeech2.zip
-        unzip -q -d ${local_dir} ${dump_norm_dir}/${dev_set}/in_fastspeech2.zip
-        unzip -q -d ${local_dir} ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip
+        unzip -oq  -d ${local_dir} ${dump_norm_dir}/${train_set}/in_fastspeech2.zip
+        unzip -oq  -d ${local_dir} ${dump_norm_dir}/${train_set}/out_fastspeech2.zip
+        unzip -oq -d ${local_dir} ${dump_norm_dir}/${dev_set}/in_fastspeech2.zip
+        unzip -oq -d ${local_dir} ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip
     fi
     xrun python train_fastspeech2.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \

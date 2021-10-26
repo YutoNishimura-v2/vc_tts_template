@@ -152,8 +152,13 @@ class GRUwSort(nn.Module):
 
     def forward(self, x, lens):
         if self.sort is True:
-            sort_idx = torch.argsort(-lens)
-            inv_sort_idx = torch.argsort(sort_idx)
+            if type(lens) == torch.Tensor:
+                sort_idx = torch.argsort(-lens)
+                inv_sort_idx = torch.argsort(sort_idx)
+            else:
+                lens = np.array(lens)
+                sort_idx = np.argsort(-lens)
+                inv_sort_idx = np.argsort(sort_idx)
             x = x[sort_idx]
             lens = lens[sort_idx]
 

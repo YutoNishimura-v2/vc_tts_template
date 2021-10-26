@@ -82,13 +82,17 @@ class FastSpeech2Loss(nn.Module):
         # mdn loss
         prosody_target, pi_outs, sigma_outs, mu_outs = prosody_features[:4]
 
-        normal_dist = Normal(loc=mu_outs, scale=(sigma_outs + 1e-3))
-        loglik = normal_dist.log_prob(prosody_target.detach().unsqueeze(2).expand_as(normal_dist.loc))
-        # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
-        loglik = torch.sum(loglik, dim=-1)
-        # logsumexpを使わないとunderflowする.
-        prosody_loss = -torch.logsumexp(torch.log(pi_outs+1e-7) + loglik, dim=-1)
-        prosody_loss = torch.mean(prosody_loss.masked_select(src_masks))
+        if pi_outs is not None:
+            normal_dist = Normal(loc=mu_outs, scale=(sigma_outs + 1e-3))
+            loglik = normal_dist.log_prob(prosody_target.detach().unsqueeze(2).expand_as(normal_dist.loc))
+            # 共分散行列は対角行列という仮定なので, 確率は各次元で計算後logとって和をとればよい.
+            loglik = torch.sum(loglik, dim=-1)
+            # logsumexpを使わないとunderflowする.
+            prosody_loss = -torch.logsumexp(torch.log(pi_outs+1e-7) + loglik, dim=-1)
+            prosody_loss = torch.mean(prosody_loss.masked_select(src_masks))
+        else:
+            # for local_prosody: False
+            prosody_loss = torch.tensor([0], dtype=torch.float16).to(pitch_loss.device)
 
         if len(prosody_features) > 4:
             # global embedding True
