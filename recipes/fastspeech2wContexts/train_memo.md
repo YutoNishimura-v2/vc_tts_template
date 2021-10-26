@@ -10,6 +10,9 @@
         - out_LINE_woITAKO_before_ITAKOから作ったもの.
     - LINE_wContextwProsody
         - out_LINE_woITAKOから作ったもの.
+    - LINE_wContextwProsody_2
+        - LINE_wContextwProsodyから実行のためにprosodyを消し去ったもの
+        これ、単なるLINE_wContextと同じだった.....。
 
 - exp
     - LINE_wContext_1
@@ -30,3 +33,9 @@
         - spk: LINE_wContextwProsody
         - pretrain: None
         - +accent
+        - batch_size=16: A100を持ってしてもメモリ溢れる...。すべての実験を16で統一します。
+    - LINE_wContext_4
+        - spk: LINE_wContext
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
