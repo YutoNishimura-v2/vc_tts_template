@@ -181,6 +181,37 @@
         - まず最初にglobal prosodyのみ訓練して、途中からlocalも.
         - 公平になるように250, 250でやる.
         - job_ID: 8223475
+    - LINE_13
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: True, g_beta: 0.02, beta: 0.02, max_seq_len: 4000
+        - 基本今までの設定、つまりLINE_7と同じだが、max_seq_lenを1000にしていたせいで、ろくにデータを使えていなかったことが発覚.
+        - 4倍に増やしてみる.
+        - job_ID: 8226280
+    - LINE_14
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: False, g_beta: 0.02, beta: 0.02, max_seq_len: 4000
+        - LINE_10の, max_seq_len増やしたver. pretrain用.
+        - job_ID: 8226389
+    - LINE_15
+        - spk: LINE_3
+        - pretrain: LINE_14(250epoch)
+        - +accent info
+        - batch_size: 16
+        - 250epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: True, g_beta: 0.02, beta: 0.02, max_seq_len: 4000
+        - LINE_12のmax_seq_len増やしたver.
+        - job_ID: 
 
 ## 主要な実験
 
