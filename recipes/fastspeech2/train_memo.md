@@ -170,7 +170,7 @@
         - global prosody: True, local prosody: True, g_beta: 0.0
         - つまり、globalのlossは計算しない.
         - job_ID: 8221685
-    - LINE_12(undone)
+    - LINE_12
         - spk: LINE_3
         - pretrain: LINE_10(250epochから)
         - +accent info
@@ -180,7 +180,7 @@
         - global prosody: True, local prosody: True, g_beta: 0.02, beta: 0.02
         - まず最初にglobal prosodyのみ訓練して、途中からlocalも.
         - 公平になるように250, 250でやる.
-        - job_ID:
+        - job_ID: 8223475
 
 ## 主要な実験
 
