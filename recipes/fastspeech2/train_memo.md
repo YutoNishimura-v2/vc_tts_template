@@ -140,6 +140,47 @@
         - batch_size: 16
         - 500epoch
         - fastspeech2. 比較用としてbatch_size=16として再実行
+    - LINE_9
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: False, local prosody: True
+        - つまり、元論文の設定.
+        - job_ID: 8221619
+    - LINE_10
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: False
+        - つまり、globalのみ使ってみよう作戦
+        - job_ID: 8221622
+    - LINE_11
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: True, g_beta: 0.0
+        - つまり、globalのlossは計算しない.
+        - job_ID: 8221685
+    - LINE_12
+        - spk: LINE_3
+        - pretrain: LINE_10(250epochから)
+        - +accent info
+        - batch_size: 16
+        - 250epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: True, g_beta: 0.02, beta: 0.02
+        - まず最初にglobal prosodyのみ訓練して、途中からlocalも.
+        - 公平になるように250, 250でやる.
+        - job_ID: 8223475
 
 ## 主要な実験
 

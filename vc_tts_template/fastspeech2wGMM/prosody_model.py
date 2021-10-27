@@ -24,6 +24,7 @@ class ProsodyExtractor(nn.Module):
         self,
         d_mel=80,
         d_out=128,
+        local_prosody=True,
         conv_in_channels=1,
         conv_out_channels=1,
         conv_kernel_size=1,
@@ -42,15 +43,18 @@ class ProsodyExtractor(nn.Module):
             conv_stride, conv_padding, conv_dilation, conv_bias, conv_n_layers
         )
         self.convnorms.apply(encoder_init)
-        self.bi_gru = GRUwSort(
-            input_size=d_mel, hidden_size=d_out // 2, num_layers=gru_n_layers,
-            batch_first=True, bidirectional=True, sort=False
-        )
-        if global_prosody is True:
-            self.global_bi_gru = GRUwSort(
-                input_size=d_out, hidden_size=d_out // 2, num_layers=global_gru_n_layers,
+        if local_prosody is True:
+            self.bi_gru = GRUwSort(
+                input_size=d_mel, hidden_size=d_out // 2, num_layers=gru_n_layers,
                 batch_first=True, bidirectional=True, sort=False
             )
+        if global_prosody is True:
+            self.global_bi_gru = GRUwSort(
+                input_size=d_out if local_prosody is True else d_mel,
+                hidden_size=d_out // 2, num_layers=global_gru_n_layers,
+                batch_first=True, bidirectional=True, sort=True if local_prosody is False else False
+            )
+        self.local_prosody = local_prosody
         self.global_prosody = global_prosody
 
         self.segment_nums = None
@@ -62,31 +66,41 @@ class ProsodyExtractor(nn.Module):
                 return None, None
             return None
         durations = durations.detach().cpu().numpy()  # detach
-        output_sorted, src_lens_sorted, segment_nums, inv_sort_idx = mel2phone(mels, durations)
-        free_tensors_memory([durations])
-        outs = list()
-        for output, src_lens in zip(output_sorted, src_lens_sorted):
-            # output: (B, T_n, d_mel). T_n: length of phoneme
-            # convolution
-            mel_hidden = self.convnorms(output.unsqueeze(1))
-            # Bi-GRU
-            out = self.bi_gru(mel_hidden.squeeze(1), src_lens)
-            # out: (B, T_n, d_out)
-            outs.append(out[:, -1, :])
-        free_tensors_memory([output_sorted, src_lens_sorted])
-        outs = torch.cat(outs, 0)
-        out = phone2utter(outs[inv_sort_idx], segment_nums)
-        self.segment_nums = torch.from_numpy(np.array(segment_nums)).long().to(out.device)
-        free_tensors_memory([outs])
+        if self.local_prosody is True:
+            output_sorted, src_lens_sorted, segment_nums, inv_sort_idx = mel2phone(mels, durations)
+            free_tensors_memory([durations])
+            outs = list()
+            for output, src_lens in zip(output_sorted, src_lens_sorted):
+                # output: (B, T_n, d_mel). T_n: length of phoneme
+                # convolution
+                mel_hidden = self.convnorms(output.unsqueeze(1))
+                # Bi-GRU
+                out = self.bi_gru(mel_hidden.squeeze(1), src_lens)
+                # out: (B, T_n, d_out)
+                outs.append(out[:, -1, :])
+            free_tensors_memory([output_sorted, src_lens_sorted])
+            outs = torch.cat(outs, 0)
+            out = phone2utter(outs[inv_sort_idx], segment_nums)
+            self.segment_nums = torch.from_numpy(np.array(segment_nums)).long().to(out.device)
+            free_tensors_memory([outs])
 
-        if self.global_prosody is True:
-            # global_emb: (B, d_out)
-            if emb_lens is None:
-                emb_lens = self.segment_nums
+            if self.global_prosody is True:
+                # global_emb: (B, d_out)
+                if emb_lens is None:
+                    emb_lens = self.segment_nums
+                global_emb = self.global_bi_gru(out, emb_lens)[:, -1, :]
+                out = out + global_emb.unsqueeze(1).expand_as(out)
+                return out, global_emb
+            return out
+
+        else:
+            if self.global_prosody is False:
+                raise RuntimeError("you have to set True at least local or global prosody")
+            out = self.convnorms(mels.unsqueeze(1)).squeeze(1)
+            emb_lens = np.sum(durations, axis=-1).astype(np.int16)
             global_emb = self.global_bi_gru(out, emb_lens)[:, -1, :]
-            out = out + global_emb.unsqueeze(1).expand_as(out)
+            out = global_emb.unsqueeze(1).expand(-1, durations.shape[1], -1)
             return out, global_emb
-        return out
 
 
 def mel2phone(mels, durations):
@@ -151,6 +165,7 @@ class ProsodyPredictor(nn.Module):
         d_in=1,
         d_gru=1,  # dimention of gru
         d_out=1,  # output prosody emb size
+        local_prosody=True,
         conv_out_channels=1,  # hidden channel before gru
         conv_kernel_size=1,
         conv_stride=1,
@@ -174,27 +189,27 @@ class ProsodyPredictor(nn.Module):
             conv_n_layers, conv_dropout
         )
         self.convnorms.apply(encoder_init)
+        if local_prosody is True:
+            # 片方向 gru
+            self.gru = nn.ModuleList()
+            for layer in range(gru_layers):
+                gru = nn.GRUCell(
+                    conv_out_channels+d_out if layer == 0 else d_gru,
+                    d_gru,
+                )
+                self.gru += [ZoneOutCell(gru, zoneout, gru=True)]
 
-        # 片方向 gru
-        self.gru = nn.ModuleList()
-        for layer in range(gru_layers):
-            gru = nn.GRUCell(
-                conv_out_channels+d_out if layer == 0 else d_gru,
-                d_gru,
+            self.prenet = nn.Linear(d_out, d_out)
+
+            self.pi_linear = nn.Sequential(
+                nn.Linear(conv_out_channels+d_gru, num_gaussians),
+                nn.Softmax(dim=1)
             )
-            self.gru += [ZoneOutCell(gru, zoneout, gru=True)]
-
-        self.prenet = nn.Linear(d_out, d_out)
-
-        self.pi_linear = nn.Sequential(
-            nn.Linear(conv_out_channels+d_gru, num_gaussians),
-            nn.Softmax(dim=1)
-        )
-        self.sigma_linear = nn.Sequential(
-            nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians),
-            nn.ELU(inplace=True)
-        )
-        self.mu_linear = nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians)
+            self.sigma_linear = nn.Sequential(
+                nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians),
+                nn.ELU(inplace=True)
+            )
+            self.mu_linear = nn.Linear(conv_out_channels+d_gru, d_out*num_gaussians)
 
         if global_prosody is True:
             self.global_bi_gru = GRUwSort(
@@ -214,6 +229,7 @@ class ProsodyPredictor(nn.Module):
 
         self.d_out = d_out
         self.num_gaussians = num_gaussians
+        self.local_prosody = local_prosody
         self.global_prosody = global_prosody
         self.global_num_gaussians = global_num_gaussians
 
@@ -232,6 +248,12 @@ class ProsodyPredictor(nn.Module):
                 target_global_prosody = self.sample(g_pi, g_sigma, g_mu)
             else:
                 target_global_prosody = target_global_prosody.detach()
+
+        if self.local_prosody is False:
+            if self.global_prosody is False:
+                raise RuntimeError("you have to set True at least local or global prosody")
+            outs = target_global_prosody.unsqueeze(1).expand(-1, encoder_output.size(1), -1)
+            return outs, None, None, None, g_pi, g_sigma, g_mu
 
         # GRU の状態をゼロで初期化
         h_list = []
