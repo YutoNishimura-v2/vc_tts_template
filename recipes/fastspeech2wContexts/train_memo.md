@@ -39,3 +39,44 @@
         - pretrain: None
         - +accent
         - batch_size=16, wGMM
+    - LINE_wContext_5
+        - spk: LINE_wContext
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False
+        - 2段階学習のためのpretrain. 250epoch
+        - jobID: 8242146
+    - LINE_wContextwProsody_2
+        - spk: LINE_wContextwProsody
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False, attention: False
+        - 2段階学習のためのpretrain. 250epoch
+        - jobID: 8242165
+    # 未実行↓
+    - LINE_wContext_6
+        - spk: LINE_wContext
+        - pretrain: LINE_wContext_5
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True
+        - 2段階学習後半戦. 250epoch
+        - jobID: 
+    - LINE_wContextwProsody_4
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_2
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: False
+        - 2段階学習後半戦. 250epoch
+        - jobID:
+    - LINE_wContextwProsody_5
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_2
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True
+        - 2段階学習後半戦. attentionを復活させてみた. 250epoch
+        - jobID:

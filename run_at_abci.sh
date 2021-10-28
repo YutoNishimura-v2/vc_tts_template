@@ -1,4 +1,5 @@
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContext_sr22050_LINE_wContext_4_202110230025.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContext_sr22050_LINE_wContext_5_202110281802.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_2_202110281812.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_3_sr22050_LINE_6_hifigan_202110221830.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_3_sr22050_LINE_15_202110281020.log run_at_abci.sh
 # 例: qrsh -g $ABCI_GROUP -l rt_AG.small=1 -l h_rt=10:00:00
@@ -10,8 +11,8 @@ source ~/venv/vc_tts_template/bin/activate
 # 具体的処理
 # cd /home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts  # node V
 # export PYTHONPATH="/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template:$PYTHONPATH"  # node V
-# cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts  # node A
-cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/fastspeech2  # node A
+cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts  # node A
+# cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/fastspeech2  # node A
 export PYTHONPATH="/groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template:$PYTHONPATH"  # node A
 
 # ./run.sh --stage 3 --stop-stage 3 --local_dir ${SGE_LOCALDIR}/

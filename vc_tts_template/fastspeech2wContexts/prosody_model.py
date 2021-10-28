@@ -15,6 +15,7 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         d_in=1,
         d_gru=1,  # dimention of gru
         d_out=1,  # output prosody emb size
+        local_prosody=True,
         conv_out_channels=1,  # hidden channel before gru
         conv_kernel_size=1,
         conv_stride=1,
@@ -31,26 +32,34 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         global_d_gru=256,
         global_num_gaussians=10,
         h_prosody_emb_size=256,
+        prosody_attention=True,
         attention_hidden_dim=512,
         attention_conv_channels=256,
         attention_conv_kernel_size=128,
     ) -> None:
         super().__init__(
-            d_in, d_gru, d_out,
+            d_in, d_gru, d_out, local_prosody,
             conv_out_channels, conv_kernel_size, conv_stride,
             conv_padding, conv_dilation, conv_bias,
             conv_n_layers, conv_dropout, gru_layers,
             zoneout, num_gaussians, global_prosody,
             global_gru_layers, global_d_gru, global_num_gaussians,
         )
-        self.attention = LocationSensitiveAttention(
-            h_prosody_emb_size,
-            d_gru,
-            attention_hidden_dim,
-            attention_conv_channels,
-            attention_conv_kernel_size,
-        )
-        self.attn_linear = nn.Linear(h_prosody_emb_size, conv_out_channels+d_out)
+        if prosody_attention is True:
+            self.attention = LocationSensitiveAttention(
+                h_prosody_emb_size,
+                d_gru,
+                attention_hidden_dim,
+                attention_conv_channels,
+                attention_conv_kernel_size,
+            )
+            self.attn_linear = nn.Linear(h_prosody_emb_size, conv_out_channels+d_out)
+        else:
+            if local_prosody is False:
+                raise RuntimeError(
+                    "do not set prosody_attention False when local_prosody is False"
+                )
+        self.prosody_attention = prosody_attention
 
     def forward(
         self, encoder_output, h_prosody_emb, h_prosody_lens,
@@ -70,6 +79,12 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
                 target_global_prosody = self.sample(g_pi, g_sigma, g_mu)
             else:
                 target_global_prosody = target_global_prosody.detach()
+        
+        if self.local_prosody is False:
+            if self.global_prosody is False:
+                raise RuntimeError("you have to set True at least local or global prosody")
+            outs = target_global_prosody.unsqueeze(1).expand(-1, encoder_output.size(1), -1)
+            return outs, None, None, None, g_pi, g_sigma, g_mu
 
         # GRU の状態をゼロで初期化
         h_list = []
@@ -80,9 +95,10 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         go_frame = encoder_output.new_zeros(encoder_output.size(0), self.d_out)
         prev_out = go_frame
 
-        # 1 つ前の時刻のアテンション重み
-        prev_att_w = None
-        self.attention.reset()
+        if self.prosody_attention is True:
+            # 1 つ前の時刻のアテンション重み
+            prev_att_w = None
+            self.attention.reset()
 
         pi_outs = []
         sigma_outs = []
@@ -97,13 +113,14 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
                 prev_out = prev_out + target_global_prosody
             prenet_out = self.prenet(prev_out)
 
-            att_c, att_w = self.attention(
-                h_prosody_emb, h_prosody_lens, h_list[0], prev_att_w, h_prosody_mask
-            )
-
             # LSTM
             xs = torch.cat([encoder_output[:, t, :], prenet_out], dim=1)
-            xs = xs + self.attn_linear(att_c)
+
+            if self.prosody_attention is True:
+                att_c, att_w = self.attention(
+                    h_prosody_emb, h_prosody_lens, h_list[0], prev_att_w, h_prosody_mask
+                )
+                xs = xs + self.attn_linear(att_c)
             h_list[0] = self.gru[0](xs, h_list[0])
             for i in range(1, len(self.gru)):
                 h_list[i] = self.gru[i](
@@ -125,8 +142,9 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
                 prev_out = target_prosody[:, t, :].detach()
             outs.append(prev_out.unsqueeze(1))
 
-            # 累積アテンション重み
-            prev_att_w = att_w if prev_att_w is None else prev_att_w + att_w
+            if self.prosody_attention is True:
+                # 累積アテンション重み
+                prev_att_w = att_w if prev_att_w is None else prev_att_w + att_w
 
         outs = torch.cat(outs, dim=1)
         pi_outs = torch.cat(pi_outs, dim=1)

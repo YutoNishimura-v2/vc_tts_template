@@ -61,6 +61,7 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
         n_mel_channel: int,
         # other
         encoder_fix: bool,
+        local_prosody: bool,
         global_prosody: bool,
         stats: Dict,
         speakers: Dict,
@@ -107,6 +108,7 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
             decoder_dropout,
             n_mel_channel,
             encoder_fix,
+            local_prosody,
             global_prosody,
             stats,
             speakers,
