@@ -79,7 +79,7 @@ fastspeech2_data_batch_size: 32
 
 ### hifigan ###
 hifigan_train_nepochs: 500
-hifigan_data_batch_size: 128
+hifigan_data_batch_size: 32
 
 ### (optional) Optuna Tuning ###
 tuning_config:
