@@ -1,5 +1,5 @@
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContext_sr22050_LINE_wContext_5_202110281802.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_2_202110281812.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContext_sr22050_LINE_wContext_6_202110282150.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_5_202110282207.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_3_sr22050_LINE_6_hifigan_202110221830.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_3_sr22050_LINE_15_202110281020.log run_at_abci.sh
 # 例: qrsh -g $ABCI_GROUP -l rt_AG.small=1 -l h_rt=10:00:00

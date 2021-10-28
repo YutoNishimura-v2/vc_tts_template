@@ -197,8 +197,8 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
             text_emb_paths,
             prosody_emb_paths,
             g_prosody_emb_paths,
-            use_hist_num=data_config.use_hist_num  # type:ignore
-            use_local_prosody_hist_idx=data_config.use_local_prosody_hist_idx  # type:ignore
+            use_hist_num=data_config.use_hist_num,  # type:ignore
+            use_local_prosody_hist_idx=data_config.use_local_prosody_hist_idx,  # type:ignore
         )
         data_loaders[phase] = data_utils.DataLoader(
             dataset,
