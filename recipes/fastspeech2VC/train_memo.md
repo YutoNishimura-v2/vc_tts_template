@@ -71,6 +71,17 @@
         - min_silence_len: 200
         - reduction_factor: 3
         - 一応min_silence_len: 200でも試してみる.
+    - JSUT_NICT_LINE_3
+        - silence_thresh_t: -100
+        - min_silence_len: 200
+        - reduction_factor: 3
+        - 一応min_silence_len: 200でも試してみる.
+        - train/dev/evalを守って再作成.
+    - LINE
+        - silence_thresh_t: -100
+        - min_silence_len: 200
+        - reduction_factor: 3
+        - 提案手法のためのVC. TTSから作った音声を正解へと変換する.
 
 - tag
     - jsut_jsss_1
@@ -486,6 +497,16 @@
         - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 200, reduction_factor: 3, pitch_AR: False
         - 結果:
             - ほぼ違いはない。ただ、若干こっちのほうが自然なprosodyになっている気がした。ということで、こちらを更に訓練して、完成とする。
+    
+    # 以下提案手法
+    - JSUT_NICT_LINE_3
+        - spk: JSUT_NICT_LINE_3
+        - pretrain用
+        - min_silence_len: 200で試してみるお話.
+    - LINE_1(未実施)
+        - spk: LINE
+        - pretrain: JSUT_NICT_LINE_3
+        - 提案手法.
     
     # 以下coefont
     - yuto2allial

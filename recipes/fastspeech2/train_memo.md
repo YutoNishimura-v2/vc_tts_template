@@ -23,6 +23,9 @@
     
     - JSUT_NICT_LINE
         - VCのpretrain用の大規模TTS. textgrid.
+    - JSUT_NICT_LINE_2
+        - VCのpretrain用の大規模TTS. textgrid.
+        - ちゃんと、論文に使えるように, LINEのみtrain/dev/evalを守ったもの.
     
     - LINE_Teacher
         - wContexts用に, ProsodyExtractorを学習するためのコーパス
@@ -212,6 +215,9 @@
         - global prosody: True, local prosody: True, g_beta: 0.02, beta: 0.02, max_seq_len: 4000
         - LINE_12のmax_seq_len増やしたver.
         - job_ID: 8231151
+    - JSUT_NICT_LINE_2
+        - spk: JSUT_NICT_LINE_2
+        - pretrain用. train splitを守ってやり直し.
 
 ## 主要な実験
 
