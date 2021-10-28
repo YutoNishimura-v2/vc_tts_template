@@ -44,7 +44,9 @@
         - かなりいい. 感情的な部分は微妙だが、自然な高クオリティな音声を出力出来ていてすごい.
 
     # 以下coefont
+    - yuto2hongo
+      - spk: yuto2hongo
+      - pretrain: jsut_jsss_2(after 200epoch)
     - yuto2allial
       - spk: yuto2allial
       - pretrain: jsut_jsss_2(after 200epoch)
-      - hifiganもついでに学習しておく

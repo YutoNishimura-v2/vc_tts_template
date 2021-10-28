@@ -1,8 +1,8 @@
 # General settings.
-spk: "yuto2allial"
+spk: "yuto2hongo"
 
 # exp tag(for managing experiments)
-tag: "yuto2allial"
+tag: "yuto2hongo"
 
 sample_rate: 22050
 
@@ -25,7 +25,7 @@ cudnn_deterministic: false
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
 src_wav_root: "downloads/coefont/ynishimura"
-tgt_wav_root: "downloads/coefont/allial"
+tgt_wav_root: "downloads/coefont/hongo"
 
 n_jobs: 16
 
@@ -57,10 +57,10 @@ sentence_duration: 1
 min_silence_len: 200
 
 # ↓if you set this, duration is calc by AR model
-model_config_path: ../tacotronVC/exp/yuto2allial_sr22050_yuto2allial/tacotron2VC/model.yaml
-pretrained_checkpoint: ../tacotronVC/exp/yuto2allial_sr22050_yuto2allial/tacotron2VC/latest.pth
-in_scaler_path: ../tacotronVC/dump/yuto2allial_sr22050/norm/in_tacotron2VC_scaler.joblib
-out_scaler_path: ../tacotronVC/dump/yuto2allial_sr22050/norm/out_tacotron2VC_scaler.joblib
+model_config_path: ../tacotronVC/exp/yuto2hongo_sr22050_yuto2hongo/tacotron2VC/model.yaml
+pretrained_checkpoint: ../tacotronVC/exp/yuto2hongo_sr22050_yuto2hongo/tacotron2VC/latest.pth
+in_scaler_path: ../tacotronVC/dump/yuto2hongo_sr22050/norm/in_tacotron2VC_scaler.joblib
+out_scaler_path: ../tacotronVC/dump/yuto2hongo_sr22050/norm/out_tacotron2VC_scaler.joblib
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
@@ -70,7 +70,7 @@ vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
 vocoder_config: "conf/train_hifigan/model/hifigan.yaml"
-vocoder_weight_base_path: "../tacotronVC/exp/yuto2allial_sr22050_yuto2allial/hifigan"
+vocoder_weight_base_path: "exp/yuto2hongo_sr22050_yuto2hongo/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
@@ -78,8 +78,8 @@ fastspeech2_train_nepochs: 500
 fastspeech2_data_batch_size: 32
 
 ### hifigan ###
-hifigan_train_nepochs: 50
-hifigan_data_batch_size: 32
+hifigan_train_nepochs: 500
+hifigan_data_batch_size: 128
 
 ### (optional) Optuna Tuning ###
 tuning_config:
