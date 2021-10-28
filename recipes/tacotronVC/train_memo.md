@@ -42,3 +42,9 @@
         - pretrain: jsut_jsss_2(after 200epoch)
         - 23min/50epoch
         - かなりいい. 感情的な部分は微妙だが、自然な高クオリティな音声を出力出来ていてすごい.
+
+    # 以下coefont
+    - yuto2allial
+      - spk: yuto2allial
+      - pretrain: jsut_jsss_2(after 200epoch)
+      - hifiganもついでに学習しておく
