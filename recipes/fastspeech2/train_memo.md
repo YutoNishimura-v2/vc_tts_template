@@ -211,7 +211,7 @@
         - fastspeech2wGMM. 
         - global prosody: True, local prosody: True, g_beta: 0.02, beta: 0.02, max_seq_len: 4000
         - LINE_12のmax_seq_len増やしたver.
-        - job_ID: 
+        - job_ID: 8231151
 
 ## 主要な実験
 
