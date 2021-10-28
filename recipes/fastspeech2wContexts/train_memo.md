@@ -64,7 +64,7 @@
         - global prosody: True, local prosody: True
         - 2段階学習後半戦. 250epoch
         - jobID: 
-    - LINE_wContextwProsody_4
+    - LINE_wContextwProsody_3
         - spk: LINE_wContextwProsody
         - pretrain: LINE_wContextwProsody_2
         - +accent
@@ -72,11 +72,20 @@
         - global prosody: True, local prosody: True, attention: False
         - 2段階学習後半戦. 250epoch
         - jobID:
+    - LINE_wContextwProsody_4
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_2
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx:0
+        - 2段階学習後半戦. attentionを復活させてみた. 250epoch
+        - jobID:
     - LINE_wContextwProsody_5
         - spk: LINE_wContextwProsody
         - pretrain: LINE_wContextwProsody_2
         - +accent
         - batch_size=16, wGMM
-        - global prosody: True, local prosody: True, attention: True
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
         - 2段階学習後半戦. attentionを復活させてみた. 250epoch
+        - ただし, attentionの際に用いるのは、直前ではなく、そのさらに一個前、つまり一個前の自分の発話
         - jobID:

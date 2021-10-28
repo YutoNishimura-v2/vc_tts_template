@@ -27,7 +27,7 @@ def make_dialogue_dict(dialogue_info):
 
 def get_embs(
     utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use_hist_num: int,
-    start_index: int = 0, only_latest: bool = False
+    start_index: int = 0, only_latest: bool = False, use_local_prosody_hist_idx: int = 0
 ):
     current_d_id, current_in_d_id = utt2id[utt_id]
 
@@ -59,7 +59,7 @@ def get_embs(
         history_emotions.append("PAD")
 
     if only_latest is True:
-        hist_embs = hist_embs[0]
+        hist_embs = hist_embs[use_local_prosody_hist_idx]
     else:
         hist_embs = np.stack(hist_embs)  # type: ignore
     return (
@@ -88,6 +88,7 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         prosody_emb_paths: List,
         g_prosody_emb_paths: List,
         use_hist_num: int,
+        use_local_prosody_hist_idx: int
     ):
         self.in_paths = in_paths
         self.out_mel_paths = out_mel_paths
@@ -99,6 +100,7 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         self.prosody_emb_paths = prosody_emb_paths
         self.g_prosody_emb_paths = g_prosody_emb_paths
         self.use_hist_num = use_hist_num
+        self.use_local_prosody_hist_idx = use_local_prosody_hist_idx
 
     def __getitem__(self, idx: int):
         """Get a pair of input and target
@@ -116,7 +118,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         if len(self.prosody_emb_paths) > 0:
             _, history_prosody_emb, _, _, _ = get_embs(
                 self.in_paths[idx].name.replace("-feats.npy", ""), self.prosody_emb_paths,
-                self.utt2id, self.id2utt, self.use_hist_num, start_index=1, only_latest=True
+                self.utt2id, self.id2utt, self.use_hist_num, start_index=1, only_latest=True,
+                use_local_prosody_hist_idx=self.use_local_prosody_hist_idx
             )
             assert len(self.g_prosody_emb_paths) > 0, "this mode require global prosody"
             _, history_g_prosody_embs, _, _, _ = get_embs(
@@ -195,6 +198,7 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
             prosody_emb_paths,
             g_prosody_emb_paths,
             use_hist_num=data_config.use_hist_num  # type:ignore
+            use_local_prosody_hist_idx=data_config.use_local_prosody_hist_idx  # type:ignore
         )
         data_loaders[phase] = data_utils.DataLoader(
             dataset,

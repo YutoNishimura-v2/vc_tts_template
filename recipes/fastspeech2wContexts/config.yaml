@@ -2,7 +2,7 @@
 spk: "LINE_wContextwProsody"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwProsody_3"
+tag: "LINE_wContextwProsody_2"
 
 sample_rate: 22050
 
@@ -50,6 +50,7 @@ accent_info: 1
 BERT_weight: "colorfulscoop/sbert-base-ja"
 use_hist_num: 10
 # for with Prosody
+use_local_prosody_hist_idx: 0  # if 0, the latest one is used.
 # plase replace train/dev/eval to {} for emb_preprocess.py
 input_duration_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/duration"
 output_mel_file_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/mel"

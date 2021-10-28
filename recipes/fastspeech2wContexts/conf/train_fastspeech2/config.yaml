@@ -38,6 +38,7 @@ data:
   g_prosody_emb_dir:
   dialogue_info:
   use_hist_num:
+  use_local_prosody_hist_idx:
 
   # data loader
   num_workers: 5
