@@ -164,3 +164,30 @@ rsync -ah --no-i-r --info=progress2 \
 rsync -ah --no-i-r --info=progress2 \
     abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_12_fastspeech2wGMM/ \
     /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_12_fastspeech2wGMM/
+
+echo "LINE_3_sr22050_LINE_13"
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_13/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_13/
+
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_13_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_13_fastspeech2wGMM/
+
+echo "LINE_3_sr22050_LINE_14"
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_14/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_14/
+
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_14_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_14_fastspeech2wGMM/
+
+echo "LINE_3_sr22050_LINE_15"
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_15/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_15/
+
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_15_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_15_fastspeech2wGMM/
