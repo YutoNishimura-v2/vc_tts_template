@@ -1,8 +1,8 @@
 # General settings.
-spk: "yuto2hongo"
+spk: "yuto2allial"
 
 # exp tag(for managing experiments)
-tag: "yuto2hongo"
+tag: "yuto2allial"
 
 sample_rate: 22050
 
@@ -25,7 +25,7 @@ cudnn_deterministic: false
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
 src_wav_root: "../fastspeech2VC/downloads/coefont/ynishimura"
-tgt_wav_root: "../fastspeech2VC/downloads/coefont/hongo"
+tgt_wav_root: "../fastspeech2VC/downloads/coefont/allial"
 
 n_jobs: 16
 
