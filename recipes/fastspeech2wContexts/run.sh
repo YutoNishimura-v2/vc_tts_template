@@ -239,7 +239,19 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             echo "zip $dumpdir/${spk}_sr${sample_rate}/text_emb.zip"
             zip -rq $dumpdir/${spk}_sr${sample_rate}/text_emb.zip $dumpdir/${spk}_sr${sample_rate}/text_emb/
         fi
+        if [ -e $dumpdir/${spk}_sr${sample_rate}/prosody_emb ] && [ ! -e $dumpdir/${spk}_sr${sample_rate}/prosody_emb.zip ]; then
+            echo "zip $dumpdir/${spk}_sr${sample_rate}/prosody_emb.zip"
+            zip -rq $dumpdir/${spk}_sr${sample_rate}/prosody_emb.zip $dumpdir/${spk}_sr${sample_rate}/prosody_emb/
+        fi
+        if [ -e $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb ] && [ ! -e $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb.zip ]; then
+            echo "zip $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb.zip"
+            zip -rq $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb.zip $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb/
+        fi
         unzip -q -d ${local_dir} $dumpdir/${spk}_sr${sample_rate}/text_emb.zip
+        if [ -e $dumpdir/${spk}_sr${sample_rate}/prosody_emb.zip ]; then
+            unzip -q -d ${local_dir} $dumpdir/${spk}_sr${sample_rate}/prosody_emb.zip
+            unzip -q -d ${local_dir} $dumpdir/${spk}_sr${sample_rate}/g_prosody_emb.zip
+        fi
     fi
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
@@ -249,6 +261,9 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             dialogue_info=$dialogue_info \
             emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/text_emb \
             use_hist_num=$use_hist_num \
+            prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/prosody_emb \
+            g_prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/g_prosody_emb \
+            use_local_prosody_hist_idx=$use_local_prosody_hist_idx \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
             acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \

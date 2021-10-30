@@ -62,7 +62,11 @@ def my_app(config: DictConfig) -> None:
     utt2id, id2utt = make_dialogue_dict(dialogue_info)
     text_emb_paths = list(Path(to_absolute_path(config.emb_dir)).glob("*.npy"))
     use_hist_num = config.use_hist_num
+    # read prosody embeddings
+    prosody_emb_paths = list(Path(to_absolute_path(config.prosody_emb_dir)).glob("*.npy"))
+    g_prosody_emb_paths = list(Path(to_absolute_path(config.g_prosody_emb_dir)).glob("*.npy"))
 
+    # prepare text embedding
     context_embeddings = []
     for utt_id in utt_ids:
         current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions = get_embs(
@@ -71,13 +75,34 @@ def my_app(config: DictConfig) -> None:
         )
         context_embeddings.append([current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions])
 
+    # prepare prosody embedding
+    prosody_embeddings = []
+    for utt_id in utt_ids:
+        if len(prosody_emb_paths) > 0:
+            _, history_prosody_emb, _, _, _ = get_embs(
+                utt_id, prosody_emb_paths,
+                utt2id, id2utt, use_hist_num,
+                start_index=1, only_latest=True,
+                use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
+            )
+            _, history_g_prosody_embs, _, _, _ = get_embs(
+                utt_id, g_prosody_emb_paths,
+                utt2id, id2utt, use_hist_num,
+                start_index=1
+            )
+            prosody_embeddings.append([history_prosody_emb, history_g_prosody_embs])
+        else:
+            prosody_embeddings.append([None, None])
+
     if config.num_eval_utts is not None and config.num_eval_utts > 0:
         lab_files = lab_files[: config.num_eval_utts]
 
     # Run synthesis for each utt.
-    for lab_file, context_embedding in optional_tqdm(config.tqdm, desc="Utterance")(zip(lab_files, context_embeddings)):
+    for lab_file, context_embedding, prosody_embedding in optional_tqdm(config.tqdm, desc="Utterance")(
+        zip(lab_files, context_embeddings, prosody_embeddings)
+    ):
         wav = synthesis(
-            device, lab_file, context_embedding,
+            device, lab_file, context_embedding, prosody_embedding,
             acoustic_config.netG.speakers, acoustic_config.netG.emotions,
             acoustic_model, acoustic_out_scaler, vocoder_model
         )

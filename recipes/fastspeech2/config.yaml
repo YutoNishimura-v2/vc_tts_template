@@ -2,7 +2,7 @@
 spk: "LINE_3"
 
 # exp tag(for managing experiments)
-tag: "LINE_15"
+tag: "LINE_12"
 
 sample_rate: 22050
 
