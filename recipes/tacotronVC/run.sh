@@ -179,14 +179,14 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     xrun python train_tacotron2VC.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
-        data.train.in_dir=$dump_norm_dir/$train_set/in_tacotron2VC/ \
-        data.train.out_dir=$dump_norm_dir/$train_set/out_tacotron2VC/ \
+        data.train.in_dir=${local_dir}$dump_norm_dir/$train_set/in_tacotron2VC/ \
+        data.train.out_dir=${local_dir}$dump_norm_dir/$train_set/out_tacotron2VC/ \
         data.dev.utt_list=data/dev.list \
-        data.dev.in_dir=$dump_norm_dir/$dev_set/in_tacotron2VC/ \
-        data.dev.out_dir=$dump_norm_dir/$dev_set/out_tacotron2VC/ \
+        data.dev.in_dir=${local_dir}$dump_norm_dir/$dev_set/in_tacotron2VC/ \
+        data.dev.out_dir=${local_dir}$dump_norm_dir/$dev_set/out_tacotron2VC/ \
         data.batch_size=$tacotron2_data_batch_size \
-        train.out_dir=$expdir/${acoustic_model} \
-        train.log_dir=tensorboard/${expname}_${acoustic_model} \
+        train.out_dir=${local_dir}$expdir/${acoustic_model} \
+        train.log_dir=${local_dir}tensorboard/${expname}_${acoustic_model} \
         train.nepochs=$tacotron2_train_nepochs \
         train.sampling_rate=$sample_rate \
         train.mel_scaler_path=$dump_norm_dir/out_tacotron2VC_scaler.joblib \

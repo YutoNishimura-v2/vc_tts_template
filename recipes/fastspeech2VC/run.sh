@@ -196,15 +196,15 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     xrun python train_fastspeech2VC.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
-        data.train.in_dir=$dump_norm_dir/$train_set/in_fastspeech2VC/ \
-        data.train.out_dir=$dump_norm_dir/$train_set/out_fastspeech2VC/ \
+        data.train.in_dir=${local_dir}$dump_norm_dir/$train_set/in_fastspeech2VC/ \
+        data.train.out_dir=${local_dir}$dump_norm_dir/$train_set/out_fastspeech2VC/ \
         data.dev.utt_list=data/dev.list \
-        data.dev.in_dir=$dump_norm_dir/$dev_set/in_fastspeech2VC/ \
-        data.dev.out_dir=$dump_norm_dir/$dev_set/out_fastspeech2VC/ \
+        data.dev.in_dir=${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2VC/ \
+        data.dev.out_dir=${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2VC/ \
         data.batch_size=$fastspeech2_data_batch_size \
         data.sentence_duration=$sentence_duration \
-        train.out_dir=$expdir/${acoustic_model} \
-        train.log_dir=tensorboard/${expname}_${acoustic_model} \
+        train.out_dir=${local_dir}$expdir/${acoustic_model} \
+        train.log_dir=${local_dir}tensorboard/${expname}_${acoustic_model} \
         train.nepochs=$fastspeech2_train_nepochs \
         train.sampling_rate=$sample_rate \
         train.mel_scaler_path=$dump_norm_dir/out_fastspeech2VC_mel_scaler.joblib \
@@ -245,9 +245,9 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     fi
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
-            in_dir=$dump_norm_dir/$s/in_fastspeech2VC \
-            out_mel_dir=$dump_norm_dir/$s/out_fastspeech2VC/mel \
-            out_dir=$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s \
+            in_dir=${local_dir}$dump_norm_dir/$s/in_fastspeech2VC \
+            out_mel_dir=${local_dir}$dump_norm_dir/$s/out_fastspeech2VC/mel \
+            out_dir=${local_dir}$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
             acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2VC_mel_scaler.joblib \

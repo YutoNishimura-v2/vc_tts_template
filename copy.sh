@@ -234,3 +234,40 @@ rsync -ah --no-i-r --info=progress2 \
 rsync -ah --no-i-r --info=progress2 \
     abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_5_fastspeech2wGMMwContextswProsody/ \
     /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_5_fastspeech2wGMMwContextswProsody/
+
+# tacotronVC
+echo "LINE_1_sr22050_LINE_1"
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/tacotronVC/exp/LINE_1_sr22050_LINE_1/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/tacotronVC/exp/LINE_1_sr22050_LINE_1/
+
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/tacotronVC/tensorboard/LINE_1_sr22050_LINE_1_tacotron2VC/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/tacotronVC/tensorboard/LINE_1_sr22050_LINE_1_tacotron2VC/
+
+echo "LINE_2_sr22050_LINE_2"
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/tacotronVC/exp/LINE_2_sr22050_LINE_2/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/tacotronVC/exp/LINE_2_sr22050_LINE_2/
+
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/tacotronVC/tensorboard/LINE_2_sr22050_LINE_2_tacotron2VC/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/tacotronVC/tensorboard/LINE_2_sr22050_LINE_2_tacotron2VC/
+
+echo "LINE_3_sr22050_LINE_3"
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/tacotronVC/exp/LINE_3_sr22050_LINE_3/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/tacotronVC/exp/LINE_3_sr22050_LINE_3/
+
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/tacotronVC/tensorboard/LINE_3_sr22050_LINE_3_tacotron2VC/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/tacotronVC/tensorboard/LINE_3_sr22050_LINE_3_tacotron2VC/
+
+echo "LINE_4_sr22050_LINE_4"
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/tacotronVC/exp/LINE_4_sr22050_LINE_4/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/tacotronVC/exp/LINE_4_sr22050_LINE_4/
+
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/tacotronVC/tensorboard/LINE_4_sr22050_LINE_4_tacotron2VC/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/tacotronVC/tensorboard/LINE_4_sr22050_LINE_4_tacotron2VC/
