@@ -1,8 +1,15 @@
 # General settings.
+<<<<<<< HEAD
 spk: "LINE_4"
 
 # exp tag(for managing experiments)
 tag: "LINE_4"
+=======
+spk: "yuto2allial"
+
+# exp tag(for managing experiments)
+tag: "yuto2allial"
+>>>>>>> origin/master
 
 sample_rate: 22050
 

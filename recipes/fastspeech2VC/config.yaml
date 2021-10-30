@@ -7,7 +7,7 @@ tag: "LINE_1"
 sample_rate: 22050
 
 # ttsを共有するためにtar.gzにするときに利用したい名前
-export_model_name:
+export_model_name: yuto2allial_20211029
 
 # 1) none 2) tqdm
 # NOTE: Jupyterノートブックからrun.shを実行する場合は、none推奨
@@ -24,8 +24,13 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
+<<<<<<< HEAD
 src_wav_root: "../../../dataset/out_JSUT_NICT_LINE_for_VC/JSUT_NICT_LINE_for_VC/wav/22050"
 tgt_wav_root: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050"
+=======
+src_wav_root: "downloads/coefont/ynishimura"
+tgt_wav_root: "downloads/coefont/allial"
+>>>>>>> origin/master
 
 n_jobs: 16
 
@@ -57,10 +62,17 @@ sentence_duration: 1
 min_silence_len: 200
 
 # ↓if you set this, duration is calc by AR model
+<<<<<<< HEAD
 model_config_path: ../tacotronVC/exp/N2C_sr22050_N2C_4/tacotron2VC/model.yaml
 pretrained_checkpoint: ../tacotronVC/exp/N2C_sr22050_N2C_4/tacotron2VC/latest.pth
 in_scaler_path: ../tacotronVC/dump/N2C_sr22050/norm/in_tacotron2VC_scaler.joblib
 out_scaler_path: ../tacotronVC/dump/N2C_sr22050/norm/out_tacotron2VC_scaler.joblib
+=======
+model_config_path: ../tacotronVC/exp/yuto2allial_sr22050_yuto2allial/tacotron2VC/model.yaml
+pretrained_checkpoint: ../tacotronVC/exp/yuto2allial_sr22050_yuto2allial/tacotron2VC/latest.pth
+in_scaler_path: ../tacotronVC/dump/yuto2allial_sr22050/norm/in_tacotron2VC_scaler.joblib
+out_scaler_path: ../tacotronVC/dump/yuto2allial_sr22050/norm/out_tacotron2VC_scaler.joblib
+>>>>>>> origin/master
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
@@ -70,7 +82,11 @@ vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
 vocoder_config: "conf/train_hifigan/model/hifigan.yaml"
+<<<<<<< HEAD
 vocoder_weight_base_path: "../fastspeech2/exp/LINE_3_sr22050_LINE_6/hifigan"
+=======
+vocoder_weight_base_path: "exp/yuto2allial_sr22050_yuto2allial/hifigan"
+>>>>>>> origin/master
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.

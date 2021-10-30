@@ -16,6 +16,9 @@ out_dir:
 dialogue_info:
 emb_dir:
 use_hist_num:
+prosody_emb_dir:
+g_prosody_emb_dir:
+use_local_prosody_hist_idx:
 # リストの逆順で発話を処理する
 reverse: false
 

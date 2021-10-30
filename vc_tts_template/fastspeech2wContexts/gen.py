@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 @torch.no_grad()
-def synthesis(device, lab_file, context_embedding, 
+def synthesis(device, lab_file, context_embedding, prosody_embedding,
               speaker_dict, emotion_dict, acoustic_model,
               acoustic_out_scaler, vocoder_model):
     ids = [Path(lab_file).name.replace("-feats.npy", "")]
@@ -12,6 +12,8 @@ def synthesis(device, lab_file, context_embedding,
     (
         current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions
     ) = context_embedding
+
+    h_prosody_emb, h_g_prosody_embs = prosody_embedding
 
     if speaker_dict is None:
         raise ValueError("You Need speaker_dict")
@@ -38,6 +40,9 @@ def synthesis(device, lab_file, context_embedding,
     hist_emb_len = torch.tensor(hist_emb_len, dtype=torch.long).unsqueeze(0).to(device)
     h_speakers = torch.tensor(h_speakers, dtype=torch.long).unsqueeze(0).to(device)
     h_emotions = torch.tensor(h_emotions, dtype=torch.long).unsqueeze(0).to(device)
+    h_prosody_emb = torch.tensor(h_prosody_emb).unsqueeze(0).to(device) if h_prosody_emb is not None else None
+    h_prosody_lens = torch.tensor([h_prosody_emb.size(1)], dtype=torch.long).to(device) if h_prosody_emb is not None else None
+    h_g_prosody_embs = torch.tensor(h_g_prosody_embs).unsqueeze(0).to(device) if h_g_prosody_embs is not None else None
 
     output = acoustic_model(
         ids=ids,
@@ -51,6 +56,9 @@ def synthesis(device, lab_file, context_embedding,
         h_txt_emb_lens=hist_emb_len,
         h_speakers=h_speakers,
         h_emotions=h_emotions,
+        h_prosody_emb=h_prosody_emb,
+        h_prosody_lens=h_prosody_lens,
+        h_g_prosody_embs=h_g_prosody_embs,
     )
 
     mel_post = output[1]
