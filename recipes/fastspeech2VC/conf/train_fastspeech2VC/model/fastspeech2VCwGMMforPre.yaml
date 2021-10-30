@@ -49,7 +49,6 @@ netG:
 
   encoder_fix: False
   decoder_fix: True
-  local_prosody: True
   global_prosody: True
   pitch_AR: False
   pitch_ARNAR: False

@@ -10,6 +10,14 @@
     - jsut_jsss
         - one2one
         - 一応pretrain用
+    - LINE_1
+        - LINE_8 to target
+    - LINE_2
+        - LINE_12 to target
+    - LINE_3
+        - LINE_wContext_6 to target
+    - LINE_4
+        - LINE_wContextwProsody_5 to target
 
 - tag
     - N2C_1
@@ -42,6 +50,24 @@
         - pretrain: jsut_jsss_2(after 200epoch)
         - 23min/50epoch
         - かなりいい. 感情的な部分は微妙だが、自然な高クオリティな音声を出力出来ていてすごい.
+    
+    # 以下提案手法
+    - LINE_1
+        - spk: LINE_1
+        - pretrain: jsut_jsss_2(after 200epoch)
+        - LINE_8について.
+    - LINE_2
+        - spk: LINE_2
+        - pretrain: jsut_jsss_2(after 200epoch)
+        - LINE_12について.
+    - LINE_3
+        - spk: LINE_3
+        - pretrain: jsut_jsss_2(after 200epoch)
+        - LINE_wContext_6について.
+    - LINE_4
+        - spk: LINE_4
+        - pretrain: jsut_jsss_2(after 200epoch)
+        - LINE_wContextwProsody_5について.
 
     # 以下coefont
     - yuto2hongo

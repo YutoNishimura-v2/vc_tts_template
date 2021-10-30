@@ -77,11 +77,12 @@
         - reduction_factor: 3
         - 一応min_silence_len: 200でも試してみる.
         - train/dev/evalを守って再作成.
-    - LINE
+    - LINE_1
         - silence_thresh_t: -100
         - min_silence_len: 200
         - reduction_factor: 3
         - 提案手法のためのVC. TTSから作った音声を正解へと変換する.
+        - sourceがLINE_8
 
 - tag
     - jsut_jsss_1
