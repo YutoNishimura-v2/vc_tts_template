@@ -24,6 +24,7 @@ testsets=($eval_set)
 
 stage=0
 stop_stage=0
+local_dir=""
 
 . $COMMON_ROOT/parse_options.sh || exit 1;
 
@@ -81,6 +82,8 @@ fi
 
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     echo "stage 1: Feature generation for tacotron2VC"
+    mkdir -p $expdir/data
+    cp -r data/*.list $expdir/data/
     for s in ${datasets[@]}; do
         xrun python preprocess.py data/$s.list $src_wav_root $tgt_wav_root \
             $dump_org_dir/$s --n_jobs $n_jobs --sample_rate $sample_rate \
@@ -90,13 +93,12 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
             --n_mel_channels $n_mel_channels --mel_fmin $mel_fmin --mel_fmax $mel_fmax \
             --clip $clip --log_base $log_base
     done
-    # preprocess実行時にのみcopyするようにする.
-    mkdir -p $expdir/data
-    cp -r data/*.list $expdir/data/
 fi
 
 if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
     echo "stage 2: feature normalization"
+    mkdir -p $expdir/data
+    cp -r data/*.list $expdir/data/
     for typ in "tacotron2VC"; do
        for inout in "in" "out"; do
             xrun python $COMMON_ROOT/fit_scaler.py data/train.list \
@@ -122,6 +124,8 @@ fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
     echo "stage 3: finetuning hifigan"
+    # save config
+    cp -r conf/train_hifigan $expdir/conf
     xrun python train_hifigan.py model=$vocoder_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
@@ -140,12 +144,38 @@ if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
         train.log_dir=tensorboard/${expname}_${vocoder_model} \
         train.nepochs=$hifigan_train_nepochs
 
-    # save config
-    cp -r conf/train_hifigan $expdir/conf
 fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     echo "stage 4: Training tacotron2VC"
+    # save config
+    cp -r conf/train_tacotron2VC $expdir/conf
+    if [ ! -z ${local_dir} ]; then
+        echo "copy dataset to ${local_dir}"
+        # copy data
+        # first zip
+        if [ ! -e ${dump_norm_dir}/${train_set}/in_tacotron2VC.zip ]; then
+            echo "zip ${dump_norm_dir}/${train_set}/in_tacotron2VC.zip"
+            zip -rq ${dump_norm_dir}/${train_set}/in_tacotron2VC.zip $dump_norm_dir/$train_set/in_tacotron2VC/
+        fi
+        if [ ! -e ${dump_norm_dir}/${train_set}/out_tacotron2VC.zip ]; then
+            echo "zip ${dump_norm_dir}/${train_set}/out_tacotron2VC.zip"
+            zip -rq ${dump_norm_dir}/${train_set}/out_tacotron2VC.zip $dump_norm_dir/$train_set/out_tacotron2VC/
+        fi
+        if [ ! -e ${dump_norm_dir}/${dev_set}/in_tacotron2VC.zip ]; then
+            echo "zip ${dump_norm_dir}/${dev_set}/in_tacotron2VC.zip"
+            zip -rq ${dump_norm_dir}/${dev_set}/in_tacotron2VC.zip $dump_norm_dir/$dev_set/in_tacotron2VC/
+        fi
+        if [ ! -e ${dump_norm_dir}/${dev_set}/out_tacotron2VC.zip ]; then
+            echo "zip ${dump_norm_dir}/${dev_set}/out_tacotron2VC.zip"
+            zip -rq ${dump_norm_dir}/${dev_set}/out_tacotron2VC.zip $dump_norm_dir/$dev_set/out_tacotron2VC/
+        fi
+        # unzip
+        unzip -oq  -d ${local_dir} ${dump_norm_dir}/${train_set}/in_tacotron2VC.zip
+        unzip -oq  -d ${local_dir} ${dump_norm_dir}/${train_set}/out_tacotron2VC.zip
+        unzip -oq -d ${local_dir} ${dump_norm_dir}/${dev_set}/in_tacotron2VC.zip
+        unzip -oq -d ${local_dir} ${dump_norm_dir}/${dev_set}/out_tacotron2VC.zip
+    fi
     xrun python train_tacotron2VC.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
@@ -165,13 +195,20 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         train.vocoder_weight_path=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
         model.netG.n_mel_channel=$n_mel_channels \
         model.netG.reduction_factor=$reduction_factor
-    
-    # save config
-    cp -r conf/train_tacotron2VC $expdir/conf
+    if [ ! -z ${local_dir} ]; then
+        echo "copy results"
+        mkdir -p $expdir/${acoustic_model}
+        mkdir -p tensorboard/${expname}_${acoustic_model}
+
+        rsync -ah --no-i-r --info=progress2 ${local_dir}$expdir/${acoustic_model}/ $expdir/${acoustic_model}/
+        rsync -ah --no-i-r --info=progress2 ${local_dir}tensorboard/${expname}_${acoustic_model}/ tensorboard/${expname}_${acoustic_model}/
+    fi
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     echo "stage 5: Synthesis waveforms by hifigan"
+    # save config
+    cp -r conf/synthesis $expdir/conf
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
             in_dir=$dump_norm_dir/$s/in_tacotron2VC \
@@ -185,8 +222,6 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             vocoder.model_yaml=$vocoder_config \
             reverse=$reverse num_eval_utts=$num_eval_utts
     done
-    # save config
-    cp -r conf/synthesis $expdir/conf
 fi
 
 if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then

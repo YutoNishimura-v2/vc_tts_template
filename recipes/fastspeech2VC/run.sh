@@ -24,6 +24,7 @@ testsets=($eval_set)
 
 stage=0
 stop_stage=0
+local_dir=""
 
 . $COMMON_ROOT/parse_options.sh || exit 1;
 
@@ -166,6 +167,32 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     echo "stage 4: Training fastspeech2VC"
     # save config
     cp -r conf/train_fastspeech2VC $expdir/conf
+    if [ ! -z ${local_dir} ]; then
+        echo "copy dataset to ${local_dir}"
+        # copy data
+        # first zip
+        if [ ! -e ${dump_norm_dir}/${train_set}/in_fastspeech2VC.zip ]; then
+            echo "zip ${dump_norm_dir}/${train_set}/in_fastspeech2VC.zip"
+            zip -rq ${dump_norm_dir}/${train_set}/in_fastspeech2VC.zip $dump_norm_dir/$train_set/in_fastspeech2VC/
+        fi
+        if [ ! -e ${dump_norm_dir}/${train_set}/out_fastspeech2VC.zip ]; then
+            echo "zip ${dump_norm_dir}/${train_set}/out_fastspeech2VC.zip"
+            zip -rq ${dump_norm_dir}/${train_set}/out_fastspeech2VC.zip $dump_norm_dir/$train_set/out_fastspeech2VC/
+        fi
+        if [ ! -e ${dump_norm_dir}/${dev_set}/in_fastspeech2VC.zip ]; then
+            echo "zip ${dump_norm_dir}/${dev_set}/in_fastspeech2VC.zip"
+            zip -rq ${dump_norm_dir}/${dev_set}/in_fastspeech2VC.zip $dump_norm_dir/$dev_set/in_fastspeech2VC/
+        fi
+        if [ ! -e ${dump_norm_dir}/${dev_set}/out_fastspeech2VC.zip ]; then
+            echo "zip ${dump_norm_dir}/${dev_set}/out_fastspeech2VC.zip"
+            zip -rq ${dump_norm_dir}/${dev_set}/out_fastspeech2VC.zip $dump_norm_dir/$dev_set/out_fastspeech2VC/
+        fi
+        # unzip
+        unzip -oq  -d ${local_dir} ${dump_norm_dir}/${train_set}/in_fastspeech2VC.zip
+        unzip -oq  -d ${local_dir} ${dump_norm_dir}/${train_set}/out_fastspeech2VC.zip
+        unzip -oq -d ${local_dir} ${dump_norm_dir}/${dev_set}/in_fastspeech2VC.zip
+        unzip -oq -d ${local_dir} ${dump_norm_dir}/${dev_set}/out_fastspeech2VC.zip
+    fi
     xrun python train_fastspeech2VC.py model=$acoustic_model tqdm=$tqdm \
         cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
         data.train.utt_list=data/train.list \
@@ -186,12 +213,36 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         train.vocoder_weight_path=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
         model.netG.n_mel_channel=$n_mel_channels \
         model.netG.reduction_factor=$reduction_factor
+    if [ ! -z ${local_dir} ]; then
+        echo "copy results"
+        mkdir -p $expdir/${acoustic_model}
+        mkdir -p tensorboard/${expname}_${acoustic_model}
+
+        rsync -ah --no-i-r --info=progress2 ${local_dir}$expdir/${acoustic_model}/ $expdir/${acoustic_model}/
+        rsync -ah --no-i-r --info=progress2 ${local_dir}tensorboard/${expname}_${acoustic_model}/ tensorboard/${expname}_${acoustic_model}/
+    fi
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     echo "stage 5: Synthesis waveforms by hifigan"
     # save config
     cp -r conf/synthesis $expdir/conf
+    if [ ! -z ${local_dir} ]; then
+        echo "copy dataset to ${local_dir}"
+        # input data dirs
+        for s in ${testsets[@]}; do
+            if [ ! -e $dump_norm_dir/$s/in_fastspeech2VC.zip ]; then
+                echo "zip $dump_norm_dir/$s/in_fastspeech2VC.zip"
+                zip -rq $dump_norm_dir/$s/in_fastspeech2VC.zip $dump_norm_dir/$s/in_fastspeech2VC/
+            fi
+            if [ ! -e $dump_norm_dir/$s/out_fastspeech2VC/mel.zip ]; then
+                echo "zip $dump_norm_dir/$s/out_fastspeech2VC/mel.zip"
+                zip -rq $dump_norm_dir/$s/out_fastspeech2VC/mel.zip $dump_norm_dir/$s/out_fastspeech2VC/mel
+            fi
+            unzip -q  -d ${local_dir} $dump_norm_dir/$s/in_fastspeech2VC.zip
+            unzip -q  -d ${local_dir} $dump_norm_dir/$s/out_fastspeech2VC/mel.zip
+        done
+    fi
     for s in ${testsets[@]}; do
         xrun python synthesis.py utt_list=./data/$s.list tqdm=$tqdm \
             in_dir=$dump_norm_dir/$s/in_fastspeech2VC \
@@ -205,6 +256,14 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             vocoder.model_yaml=$vocoder_config \
             reverse=$reverse num_eval_utts=$num_eval_utts
     done
+    if [ ! -z ${local_dir} ]; then
+        echo "copy results"
+        for s in ${testsets[@]}; do
+            mkdir -p $expdir/synthesis_${acoustic_model}_${vocoder_model}/$s/
+
+            rsync -ah --no-i-r --info=progress2 ${local_dir}$expdir/synthesis_${acoustic_model}_${vocoder_model}/$s/ $expdir/synthesis_${acoustic_model}_${vocoder_model}/$s/
+        done
+    fi
 fi
 
 if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
