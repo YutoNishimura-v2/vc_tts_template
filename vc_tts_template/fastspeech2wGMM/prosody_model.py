@@ -159,6 +159,18 @@ def phone2utter(out, segment_nums):
     return pad(output)
 
 
+class Div(nn.Module):
+    def __init__(self, a) -> None:
+        super().__init__()
+        self.a = a
+
+        if a < 1e-8:
+            raise ValueError("too small!!")
+
+    def forward(self, x):
+        return torch.div(x, self.a)
+
+
 class ProsodyPredictor(nn.Module):
     def __init__(
         self,
@@ -177,10 +189,12 @@ class ProsodyPredictor(nn.Module):
         gru_layers=2,
         zoneout=0.1,
         num_gaussians=10,
+        softmax_temperature=1,
         global_prosody=False,
         global_gru_layers=1,
         global_d_gru=256,
         global_num_gaussians=10,
+        global_softmax_temperature=1,
     ) -> None:
         super().__init__()
         self.convnorms = ConvLNorms1d(
@@ -203,6 +217,7 @@ class ProsodyPredictor(nn.Module):
 
             self.pi_linear = nn.Sequential(
                 nn.Linear(conv_out_channels+d_gru, num_gaussians),
+                Div(softmax_temperature),
                 nn.Softmax(dim=1)
             )
             self.sigma_linear = nn.Sequential(
@@ -219,6 +234,7 @@ class ProsodyPredictor(nn.Module):
             )
             self.g_pi_linear = nn.Sequential(
                 nn.Linear(global_d_gru, global_num_gaussians),
+                Div(global_softmax_temperature),
                 nn.Softmax(dim=1)
             )
             self.g_sigma_linear = nn.Sequential(
