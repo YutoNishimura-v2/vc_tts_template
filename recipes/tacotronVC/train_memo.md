@@ -62,7 +62,7 @@
         - pretrain: jsut_jsss_2(after 200epoch)
         - LINE_12について.
         - job_ID: 8250289
-        - job_ID: 8251184
+        - job_ID: 8251287
     - LINE_3
         - spk: LINE_3
         - pretrain: jsut_jsss_2(after 200epoch)

@@ -83,6 +83,24 @@
         - reduction_factor: 3
         - 提案手法のためのVC. TTSから作った音声を正解へと変換する.
         - sourceがLINE_8
+    - LINE_2
+        - silence_thresh_t: -100
+        - min_silence_len: 200
+        - reduction_factor: 3
+        - 提案手法のためのVC. TTSから作った音声を正解へと変換する.
+        - sourceがLINE_8
+    - LINE_3
+        - silence_thresh_t: -100
+        - min_silence_len: 200
+        - reduction_factor: 3
+        - 提案手法のためのVC. TTSから作った音声を正解へと変換する.
+        - sourceがLINE_8
+    - LINE_4
+        - silence_thresh_t: -100
+        - min_silence_len: 200
+        - reduction_factor: 3
+        - 提案手法のためのVC. TTSから作った音声を正解へと変換する.
+        - sourceがLINE_8
 
 - tag
     - jsut_jsss_1
@@ -498,17 +516,25 @@
         - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 200, reduction_factor: 3, pitch_AR: False
         - 結果:
             - ほぼ違いはない。ただ、若干こっちのほうが自然なprosodyになっている気がした。ということで、こちらを更に訓練して、完成とする。
-    
+
     # 以下提案手法
     - JSUT_NICT_LINE_3
         - spk: JSUT_NICT_LINE_3
         - pretrain用
         - min_silence_len: 200で試してみるお話.
     - LINE_1(未実施)
-        - spk: LINE
+        - spk: LINE_1
         - pretrain: JSUT_NICT_LINE_3
-        - 提案手法.
-    
+    - LINE_2(未実施)
+        - spk: LINE_2
+        - pretrain: JSUT_NICT_LINE_3
+    - LINE_3(未実施)
+        - spk: LINE_3
+        - pretrain: JSUT_NICT_LINE_3
+    - LINE_4(未実施)
+        - spk: LINE_4
+        - pretrain: JSUT_NICT_LINE_3
+
     # 以下coefont
     - yuto2allial
       - spk: yuto2allial

@@ -60,6 +60,8 @@ def get_embs(
 
     if only_latest is True:
         hist_embs = hist_embs[use_local_prosody_hist_idx]
+        history_speakers = [history_speakers[use_local_prosody_hist_idx]]
+        history_emotions = [history_emotions[use_local_prosody_hist_idx]]
     else:
         hist_embs = np.stack(hist_embs)  # type: ignore
     return (
@@ -116,7 +118,7 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             self.utt2id, self.id2utt, self.use_hist_num
         )
         if len(self.prosody_emb_paths) > 0:
-            _, history_prosody_emb, _, _, _ = get_embs(
+            _, history_prosody_emb, _, history_prosody_speakers, history_prosody_emotions = get_embs(
                 self.in_paths[idx].name.replace("-feats.npy", ""), self.prosody_emb_paths,
                 self.utt2id, self.id2utt, self.use_hist_num, start_index=1, only_latest=True,
                 use_local_prosody_hist_idx=self.use_local_prosody_hist_idx
@@ -127,6 +129,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
                 self.utt2id, self.id2utt, self.use_hist_num, start_index=1
             )
         else:
+            history_prosody_speakers = None
+            history_prosody_emotions = None
             history_prosody_emb = None
             history_g_prosody_embs = None
 
@@ -144,6 +148,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             history_emotions,
             history_prosody_emb,
             history_g_prosody_embs,
+            history_prosody_speakers,
+            history_prosody_emotions,
         )
 
     def __len__(self):
@@ -226,19 +232,24 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     h_emotions = [batch[idx][10] for idx in idxs]
     h_prosody_emb = [batch[idx][11] for idx in idxs]
     h_g_prosody_embs = [batch[idx][12] for idx in idxs]
+    h_prosody_speakers = [batch[idx][13] for idx in idxs]
+    h_prosody_emotions = [batch[idx][14] for idx in idxs]
 
     ids = np.array([fname.replace("-feats.npy", "") for fname in file_names])
     if speaker_dict is not None:
         speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in ids])
         h_speakers = np.array([[speaker_dict[spk] for spk in speakers] for speakers in h_speakers])
+        h_prosody_speakers = np.array([speaker_dict[spk] for spk in h_prosody_speakers])
     else:
         raise ValueError("You Need speaker_dict")
     if emotion_dict is not None:
         emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
         h_emotions = np.array([[emotion_dict[emo] for emo in emotions] for emotions in h_emotions])
+        h_prosody_emotions = np.array([emotion_dict[emo] for emo in h_prosody_emotions])
     else:
         emotions = np.array([0 for _ in idxs])
         h_emotions = np.array([[0 for _ in range(len(h_speakers[0]))] for _ in idxs])
+        h_prosody_emotions = np.array([0 for _ in idxs])
 
     # reprocessの内容をここに.
 
@@ -273,6 +284,8 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         h_prosody_emb,
         h_prosody_lens,
         np.array(h_g_prosody_embs) if h_g_prosody_embs[0] is not None else None,
+        h_prosody_speakers,
+        h_prosody_emotions,
     )
 
 

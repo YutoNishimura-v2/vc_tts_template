@@ -52,6 +52,7 @@ def get_parser():
     parser.add_argument("--in_scaler_path", type=str)
     parser.add_argument("--out_scaler_path", type=str)
     parser.add_argument("--batch_size", type=int)
+    parser.add_argument("--length_thresh", type=int)
     return parser
 
 
@@ -379,26 +380,43 @@ if __name__ == "__main__":
                 )
                 continue
 
-            batch_utt_id.append(utt_id)
-            batch_in_mel.append(in_mel)
-            batch_out_mel.append(out_mel)
-            if ((i+1) % args.batch_size == 0) or (i == len(in_mel_pathes)-1):
-                s_sp_ids = [utt_id.split("_")[0] for utt_id in batch_utt_id]
-                t_sp_ids = [utt_id.split("_")[1] for utt_id in batch_utt_id]
-                s_em_ids = [utt_id.split("_")[-2] for utt_id in batch_utt_id]
-                t_em_ids = [utt_id.split("_")[-1] for utt_id in batch_utt_id]
+            if len(in_mel) < args.length_thresh:
+                batch_utt_id.append(utt_id)
+                batch_in_mel.append(in_mel)
+                batch_out_mel.append(out_mel)
+                if ((i+1) % args.batch_size == 0) or (i == len(in_mel_pathes)-1):
+                    s_sp_ids = [utt_id.split("_")[0] for utt_id in batch_utt_id]
+                    t_sp_ids = [utt_id.split("_")[1] for utt_id in batch_utt_id]
+                    s_em_ids = [utt_id.split("_")[-2] for utt_id in batch_utt_id]
+                    t_em_ids = [utt_id.split("_")[-1] for utt_id in batch_utt_id]
+                    durations = get_alignment(
+                        model, device, acoustic_in_scaler, acoustic_out_scaler,
+                        batch_in_mel, batch_out_mel,
+                        s_sp_ids, t_sp_ids, s_em_ids, t_em_ids
+                    )
+                    for i, duration in enumerate(durations):
+                        utt_id = batch_utt_id[i]
+                        np.save(
+                            out_dir / "duration" / f"{utt_id}-feats.npy",
+                            duration.astype(np.int16),
+                            allow_pickle=False,
+                        )
+            else:
+                s_sp_ids = [utt_id.split("_")[0]]
+                t_sp_ids = [utt_id.split("_")[1]]
+                s_em_ids = [utt_id.split("_")[-2]]
+                t_em_ids = [utt_id.split("_")[-1]]
                 durations = get_alignment(
                     model, device, acoustic_in_scaler, acoustic_out_scaler,
-                    batch_in_mel, batch_out_mel,
+                    [in_mel], [out_mel],
                     s_sp_ids, t_sp_ids, s_em_ids, t_em_ids
                 )
-                for i, duration in enumerate(durations):
-                    utt_id = batch_utt_id[i]
-                    np.save(
-                        out_dir / "duration" / f"{utt_id}-feats.npy",
-                        duration.astype(np.int16),
-                        allow_pickle=False,
-                    )
+                np.save(
+                    out_dir / "duration" / f"{utt_id}-feats.npy",
+                    durations[0].astype(np.int16),
+                    allow_pickle=False,
+                )
+
         if args.sentence_duration > 0:
             print("calc sentence durations!!")
             utt_ids = []
