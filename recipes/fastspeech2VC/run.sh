@@ -82,6 +82,8 @@ fi
 
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     echo "stage 1: Feature generation for fastspeech2VC"
+    mkdir -p $expdir/data
+    cp -r data/*.list $expdir/data/
     for s in ${datasets[@]}; do
         xrun python preprocess.py data/$s.list $src_wav_root $tgt_wav_root \
             $dump_org_dir/$s --n_jobs $n_jobs --sample_rate $sample_rate \
@@ -96,13 +98,12 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
             --in_scaler_path $in_scaler_path --out_scaler_path $out_scaler_path --batch_size $fastspeech2_data_batch_size \
             --length_thresh $length_thresh
     done
-    # preprocess実行時にのみcopyするようにする.
-    mkdir -p $expdir/data
-    cp -r data/*.list $expdir/data/
 fi
 
 if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
     echo "stage 2: feature normalization"
+    mkdir -p $expdir/data
+    cp -r data/*.list $expdir/data/
     for typ in "fastspeech2VC"; do
        for inout in "in" "out"; do
             for feat in "mel" "pitch" "energy"; do

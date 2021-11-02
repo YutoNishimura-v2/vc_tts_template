@@ -522,12 +522,14 @@
         - spk: JSUT_NICT_LINE_3
         - pretrain用
         - min_silence_len: 200で試してみるお話.
-    - LINE_1(未実施)
+    - LINE_1
         - spk: LINE_1
         - pretrain: JSUT_NICT_LINE_3
-    - LINE_2(未実施)
+        - job ID: 8272380
+    - LINE_2
         - spk: LINE_2
         - pretrain: JSUT_NICT_LINE_3
+        - job ID: 8272384
     - LINE_3(未実施)
         - spk: LINE_3
         - pretrain: JSUT_NICT_LINE_3

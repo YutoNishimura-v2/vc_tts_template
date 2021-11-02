@@ -148,8 +148,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             history_emotions,
             history_prosody_emb,
             history_g_prosody_embs,
-            history_prosody_speakers,
-            history_prosody_emotions,
+            history_prosody_speakers[0],
+            history_prosody_emotions[0],
         )
 
     def __len__(self):

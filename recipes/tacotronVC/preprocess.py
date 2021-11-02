@@ -8,7 +8,7 @@ import numpy as np
 from pydub import AudioSegment, silence
 
 sys.path.append("../..")
-from recipes.fastspeech2VC.utils import pydub_to_np
+from recipes.fastspeech2VC.preprocess import pydub_to_np
 from tqdm import tqdm
 from vc_tts_template.dsp import logmelspectrogram
 

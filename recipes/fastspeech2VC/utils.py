@@ -2,7 +2,6 @@ from typing import Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pydub
 import joblib
 import torch
 import hydra
@@ -84,16 +83,6 @@ def get_alignment(
             raise RuntimeError
 
     return [durations[idx] for idx in inv_sort_idx]
-
-
-def pydub_to_np(audio: pydub.AudioSegment) -> Tuple[np.ndarray, int]:
-    """Converts pydub audio segment into float32 np array of shape [channels, duration_in_seconds*sample_rate],
-    where each value is in range [-1.0, 1.0]. Returns tuple (audio_np_array, sample_rate)"""
-    # get_array_of_samples returns the data in format:
-    # [sample_1_channel_1, sample_1_channel_2, sample_2_channel_1, sample_2_channel_2, ....]
-    # where samples are integers of sample_width bytes.
-    return np.array(audio.get_array_of_samples(), dtype=np.float32) / (
-            1 << (8 * audio.sample_width - 1)), audio.frame_rate
 
 
 def expand(values, durations, reduction_factor):
