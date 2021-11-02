@@ -215,10 +215,51 @@
         - global prosody: True, local prosody: True, g_beta: 0.02, beta: 0.02, max_seq_len: 4000
         - LINE_12のmax_seq_len増やしたver.
         - job_ID: 8231151
+    # 以下、TTS→VC用の実験
     - JSUT_NICT_LINE_2
         - spk: JSUT_NICT_LINE_2
         - pretrain用. train splitを守ってやり直し.
-
+    # 以下、元論文の正当性確かめる用の実験
+    - LINE_16
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: False, local prosody: True, num_gaussians: 7
+        - つまり、元論文の設定だが、混合数を変えてみた.
+        - job_ID: 8269269
+    - LINE_17
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: False, local prosody: True, num_gaussians: 5
+        - つまり、元論文の設定だが、混合数を変えてみた.
+        - job_ID: 8269303
+    - LINE_18
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: False, local prosody: True, num_gaussians: 3
+        - つまり、元論文の設定だが、混合数を変えてみた.
+        - job_ID: 8269367
+    - LINE_19
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: False, local prosody: True, num_gaussians: 1
+        - つまり、元論文の設定だが、混合数を変えてみた.
+        - job_ID: 8269393
 ## 主要な実験
 
 ## 知見
