@@ -49,7 +49,7 @@ train:
   # steps can either be specified by steps or epochs
   max_train_steps: -1
   nepochs:
-  checkpoint_epoch_interval: 50
+  checkpoint_epoch_interval: 100
   eval_epoch_interval: 10
 
   vocoder_name:
@@ -82,5 +82,5 @@ train:
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
     # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
-    checkpoint: exp/JSUT_NICT_LINE_2_sr22050_JSUT_NICT_LINE_2/fastspeech2VCwGMMforPre/latest.pth
+    checkpoint: exp/JSUT_NICT_LINE_3_sr22050_JSUT_NICT_LINE_3/fastspeech2VCwGMMforPre/latest.pth
     optimizer_reset: True

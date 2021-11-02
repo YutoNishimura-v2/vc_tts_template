@@ -199,9 +199,13 @@ def get_sentence_duration(
     if len(tgt_sent_durations) == 0:
         tgt_sent_durations = [tgt_reducted_mel_len]
     assert (np.array(tgt_sent_durations) > 0).all(), f"""
+        utt_id: {utt_id}
+        t_audio_len: {len(t_audio)}
         tgt_sent_durations: {tgt_sent_durations}
         t_silences: {t_silences}
         tgt_mel_len: {tgt_reducted_mel_len}
+        duration_len: {len(duration)}
+        duration_sum: {np.sum(duration)}
     """
     assert np.sum(tgt_sent_durations) == tgt_reducted_mel_len
 

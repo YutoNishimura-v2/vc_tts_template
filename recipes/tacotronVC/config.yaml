@@ -1,8 +1,8 @@
 # General settings.
-spk: "yuto2allial"
+spk: "LINE_3"
 
 # exp tag(for managing experiments)
-tag: "yuto2allial"
+tag: "LINE_3"
 
 sample_rate: 22050
 
@@ -24,8 +24,8 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-src_wav_root: "../fastspeech2VC/downloads/coefont/ynishimura"
-tgt_wav_root: "../fastspeech2VC/downloads/coefont/allial"
+src_wav_root: "../fastspeech2wContexts/exp/LINE_wContext_sr22050_LINE_wContext_6/synthesis_fastspeech2wGMMwContexts_hifigan/all_wav"
+tgt_wav_root: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050"
 
 n_jobs: 16
 
@@ -59,11 +59,11 @@ vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
 vocoder_config: "conf/train_hifigan/model/hifigan.yaml"
-vocoder_weight_base_path: "../fastspeech2VC/exp/jsut_jsss_jvs_sr22050_jsut_jsss_jvs_1/hifigan"
+vocoder_weight_base_path: "../fastspeech2/exp/LINE_3_sr22050_LINE_6/hifigan"
 
 ### tacotron2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-tacotron2_train_nepochs: 200
+tacotron2_train_nepochs: 50
 tacotron2_data_batch_size: 32
 
 ### hifigan ###

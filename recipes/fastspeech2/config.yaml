@@ -2,7 +2,7 @@
 spk: "LINE_3"
 
 # exp tag(for managing experiments)
-tag: "LINE_12"
+tag: "LINE_19"
 
 sample_rate: 22050
 
@@ -26,10 +26,10 @@ lab_root: "../../../dataset/out_LINE_woITAKO/fullcontext"
 
 n_jobs: 8
 
-train_num: 2209
-deveval_num: 432
-dev_num: 221
-eval_num: 211
+train_num: 24500
+deveval_num: 515
+dev_num: 415
+eval_num: 100
 
 ###########################################################
 #                FEATURE EXTRACTION SETTING               #
@@ -58,15 +58,15 @@ vocoder_weight_base_path: "exp/LINE_3_sr22050_LINE_6/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 250
+fastspeech2_train_nepochs: 500
 fastspeech2_data_batch_size: 16
 
 ### hifigan ###
-hifigan_train_nepochs: 1000
+hifigan_train_nepochs: 200
 hifigan_data_batch_size: 128
 
 ### (optional) Optuna Tuning ###
-tuning_config:
+tuning_config: tuning_fastspeech2wGMM
 
 ###########################################################
 #                SYNTHESIS SETTING                        #

@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContext"
+spk: "LINE_wContextwProsody"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContext_6"
+tag: "LINE_wContextwProsody_8"
 
 sample_rate: 22050
 
@@ -51,7 +51,7 @@ BERT_weight: "colorfulscoop/sbert-base-ja"
 use_hist_num: 10
 # for with Prosody
 # if 0, the latest one is used.
-use_local_prosody_hist_idx: 0
+use_local_prosody_hist_idx: 1
 # plase replace train/dev/eval to {} for emb_preprocess.py
 input_duration_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/duration"
 output_mel_file_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/mel"
@@ -61,7 +61,7 @@ pretrained_checkpoints: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_1/
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wGMMwContexts
+acoustic_model: fastspeech2wGMMwContextswProsody
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.

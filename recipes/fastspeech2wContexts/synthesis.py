@@ -79,20 +79,20 @@ def my_app(config: DictConfig) -> None:
     prosody_embeddings = []
     for utt_id in utt_ids:
         if len(prosody_emb_paths) > 0:
-            _, history_prosody_emb, _, _, _ = get_embs(
+            _, h_prosody_emb, _, h_prosody_speakers, h_prosody_emotions = get_embs(
                 utt_id, prosody_emb_paths,
                 utt2id, id2utt, use_hist_num,
                 start_index=1, only_latest=True,
                 use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
             )
-            _, history_g_prosody_embs, _, _, _ = get_embs(
+            _, h_g_prosody_embs, _, _, _ = get_embs(
                 utt_id, g_prosody_emb_paths,
                 utt2id, id2utt, use_hist_num,
                 start_index=1
             )
-            prosody_embeddings.append([history_prosody_emb, history_g_prosody_embs])
+            prosody_embeddings.append([h_prosody_emb, h_g_prosody_embs, h_prosody_speakers, h_prosody_emotions])
         else:
-            prosody_embeddings.append([None, None])
+            prosody_embeddings.append([None, None, None, None])
 
     if config.num_eval_utts is not None and config.num_eval_utts > 0:
         lab_files = lab_files[: config.num_eval_utts]

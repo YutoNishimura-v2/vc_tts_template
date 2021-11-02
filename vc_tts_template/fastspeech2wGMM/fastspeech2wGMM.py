@@ -36,9 +36,11 @@ class FastSpeech2wGMM(FastSpeech2):
         pp_conv_dropout: float,
         pp_zoneout: float,
         num_gaussians: int,
+        softmax_temperature: float,
         global_gru_n_layers: int,
         global_d_gru: int,
         global_num_gaussians: int,
+        global_softmax_temperature: float,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -114,10 +116,12 @@ class FastSpeech2wGMM(FastSpeech2):
             gru_layers=gru_n_layers,
             zoneout=pp_zoneout,
             num_gaussians=num_gaussians,
+            softmax_temperature=softmax_temperature,
             global_prosody=global_prosody,
             global_gru_layers=global_gru_n_layers,
             global_d_gru=global_d_gru,
             global_num_gaussians=global_num_gaussians,
+            global_softmax_temperature=global_softmax_temperature,
         )
         self.prosody_linear = nn.Linear(
             prosody_emb_dim,

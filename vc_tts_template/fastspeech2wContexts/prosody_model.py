@@ -27,25 +27,34 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         gru_layers=2,
         zoneout=0.1,
         num_gaussians=10,
+        softmax_temperature=1.0,
         global_prosody=False,
         global_gru_layers=1,
         global_d_gru=256,
         global_num_gaussians=10,
+        global_softmax_temperature=1.0,
         h_prosody_emb_size=256,
         prosody_attention=True,
         attention_hidden_dim=512,
         attention_conv_channels=256,
         attention_conv_kernel_size=128,
+        speaker_embedding=None,
+        emotion_embedding=None,
     ) -> None:
         super().__init__(
             d_in, d_gru, d_out, local_prosody,
             conv_out_channels, conv_kernel_size, conv_stride,
             conv_padding, conv_dilation, conv_bias,
             conv_n_layers, conv_dropout, gru_layers,
-            zoneout, num_gaussians, global_prosody,
-            global_gru_layers, global_d_gru, global_num_gaussians,
+            zoneout, num_gaussians, softmax_temperature,
+            global_prosody, global_gru_layers, global_d_gru,
+            global_num_gaussians, global_softmax_temperature,
         )
         if prosody_attention is True:
+            if local_prosody is False:
+                raise RuntimeError(
+                    "do not set prosody_attention True when local_prosody is False"
+                )
             self.attention = LocationSensitiveAttention(
                 h_prosody_emb_size,
                 d_gru,
@@ -53,16 +62,19 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
                 attention_conv_channels,
                 attention_conv_kernel_size,
             )
-            self.attn_linear = nn.Linear(h_prosody_emb_size, conv_out_channels+d_out)
-        else:
-            if local_prosody is False:
-                raise RuntimeError(
-                    "do not set prosody_attention False when local_prosody is False"
-                )
+            spk_emo_emb_size = 0
+            if speaker_embedding is not None:
+                spk_emo_emb_size += speaker_embedding.embedding_dim
+            if emotion_embedding is not None:
+                spk_emo_emb_size += emotion_embedding.embedding_dim
+            self.attn_linear = nn.Linear(h_prosody_emb_size+spk_emo_emb_size, conv_out_channels+d_out)
         self.prosody_attention = prosody_attention
+        self.speaker_embedding = speaker_embedding
+        self.emotion_embedding = emotion_embedding
 
     def forward(
         self, encoder_output, h_prosody_emb, h_prosody_lens,
+        h_prosody_speakers, h_prosody_emotions,
         target_prosody=None, target_global_prosody=None,
         src_lens=None, src_mask=None, is_inference=False
     ):
@@ -79,7 +91,7 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
                 target_global_prosody = self.sample(g_pi, g_sigma, g_mu)
             else:
                 target_global_prosody = target_global_prosody.detach()
-        
+
         if self.local_prosody is False:
             if self.global_prosody is False:
                 raise RuntimeError("you have to set True at least local or global prosody")
@@ -120,6 +132,11 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
                 att_c, att_w = self.attention(
                     h_prosody_emb, h_prosody_lens, h_list[0], prev_att_w, h_prosody_mask
                 )
+                if self.speaker_embedding is not None:
+                    att_c = torch.cat([att_c, self.speaker_embedding(h_prosody_speakers)], dim=-1)
+                if self.emotion_embedding is not None:
+                    att_c = torch.cat([att_c, self.emotion_embedding(h_prosody_emotions)], dim=-1)
+
                 xs = xs + self.attn_linear(att_c)
             h_list[0] = self.gru[0](xs, h_list[0])
             for i in range(1, len(self.gru)):

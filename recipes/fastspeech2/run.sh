@@ -132,6 +132,8 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
             done
         done
     done
+    mkdir -p $expdir/data
+    cp -r data/*.list $expdir/data/
 fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then

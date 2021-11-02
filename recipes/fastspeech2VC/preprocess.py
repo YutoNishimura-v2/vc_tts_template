@@ -12,7 +12,7 @@ from scipy.io import wavfile
 from pydub import AudioSegment, silence
 
 sys.path.append("../..")
-from recipes.fastspeech2VC.utils import pydub_to_np, get_alignment_model, get_alignment
+from recipes.fastspeech2VC.utils import get_alignment_model, get_alignment
 from recipes.fastspeech2VC.duration_preprocess import (
     get_duration, get_sentence_duration
 )
@@ -52,6 +52,7 @@ def get_parser():
     parser.add_argument("--in_scaler_path", type=str)
     parser.add_argument("--out_scaler_path", type=str)
     parser.add_argument("--batch_size", type=int)
+    parser.add_argument("--length_thresh", type=int)
     return parser
 
 
@@ -70,6 +71,16 @@ def make_novoice_to_zero(audio: AudioSegment, silence_thresh: float, min_silence
     audio_new += audio[s_index:]
 
     return audio_new
+
+
+def pydub_to_np(audio: pydub.AudioSegment) -> Tuple[np.ndarray, int]:
+    """Converts pydub audio segment into float32 np array of shape [channels, duration_in_seconds*sample_rate],
+    where each value is in range [-1.0, 1.0]. Returns tuple (audio_np_array, sample_rate)"""
+    # get_array_of_samples returns the data in format:
+    # [sample_1_channel_1, sample_1_channel_2, sample_2_channel_1, sample_2_channel_2, ....]
+    # where samples are integers of sample_width bytes.
+    return np.array(audio.get_array_of_samples(), dtype=np.float32) / (
+            1 << (8 * audio.sample_width - 1)), audio.frame_rate
 
 
 def delete_novoice(input_path, silence_thresh_h, silence_thresh_t, chunk_size):
@@ -379,26 +390,43 @@ if __name__ == "__main__":
                 )
                 continue
 
-            batch_utt_id.append(utt_id)
-            batch_in_mel.append(in_mel)
-            batch_out_mel.append(out_mel)
-            if ((i+1) % args.batch_size == 0) or (i == len(in_mel_pathes)-1):
-                s_sp_ids = [utt_id.split("_")[0] for utt_id in batch_utt_id]
-                t_sp_ids = [utt_id.split("_")[1] for utt_id in batch_utt_id]
-                s_em_ids = [utt_id.split("_")[-2] for utt_id in batch_utt_id]
-                t_em_ids = [utt_id.split("_")[-1] for utt_id in batch_utt_id]
+            if len(in_mel) < args.length_thresh:
+                batch_utt_id.append(utt_id)
+                batch_in_mel.append(in_mel)
+                batch_out_mel.append(out_mel)
+                if ((i+1) % args.batch_size == 0) or (i == len(in_mel_pathes)-1):
+                    s_sp_ids = [utt_id.split("_")[0] for utt_id in batch_utt_id]
+                    t_sp_ids = [utt_id.split("_")[1] for utt_id in batch_utt_id]
+                    s_em_ids = [utt_id.split("_")[-2] for utt_id in batch_utt_id]
+                    t_em_ids = [utt_id.split("_")[-1] for utt_id in batch_utt_id]
+                    durations = get_alignment(
+                        model, device, acoustic_in_scaler, acoustic_out_scaler,
+                        batch_in_mel, batch_out_mel,
+                        s_sp_ids, t_sp_ids, s_em_ids, t_em_ids
+                    )
+                    for i, duration in enumerate(durations):
+                        utt_id = batch_utt_id[i]
+                        np.save(
+                            out_dir / "duration" / f"{utt_id}-feats.npy",
+                            duration.astype(np.int16),
+                            allow_pickle=False,
+                        )
+            else:
+                s_sp_ids = [utt_id.split("_")[0]]
+                t_sp_ids = [utt_id.split("_")[1]]
+                s_em_ids = [utt_id.split("_")[-2]]
+                t_em_ids = [utt_id.split("_")[-1]]
                 durations = get_alignment(
                     model, device, acoustic_in_scaler, acoustic_out_scaler,
-                    batch_in_mel, batch_out_mel,
+                    [in_mel], [out_mel],
                     s_sp_ids, t_sp_ids, s_em_ids, t_em_ids
                 )
-                for i, duration in enumerate(durations):
-                    utt_id = batch_utt_id[i]
-                    np.save(
-                        out_dir / "duration" / f"{utt_id}-feats.npy",
-                        duration.astype(np.int16),
-                        allow_pickle=False,
-                    )
+                np.save(
+                    out_dir / "duration" / f"{utt_id}-feats.npy",
+                    durations[0].astype(np.int16),
+                    allow_pickle=False,
+                )
+
         if args.sentence_duration > 0:
             print("calc sentence durations!!")
             utt_ids = []
