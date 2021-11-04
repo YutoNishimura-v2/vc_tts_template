@@ -49,8 +49,10 @@ class ProsodyExtractor(nn.Module):
                 batch_first=True, bidirectional=True, sort=False
             )
         if global_prosody is True:
+            if local_prosody is False:
+                self.global_linear = nn.Linear(d_mel, d_out)
             self.global_bi_gru = GRUwSort(
-                input_size=d_out if local_prosody is True else d_mel,
+                input_size=d_out,
                 hidden_size=d_out // 2, num_layers=global_gru_n_layers,
                 batch_first=True, bidirectional=True, sort=True if local_prosody is False else False
             )
@@ -98,7 +100,7 @@ class ProsodyExtractor(nn.Module):
                 raise RuntimeError("you have to set True at least local or global prosody")
             out = self.convnorms(mels.unsqueeze(1)).squeeze(1)
             emb_lens = np.sum(durations, axis=-1).astype(np.int16)
-            global_emb = self.global_bi_gru(out, emb_lens)[:, -1, :]
+            global_emb = self.global_bi_gru(self.global_linear(out), emb_lens)[:, -1, :]
             out = global_emb.unsqueeze(1).expand(-1, durations.shape[1], -1)
             return out, global_emb
 

@@ -27,10 +27,12 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         gru_layers=2,
         zoneout=0.1,
         num_gaussians=10,
+        softmax_temperature=1.0,
         global_prosody=False,
         global_gru_layers=1,
         global_d_gru=256,
         global_num_gaussians=10,
+        global_softmax_temperature=1.0,
         h_prosody_emb_size=256,
         prosody_attention=True,
         attention_hidden_dim=512,
@@ -44,10 +46,15 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
             conv_out_channels, conv_kernel_size, conv_stride,
             conv_padding, conv_dilation, conv_bias,
             conv_n_layers, conv_dropout, gru_layers,
-            zoneout, num_gaussians, global_prosody,
-            global_gru_layers, global_d_gru, global_num_gaussians,
+            zoneout, num_gaussians, softmax_temperature,
+            global_prosody, global_gru_layers, global_d_gru,
+            global_num_gaussians, global_softmax_temperature,
         )
         if prosody_attention is True:
+            if local_prosody is False:
+                raise RuntimeError(
+                    "do not set prosody_attention True when local_prosody is False"
+                )
             self.attention = LocationSensitiveAttention(
                 h_prosody_emb_size,
                 d_gru,
@@ -61,11 +68,6 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
             if emotion_embedding is not None:
                 spk_emo_emb_size += emotion_embedding.embedding_dim
             self.attn_linear = nn.Linear(h_prosody_emb_size+spk_emo_emb_size, conv_out_channels+d_out)
-        else:
-            if local_prosody is False:
-                raise RuntimeError(
-                    "do not set prosody_attention False when local_prosody is False"
-                )
         self.prosody_attention = prosody_attention
         self.speaker_embedding = speaker_embedding
         self.emotion_embedding = emotion_embedding

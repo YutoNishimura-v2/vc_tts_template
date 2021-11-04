@@ -119,6 +119,7 @@ Teacher_LD13-Dialogue-08-Teacher-Turn-02_Normal
 Teacher_LD13-Dialogue-08-Teacher-Turn-03_Sad
 Teacher_LD13-Dialogue-08-Teacher-Turn-04_Sad
 Teacher_LD13-Dialogue-08-Teacher-Turn-05_Normal
+Teacher_LD13-Dialogue-08-Teacher-Turn-06_Sad
 Teacher_LD13-Dialogue-08-Teacher-Turn-07_Normal
 Teacher_LD13-Dialogue-08-Teacher-Turn-08_Normal
 Teacher_LD13-Dialogue-08-Teacher-Turn-09_Normal
@@ -141,6 +142,7 @@ Teacher_LD13-Dialogue-09-Teacher-Turn-07_Normal
 Teacher_LD13-Dialogue-09-Teacher-Turn-08_Normal
 Teacher_LD13-Dialogue-06-Teacher-Turn-01_Normal
 Teacher_LD13-Dialogue-06-Teacher-Turn-02_Happy
+Teacher_LD13-Dialogue-06-Teacher-Turn-03_Happy
 Teacher_LD13-Dialogue-06-Teacher-Turn-04_Normal
 Teacher_LD13-Dialogue-06-Teacher-Turn-05_Normal
 Teacher_LD13-Dialogue-06-Teacher-Turn-06_Normal
@@ -381,7 +383,6 @@ Teacher_LD14-Dialogue-05-Teacher-Turn-03_Happy
 Teacher_LD14-Dialogue-05-Teacher-Turn-04_Normal
 Teacher_LD14-Dialogue-05-Teacher-Turn-05_Normal
 Teacher_LD14-Dialogue-05-Teacher-Turn-06_Normal
-Teacher_LD14-Dialogue-05-Teacher-Turn-07_Normal
 Teacher_LD14-Dialogue-05-Teacher-Turn-08_Normal
 Teacher_LD07-Dialogue-03-Teacher-Turn-01_Happy
 Teacher_LD07-Dialogue-03-Teacher-Turn-02_Happy
@@ -658,7 +659,6 @@ Teacher_LD06-Dialogue-03-Teacher-Turn-04_Sad
 Teacher_LD06-Dialogue-03-Teacher-Turn-05_Normal
 Teacher_LD06-Dialogue-03-Teacher-Turn-06_Normal
 Teacher_LD05-Dialogue-10-Teacher-Turn-01_Normal
-Teacher_LD05-Dialogue-10-Teacher-Turn-02_Normal
 Teacher_LD05-Dialogue-10-Teacher-Turn-03_Normal
 Teacher_LD05-Dialogue-10-Teacher-Turn-04_Normal
 Teacher_LD05-Dialogue-10-Teacher-Turn-05_Normal
@@ -874,7 +874,6 @@ Teacher_LD01-Dialogue-02-Teacher-Turn-06_Normal
 Teacher_LD01-Dialogue-02-Teacher-Turn-07_Normal
 Teacher_LD01-Dialogue-02-Teacher-Turn-08_Normal
 Teacher_LD01-Dialogue-08-Teacher-Turn-01_Normal
-Teacher_LD01-Dialogue-08-Teacher-Turn-02_Normal
 Teacher_LD01-Dialogue-08-Teacher-Turn-03_Normal
 Teacher_LD01-Dialogue-08-Teacher-Turn-04_Normal
 Teacher_LD01-Dialogue-08-Teacher-Turn-05_Normal
@@ -1051,7 +1050,6 @@ Teacher_SD11-Dialogue-42-Teacher-Turn-01_Normal
 Teacher_SD11-Dialogue-42-Teacher-Turn-02_Normal
 Teacher_SD11-Dialogue-18-Teacher-Turn-01_Normal
 Teacher_SD11-Dialogue-18-Teacher-Turn-02_Normal
-Teacher_SD11-Dialogue-38-Teacher-Turn-01_Normal
 Teacher_SD11-Dialogue-38-Teacher-Turn-02_Normal
 Teacher_SD11-Dialogue-45-Teacher-Turn-01_Normal
 Teacher_SD11-Dialogue-45-Teacher-Turn-02_Normal
@@ -1143,7 +1141,6 @@ Teacher_SD03-Dialogue-34-Teacher-Turn-01_Normal
 Teacher_SD03-Dialogue-34-Teacher-Turn-02_Normal
 Teacher_SD03-Dialogue-49-Teacher-Turn-01_Normal
 Teacher_SD03-Dialogue-49-Teacher-Turn-02_Normal
-Teacher_SD03-Dialogue-30-Teacher-Turn-01_Sad
 Teacher_SD03-Dialogue-30-Teacher-Turn-02_Normal
 Teacher_SD03-Dialogue-31-Teacher-Turn-01_Normal
 Teacher_SD03-Dialogue-31-Teacher-Turn-02_Normal
@@ -1183,6 +1180,7 @@ Teacher_SD03-Dialogue-36-Teacher-Turn-01_Normal
 Teacher_SD03-Dialogue-36-Teacher-Turn-02_Normal
 Teacher_SD03-Dialogue-07-Teacher-Turn-01_Sad
 Teacher_SD03-Dialogue-07-Teacher-Turn-02_Normal
+Teacher_SD03-Dialogue-29-Teacher-Turn-01_Normal
 Teacher_SD03-Dialogue-29-Teacher-Turn-02_Normal
 Teacher_SD03-Dialogue-19-Teacher-Turn-01_Normal
 Teacher_SD03-Dialogue-19-Teacher-Turn-02_Normal
@@ -1228,7 +1226,6 @@ Teacher_SD12-Dialogue-44-Teacher-Turn-01_Normal
 Teacher_SD12-Dialogue-44-Teacher-Turn-02_Normal
 Teacher_SD12-Dialogue-01-Teacher-Turn-01_Normal
 Teacher_SD12-Dialogue-01-Teacher-Turn-02_Normal
-Teacher_SD12-Dialogue-10-Teacher-Turn-01_Normal
 Teacher_SD12-Dialogue-10-Teacher-Turn-02_Normal
 Teacher_SD12-Dialogue-18-Teacher-Turn-01_Normal
 Teacher_SD12-Dialogue-18-Teacher-Turn-02_Normal
@@ -1393,6 +1390,7 @@ Teacher_SD09-Dialogue-09-Teacher-Turn-02_Happy
 Teacher_SD09-Dialogue-47-Teacher-Turn-01_Normal
 Teacher_SD09-Dialogue-47-Teacher-Turn-02_Normal
 Teacher_SD09-Dialogue-03-Teacher-Turn-01_Normal
+Teacher_SD09-Dialogue-03-Teacher-Turn-02_Normal
 Teacher_SD09-Dialogue-30-Teacher-Turn-01_Normal
 Teacher_SD09-Dialogue-30-Teacher-Turn-02_Normal
 Teacher_SD09-Dialogue-36-Teacher-Turn-01_Normal
@@ -1775,7 +1773,6 @@ Teacher_SD07-Dialogue-24-Teacher-Turn-01_Happy
 Teacher_SD07-Dialogue-24-Teacher-Turn-02_Happy
 Teacher_SD07-Dialogue-02-Teacher-Turn-01_Happy
 Teacher_SD07-Dialogue-02-Teacher-Turn-02_Happy
-Teacher_SD07-Dialogue-36-Teacher-Turn-01_Happy
 Teacher_SD07-Dialogue-36-Teacher-Turn-02_Happy
 Teacher_SD07-Dialogue-31-Teacher-Turn-01_Happy
 Teacher_SD07-Dialogue-31-Teacher-Turn-02_Happy
@@ -1977,6 +1974,7 @@ Teacher_SD06-Dialogue-42-Teacher-Turn-01_Sad
 Teacher_SD06-Dialogue-42-Teacher-Turn-02_Normal
 Teacher_SD06-Dialogue-43-Teacher-Turn-01_Normal
 Teacher_SD06-Dialogue-43-Teacher-Turn-02_Normal
+Teacher_SD06-Dialogue-49-Teacher-Turn-01_Normal
 Teacher_SD06-Dialogue-49-Teacher-Turn-02_Normal
 Teacher_SD06-Dialogue-21-Teacher-Turn-01_Normal
 Teacher_SD06-Dialogue-21-Teacher-Turn-02_Happy
@@ -2060,7 +2058,6 @@ Teacher_SD10-Dialogue-43-Teacher-Turn-01_Normal
 Teacher_SD10-Dialogue-43-Teacher-Turn-02_Normal
 Teacher_SD10-Dialogue-19-Teacher-Turn-01_Normal
 Teacher_SD10-Dialogue-19-Teacher-Turn-02_Normal
-Teacher_SD10-Dialogue-35-Teacher-Turn-01_Normal
 Teacher_SD10-Dialogue-35-Teacher-Turn-02_Normal
 Teacher_SD10-Dialogue-28-Teacher-Turn-01_Normal
 Teacher_SD10-Dialogue-28-Teacher-Turn-02_Normal

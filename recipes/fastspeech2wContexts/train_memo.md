@@ -55,7 +55,6 @@
         - global prosody: True, local prosody: False, attention: False
         - 2段階学習のためのpretrain. 250epoch
         - jobID: 8242165
-    # 未実行↓
     - LINE_wContext_6
         - spk: LINE_wContext
         - pretrain: LINE_wContext_5
@@ -89,3 +88,32 @@
         - 2段階学習後半戦. attentionを復活させてみた. 250epoch
         - ただし, attentionの際に用いるのは、直前ではなく、そのさらに一個前、つまり一個前の自分の発話
         - jobID: 8243523
+    - LINE_wContextwProsody_6
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_2
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
+        - 2段階学習後半戦. attentionを復活させてみた. 250epoch
+        - ただし, attentionの際に用いるのは、直前ではなく、そのさらに一個前、つまり一個前の自分の発話
+        - spk情報を新たに追加することにした. それによる影響を見るための比較実験
+        - jobID: 8270309
+    - LINE_wContextwProsody_7
+        - spk: LINE_wContextwProsody
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False, attention: False
+        - 2段階学習のためのpretrain. 250epoch.
+        - g_gruのinput dimを変える実装になっていて、これをpretrainに用いるとg_gruが無視されることが発覚.
+        - そこを修正したもので再実行.
+        - jobID: 8270747
+    - LINE_wContextwProsody_8
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_7
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
+        - 2段階学習後半戦. attentionを復活させてみた. 250epoch
+        - 話者性を追加し, pretrainも修正したもの.
+        - jobID: 8271869
