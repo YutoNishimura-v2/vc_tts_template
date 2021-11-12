@@ -2,7 +2,11 @@
 spk: "LINE_3"
 
 # exp tag(for managing experiments)
+<<<<<<< HEAD
 tag: "LINE_20"
+=======
+tag: "LINE_19"
+>>>>>>> origin/master
 
 sample_rate: 22050
 
@@ -49,7 +53,11 @@ accent_info: 1
 #                TRAINING SETTING                         #
 ###########################################################
 
+<<<<<<< HEAD
 acoustic_model: fastspeech2wVAE
+=======
+acoustic_model: fastspeech2wGMM
+>>>>>>> origin/master
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
@@ -59,7 +67,11 @@ vocoder_weight_base_path: "exp/LINE_3_sr22050_LINE_6/hifigan"
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
 fastspeech2_train_nepochs: 500
+<<<<<<< HEAD
 fastspeech2_data_batch_size: 8
+=======
+fastspeech2_data_batch_size: 16
+>>>>>>> origin/master
 
 ### hifigan ###
 hifigan_train_nepochs: 200

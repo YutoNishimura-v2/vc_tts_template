@@ -9,7 +9,10 @@ sys.path.append('.')
 from vc_tts_template.utils import make_pad_mask, pad
 from vc_tts_template.tacotron.decoder import ZoneOutCell
 from vc_tts_template.fastspeech2wGMM.prosody_model import mel2phone
+<<<<<<< HEAD
 from vc_tts_template.fastspeech2.varianceadaptor import LengthRegulator
+=======
+>>>>>>> origin/master
 from vc_tts_template.train_utils import free_tensors_memory
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -243,6 +246,50 @@ class VarianceAdaptor(nn.Module):
         return x
 
 
+<<<<<<< HEAD
+=======
+class LengthRegulator(nn.Module):
+    def __init__(self):
+        super(LengthRegulator, self).__init__()
+
+    def LR(self, x, duration, max_len):
+        output = list()
+        mel_len = list()
+        for batch, expand_target in zip(x, duration):
+            expanded = self.expand(batch, expand_target)
+            output.append(expanded)
+            # expandedのlenがまさに出力したいmelの幅になる.
+            mel_len.append(expanded.shape[0])
+
+        # ここでは, まだoutputは長さバラバラのlistであることに注意.
+        # 長さを揃えなきゃ.
+        if max_len is not None:
+            # max_lenがあるなら, それでpad.
+            output = pad(output, max_len)
+        else:
+            # targetがないならmax_lenもないですね.
+            # その場合は自動で一番長い部分を探してくれる.
+            output = pad(output)
+
+        return output, torch.LongTensor(mel_len).to(device)
+
+    def expand(self, batch, predicted):
+        out = list()
+
+        for i, vec in enumerate(batch):
+            expand_size = predicted[i].item()
+            out.append(vec.expand(max(int(expand_size), 0), -1))
+        out = torch.cat(out, 0)  # listをtorchの2次元へ, かな.
+
+        return out
+
+    def forward(self, x, duration, max_len=None):
+        # durationがpredictか, targetのdurationです.
+        output, mel_len = self.LR(x, duration, max_len)
+        return output, mel_len
+
+
+>>>>>>> origin/master
 class VariancePredictor(nn.Module):
     def __init__(
         self,

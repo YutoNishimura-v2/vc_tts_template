@@ -3,7 +3,11 @@ from typing import Dict, Optional
 import torch.nn as nn
 import torch
 
+<<<<<<< HEAD
 from vc_tts_template.fastspeech2.varianceadaptor import LengthRegulator
+=======
+from vc_tts_template.fastspeech2VC.varianceadaptor import LengthRegulator
+>>>>>>> origin/master
 from vc_tts_template.fastspeech2VC.fastspeech2VC import fastspeech2VC
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyExtractor
 from vc_tts_template.fastspeech2VCwGMM.prosody_model import ProsodyPredictor

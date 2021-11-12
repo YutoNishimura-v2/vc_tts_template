@@ -260,6 +260,7 @@
         - global prosody: False, local prosody: True, num_gaussians: 1
         - つまり、元論文の設定だが、混合数を変えてみた.
         - job_ID: 8269393
+<<<<<<< HEAD
     - LINE_20
         - spk: LINE_3
         - pretrain: None
@@ -289,6 +290,8 @@
         - global prosody: True, local prosody: True, num_gaussians: 3
         - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
         - job_ID:
+=======
+>>>>>>> origin/master
 ## 主要な実験
 
 ## 知見

@@ -204,14 +204,18 @@ class VarianceAdaptor(nn.Module):
 
 
 class LengthRegulator(nn.Module):
+<<<<<<< HEAD
     """ Length Regulator
     https://github.com/xcmyz/FastSpeech/blob/master/modules.py
     """
 
+=======
+>>>>>>> origin/master
     def __init__(self):
         super(LengthRegulator, self).__init__()
 
     def LR(self, x, duration, max_len):
+<<<<<<< HEAD
         duration = duration.long()
         expand_max_len = torch.max(
             torch.sum(duration, -1), -1)[0]
@@ -229,10 +233,44 @@ class LengthRegulator(nn.Module):
         return output, torch.sum(duration, -1)
 
     def forward(self, x, duration, max_len=None):
+=======
+        output = list()
+        mel_len = list()
+        for batch, expand_target in zip(x, duration):
+            expanded = self.expand(batch, expand_target)
+            output.append(expanded)
+            # expandedのlenがまさに出力したいmelの幅になる.
+            mel_len.append(expanded.shape[0])
+
+        # ここでは, まだoutputは長さバラバラのlistであることに注意.
+        # 長さを揃えなきゃ.
+        if max_len is not None:
+            # max_lenがあるなら, それでpad.
+            output = pad(output, max_len)
+        else:
+            # targetがないならmax_lenもないですね.
+            # その場合は自動で一番長い部分を探してくれる.
+            output = pad(output)
+
+        return output, torch.LongTensor(mel_len).to(device)
+
+    def expand(self, batch, predicted):
+        out = list()
+
+        for i, vec in enumerate(batch):
+            expand_size = predicted[i].item()
+            out.append(vec.expand(max(int(expand_size), 0), -1))
+        out = torch.cat(out, 0)  # listをtorchの2次元へ, かな.
+
+        return out
+
+    def forward(self, x, duration, max_len):
+>>>>>>> origin/master
         # durationがpredictか, targetのdurationです.
         output, mel_len = self.LR(x, duration, max_len)
         return output, mel_len
 
+<<<<<<< HEAD
     def create_alignment(self, base_mat, duration_predictor_output):
         N, L = duration_predictor_output.shape
         for i in range(N):
@@ -243,6 +281,8 @@ class LengthRegulator(nn.Module):
                 count = count + duration_predictor_output[i][j]
         return base_mat
 
+=======
+>>>>>>> origin/master
 
 class VariancePredictor(nn.Module):
     def __init__(
