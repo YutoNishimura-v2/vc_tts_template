@@ -1,0 +1,119 @@
+# train_memo
+
+- spk
+    - LINE_wContext
+        - out_LINE_woITAKOから作ったもの.
+        - dialogue_infoにTurn-00としてsituation情報を追加
+            - これがないと, 先頭のhistoryが0になって全部0でエラーとかが起きる.
+            - あとは今になって思えばこの情報はかなり重要そう
+    - LINE_wContext_2
+        - out_LINE_woITAKO_before_ITAKOから作ったもの.
+    - LINE_wContextwProsody
+        - out_LINE_woITAKOから作ったもの.
+    - LINE_wContextwProsody_2
+        - LINE_wContextwProsodyから実行のためにprosodyを消し去ったもの
+        これ、単なるLINE_wContextと同じだった.....。
+
+- exp
+    - LINE_wContext_1
+        - spk: LINE_wContext
+        - pretrain: None
+        - +accent
+        - 初実行. wEmotionは次かな?
+    - LINE_wContext_2
+        - spk: LINE_wContext
+        - pretrain: None
+        - +accent+Emotion
+        - 初実行. wEmotionは次かな?
+    - LINE_wContext_3
+        - spk: LINE_wContext_2
+        - pretrain: None
+        - +accent+before_Emotion
+    - LINE_wContextwProsody_1
+        - spk: LINE_wContextwProsody
+        - pretrain: None
+        - +accent
+        - batch_size=16: A100を持ってしてもメモリ溢れる...。すべての実験を16で統一します。
+    - LINE_wContext_4
+        - spk: LINE_wContext
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+    - LINE_wContext_5
+        - spk: LINE_wContext
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False
+        - 2段階学習のためのpretrain. 250epoch
+        - jobID: 8242146
+    - LINE_wContextwProsody_2
+        - spk: LINE_wContextwProsody
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False, attention: False
+        - 2段階学習のためのpretrain. 250epoch
+        - jobID: 8242165
+    - LINE_wContext_6
+        - spk: LINE_wContext
+        - pretrain: LINE_wContext_5
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True
+        - 2段階学習後半戦. 250epoch
+        - jobID: 8243509
+    - LINE_wContextwProsody_3
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_2
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: False
+        - 2段階学習後半戦. 250epoch
+        - jobID: 8243518
+    - LINE_wContextwProsody_4
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_2
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx:0
+        - 2段階学習後半戦. attentionを復活させてみた. 250epoch
+        - jobID: 8243521
+    - LINE_wContextwProsody_5
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_2
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
+        - 2段階学習後半戦. attentionを復活させてみた. 250epoch
+        - ただし, attentionの際に用いるのは、直前ではなく、そのさらに一個前、つまり一個前の自分の発話
+        - jobID: 8243523
+    - LINE_wContextwProsody_6
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_2
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
+        - 2段階学習後半戦. attentionを復活させてみた. 250epoch
+        - ただし, attentionの際に用いるのは、直前ではなく、そのさらに一個前、つまり一個前の自分の発話
+        - spk情報を新たに追加することにした. それによる影響を見るための比較実験
+        - jobID: 8270309
+    - LINE_wContextwProsody_7
+        - spk: LINE_wContextwProsody
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False, attention: False
+        - 2段階学習のためのpretrain. 250epoch.
+        - g_gruのinput dimを変える実装になっていて、これをpretrainに用いるとg_gruが無視されることが発覚.
+        - そこを修正したもので再実行.
+        - jobID: 8270747
+    - LINE_wContextwProsody_8
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_7
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
+        - 2段階学習後半戦. attentionを復活させてみた. 250epoch
+        - 話者性を追加し, pretrainも修正したもの.
+        - jobID: 8271869

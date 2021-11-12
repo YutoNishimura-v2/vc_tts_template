@@ -1,0 +1,83 @@
+# train_memo
+
+- spk
+    - N2C
+        - N2C初回.
+    
+    - jsut_jsss_jvs
+        - 上に書いてあるコーパスすべてのVC. multi.
+        - pretrain用.
+    - jsut_jsss
+        - one2one
+        - 一応pretrain用
+    - LINE_1
+        - LINE_8 to target
+    - LINE_2
+        - LINE_12 to target
+    - LINE_3
+        - LINE_wContext_6 to target
+    - LINE_4
+        - LINE_wContextwProsody_5 to target
+
+- tag
+    - N2C_1
+        - spk: N2C
+        - pretrain: None
+    - jsut_jsss_jvs_1
+        - spk: jsut_jsss_jvs
+        - pretrain用.
+        - あほみたいな量のデータだったけどダメ
+            - ↑マルチスピーカーは無理なのかも?
+    - jsut_jsss_1
+        - spk: jsut_jsss
+        - pretrain用
+    - N2C_2
+        - spk: N2C
+        - pretrain: jsut_jsss_1
+            - かなりマシ. pretrainは必須ですね.
+    - jsut_jsss_2
+        - spk: jsut_jsss
+        - pretrain用
+        - lossとして、guided attention lossを追加したので.
+        - とても良いので, 200epoch回しておく.
+    - N2C_3
+        - spk: N2C
+        - pretrain: jsut_jsss_2
+            - すごい.
+            - これでいく. とりあえずもっと回しておく.
+    - N2C_4
+        - spk: N2C
+        - pretrain: jsut_jsss_2(after 200epoch)
+        - 23min/50epoch
+        - かなりいい. 感情的な部分は微妙だが、自然な高クオリティな音声を出力出来ていてすごい.
+    
+    # 以下提案手法
+    - LINE_1
+        - spk: LINE_1
+        - pretrain: jsut_jsss_2(after 200epoch)
+        - LINE_8について.
+        - job_ID: 8250280
+    - LINE_2
+        - spk: LINE_2
+        - pretrain: jsut_jsss_2(after 200epoch)
+        - LINE_12について.
+        - job_ID: 8250289
+        - job_ID: 8251287
+    - LINE_3
+        - spk: LINE_3
+        - pretrain: jsut_jsss_2(after 200epoch)
+        - LINE_wContext_6について.
+        - job_ID: 8250316
+    - LINE_4
+        - spk: LINE_4
+        - pretrain: jsut_jsss_2(after 200epoch)
+        - LINE_wContextwProsody_5について.
+        - job_ID: 8250354
+
+    # 以下coefont
+    - yuto2hongo
+      - spk: yuto2hongo
+      - pretrain: jsut_jsss_2(after 200epoch)
+    - yuto2allial
+      - spk: yuto2allial
+      - pretrain: jsut_jsss_2(after 200epoch)

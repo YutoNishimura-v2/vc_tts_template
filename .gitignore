@@ -1,0 +1,13 @@
+**/dump
+**/downloads
+**/outputs
+**/exp
+**/tensorboard
+**/__pycache__
+ttslearn/
+tts_models/
+*.pth.tar
+*.pth
+dataset/
+*.png
+*.tar.gz
