@@ -529,15 +529,6 @@
     - LINE_2
         - spk: LINE_2
         - pretrain: JSUT_NICT_LINE_3
-<<<<<<< HEAD
-        - job ID: 8272384
-    - LINE_3(未実施)
-        - spk: LINE_3
-        - pretrain: JSUT_NICT_LINE_3
-    - LINE_4(未実施)
-        - spk: LINE_4
-        - pretrain: JSUT_NICT_LINE_3
-=======
         - job ID: 8272422
     - LINE_3
         - spk: LINE_3
@@ -547,7 +538,6 @@
         - spk: LINE_4
         - pretrain: JSUT_NICT_LINE_3
         - job ID: 8272808
->>>>>>> origin/master
 
     # 以下coefont
     - yuto2allial
