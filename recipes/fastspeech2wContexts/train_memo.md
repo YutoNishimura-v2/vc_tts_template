@@ -124,7 +124,7 @@
         - batch_size=16, wGMM
         - global prosody: True, local prosody: False
         - 2段階学習のためのpretrain. 250epoch. emotionは当該のもの.
-        - jobID: 8351448
+        - jobID: 8351464
     - LINE_wContext_8
         - spk: LINE_wContext_2
         - pretrain: None
@@ -132,7 +132,7 @@
         - batch_size=16, wGMM
         - global prosody: True, local prosody: False
         - 2段階学習のためのpretrain. 250epoch. emotionは一つ前
-        - jobID:
+        - jobID: 8351470
     - LINE_wContext_9(未実行)
         - spk: LINE_wContext
         - pretrain: None

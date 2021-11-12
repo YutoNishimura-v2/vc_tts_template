@@ -241,17 +241,26 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     if speaker_dict is not None:
         speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in ids])
         h_speakers = np.array([[speaker_dict[spk] for spk in speakers] for speakers in h_speakers])
-        h_prosody_speakers = np.array([speaker_dict[spk] for spk in h_prosody_speakers])
+        if h_prosody_speakers[0] is not None:
+            h_prosody_speakers = np.array([speaker_dict[spk] for spk in h_prosody_speakers])
+        else:
+            h_prosody_speakers = None
     else:
         raise ValueError("You Need speaker_dict")
     if emotion_dict is not None:
         emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
         h_emotions = np.array([[emotion_dict[emo] for emo in emotions] for emotions in h_emotions])
-        h_prosody_emotions = np.array([emotion_dict[emo] for emo in h_prosody_emotions])
+        if h_prosody_emotions[0] is not None:
+            h_prosody_emotions = np.array([emotion_dict[emo] for emo in h_prosody_emotions])
+        else:
+            h_prosody_emotions = None
     else:
         emotions = np.array([0 for _ in idxs])
         h_emotions = np.array([[0 for _ in range(len(h_speakers[0]))] for _ in idxs])
-        h_prosody_emotions = np.array([0 for _ in idxs])
+        if h_prosody_emotions[0] is not None:
+            h_prosody_emotions = np.array([0 for _ in idxs])
+        else:
+            h_prosody_emotions = None
 
     # reprocessの内容をここに.
 
