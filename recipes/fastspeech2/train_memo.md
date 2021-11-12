@@ -269,16 +269,16 @@
         - fastspeech2wVAE
         - 比較対象: LINE_4
         - VAE実装. もちろん感情付き.
-    - LINE_21(未実行)
+    - LINE_21
         - spk: LINE_3
         - pretrain: None
         - +accent info
         - batch_size: 16
-        - 500epoch
+        - 250epoch
         - fastspeech2wGMM. 
         - global prosody: True, local prosody: False
         - globalの次元数修正後にpretrain用を作っていなかったので作る.
-        - job_ID:
+        - job_ID: 8350817
     - LINE_22(未実行)
         - spk: LINE_3
         - pretrain: LINE_22
@@ -328,6 +328,46 @@
         - fastspeech2wGMM. 
         - global prosody: True, local prosody: True, num_gaussians: 10
         - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
+        - job_ID:
+    - LINE_27
+        - spk: LINE_3
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. emotion当該発話. pretrain.
+        - global prosody: True, local prosody: False, num_gaussians: 10
+        - 感情ラベル付きでどうなるかを見るための, global訓練
+        - job_ID: 8351153
+    - LINE_28
+        - spk: LINE_4
+        - pretrain: None
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. emotion1つ前. pretrain.
+        - global prosody: True, local prosody: False, num_gaussians: 10
+        - 感情ラベル付きでどうなるかを見るための, global訓練
+        - job_ID: 8351162
+    - LINE_29(未実行)
+        - spk: LINE_3
+        - pretrain: LINE_27
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. emotion当該発話.
+        - global prosody: True, local prosody: True, num_gaussians: 10
+        - 感情ラベル付きでどうなるかを見るための実験
+        - job_ID:
+    - LINE_30(未実行)
+        - spk: LINE_4
+        - pretrain: LINE_28
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. emotion1つ前.
+        - global prosody: True, local prosody: True, num_gaussians: 10
+        - 感情ラベル付きでどうなるかを見るための実験
         - job_ID:
 ## 主要な実験
 

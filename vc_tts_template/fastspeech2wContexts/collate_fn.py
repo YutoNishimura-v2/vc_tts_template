@@ -123,6 +123,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
                 self.utt2id, self.id2utt, self.use_hist_num, start_index=1, only_latest=True,
                 use_local_prosody_hist_idx=self.use_local_prosody_hist_idx
             )
+            history_prosody_speakers = history_prosody_speakers[0]
+            history_prosody_emotions = history_prosody_emotions[0]
             assert len(self.g_prosody_emb_paths) > 0, "this mode require global prosody"
             _, history_g_prosody_embs, _, _, _ = get_embs(
                 self.in_paths[idx].name.replace("-feats.npy", ""), self.g_prosody_emb_paths,
@@ -148,8 +150,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             history_emotions,
             history_prosody_emb,
             history_g_prosody_embs,
-            history_prosody_speakers[0],
-            history_prosody_emotions[0],
+            history_prosody_speakers,
+            history_prosody_emotions,
         )
 
     def __len__(self):

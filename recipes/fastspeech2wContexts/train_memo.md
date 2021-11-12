@@ -117,3 +117,35 @@
         - 2段階学習後半戦. attentionを復活させてみた. 250epoch
         - 話者性を追加し, pretrainも修正したもの.
         - jobID: 8271869
+    - LINE_wContext_7
+        - spk: LINE_wContext
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False
+        - 2段階学習のためのpretrain. 250epoch. emotionは当該のもの.
+        - jobID: 8351448
+    - LINE_wContext_8
+        - spk: LINE_wContext_2
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False
+        - 2段階学習のためのpretrain. 250epoch. emotionは一つ前
+        - jobID:
+    - LINE_wContext_9(未実行)
+        - spk: LINE_wContext
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True
+        - 2段階学習のためのpretrain. 250epoch. emotionは当該のもの.
+        - jobID:
+    - LINE_wContext_10(未実行)
+        - spk: LINE_wContext_2
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True
+        - 2段階学習のためのpretrain. 250epoch. emotionは一つ前
+        - jobID:
