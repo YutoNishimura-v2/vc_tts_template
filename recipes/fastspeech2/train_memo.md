@@ -276,17 +276,57 @@
         - batch_size: 16
         - 500epoch
         - fastspeech2wGMM. 
-        - global prosody: True, local prosody: True, num_gaussians: 5
-        - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
+        - global prosody: True, local prosody: False
+        - globalの次元数修正後にpretrain用を作っていなかったので作る.
         - job_ID:
     - LINE_22(未実行)
         - spk: LINE_3
-        - pretrain: None
+        - pretrain: LINE_22
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: True, num_gaussians: 1
+        - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
+        - job_ID:
+    - LINE_23(未実行)
+        - spk: LINE_3
+        - pretrain: LINE_22
         - +accent info
         - batch_size: 16
         - 500epoch
         - fastspeech2wGMM. 
         - global prosody: True, local prosody: True, num_gaussians: 3
+        - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
+        - job_ID:
+    - LINE_24(未実行)
+        - spk: LINE_3
+        - pretrain: LINE_22
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: True, num_gaussians: 5
+        - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
+        - job_ID:
+    - LINE_25(未実行)
+        - spk: LINE_3
+        - pretrain: LINE_22
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: True, num_gaussians: 7
+        - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
+        - job_ID:
+    - LINE_26(未実行)
+        - spk: LINE_3
+        - pretrain: LINE_22
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. 
+        - global prosody: True, local prosody: True, num_gaussians: 10
         - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
         - job_ID:
 ## 主要な実験

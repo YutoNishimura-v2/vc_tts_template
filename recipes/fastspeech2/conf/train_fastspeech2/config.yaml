@@ -69,20 +69,17 @@ train:
         weight_decay: 0.0
     lr_scheduler:
       _target_: vc_tts_template.fastspeech2.optimizer.ScheduledOptim
-      warm_up_step: 4000  # if batch: 8, groupsize:4, 4000. if your batch: 32, 1000 is recomended
-      anneal_steps: [300000, 400000, 500000]
+      warm_up_step: 2000
+      anneal_steps: [150000, 200000, 250000]
       anneal_rate: 0.3
       max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 
   
   criterion:
-    _target_: vc_tts_template.fastspeech2wVAE.loss.FastSpeech2wVAELoss
+    _target_: vc_tts_template.fastspeech2wGMM.loss.FastSpeech2Loss
     pitch_feature_level:
     energy_feature_level:
-    anneal_function: 'logistic'
-    anneal_k: 0.0025
-    anneal_x0: 10000
-    anneal_upper: 0.2
-    anneal_lag: 50000
+    beta: 0.02
+    g_beta: 0.02
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
