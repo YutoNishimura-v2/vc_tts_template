@@ -101,7 +101,9 @@ class FastSpeech2wVAE(FastSpeech2):
         encoder_output,
         target_mel,
     ):
-        prosody_outputs, mu, logvar = self.vae(target_mel)
+        prosody_outputs, mu, logvar = self.vae(
+            target_mel, batch_size=encoder_output.size(0), device=encoder_output.device
+        )
         prosody_outputs = prosody_outputs.unsqueeze(1).expand_as(encoder_output)
         encoder_output = encoder_output + prosody_outputs
 

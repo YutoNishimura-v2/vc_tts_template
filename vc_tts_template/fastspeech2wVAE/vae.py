@@ -33,7 +33,7 @@ class VAE_GST(nn.Module):
         self.fc2 = nn.Linear(ref_enc_gru_size, z_latent_dim)
         self.fc3 = nn.Linear(z_latent_dim, encoder_hidden_dim)
 
-        self._cache = None
+        self.z_latent_dim = z_latent_dim
 
     def reparameterize(self, mu, logvar):
         if self.training:
@@ -43,17 +43,15 @@ class VAE_GST(nn.Module):
         else:
             return mu
 
-    def forward(self, inputs):
+    def forward(self, inputs, batch_size=None, device=None):
         if inputs is not None:
             enc_out = self.ref_encoder(inputs)
             mu = self.fc1(enc_out)
             logvar = self.fc2(enc_out)
             z = self.reparameterize(mu, logvar)
-
-            self._cache = z
         else:
             mu = logvar = None
-            z = torch.randn_like(self._cache)
+            z = torch.randn(batch_size, self.z_latent_dim).to(device)
         style_embed = self.fc3(z)
 
         return style_embed, mu, logvar
