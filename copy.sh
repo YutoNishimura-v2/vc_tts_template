@@ -338,3 +338,7 @@ rsync -ah --no-i-r --info=progress2 \
 rsync -ah --no-i-r --info=progress2 \
     abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_8_fastspeech2wGMMwContextswProsody/ \
     /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_8_fastspeech2wGMMwContextswProsody/
+
+rsync -ah --no-i-r --info=progress2 \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2VC/dump/JSUT_NICT_LINE_4_sr22050/  \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_8_fastspeech2wGMMwContextswProsody/

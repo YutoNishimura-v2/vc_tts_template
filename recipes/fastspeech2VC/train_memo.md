@@ -101,6 +101,11 @@
         - reduction_factor: 3
         - 提案手法のためのVC. TTSから作った音声を正解へと変換する.
         - sourceがLINE_8
+    - JSUT_NICT_LINE_4(@saruwatari)
+        - silence_thresh_t: -100
+        - min_silence_len: 200
+        - reduction_factor: 1
+        - reduction_factor=1にして実行するためのpretrain.
 
 - tag
     - jsut_jsss_1
@@ -552,6 +557,11 @@
       - 実行時間: min/50epoch
       - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 200, reduction_factor: 3, pitch_AR: False
       - N2C_45と同じ設定で動くかやってみる.
+    - JSUT_NICT_LINE_4
+        - spk: JSUT_NICT_LINE_4
+        - pretrain: fastspeech2/JSUT_NICT_LINE_2_sr22050_JSUT_NICT_LINE_2
+        - epoch: 200
+        - pretrain用. reduction_factor=1が使いたい.
 
 ## 主要な実験
 - N2C_4: 初pitchAR化.

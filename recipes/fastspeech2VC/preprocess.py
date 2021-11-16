@@ -1,3 +1,4 @@
+from typing import Tuple
 import argparse
 import sys
 import shutil
@@ -9,6 +10,7 @@ import librosa
 import numpy as np
 import pyworld as pw
 from scipy.io import wavfile
+import pydub
 from pydub import AudioSegment, silence
 
 sys.path.append("../..")
@@ -47,12 +49,12 @@ def get_parser():
     parser.add_argument("--reduction_factor", type=int)
     parser.add_argument("--sentence_duration", type=int)
     parser.add_argument("--min_silence_len", type=int)
-    parser.add_argument("--model_config_path", type=str)
-    parser.add_argument("--pretrained_checkpoint", type=str)
-    parser.add_argument("--in_scaler_path", type=str)
-    parser.add_argument("--out_scaler_path", type=str)
-    parser.add_argument("--batch_size", type=int)
-    parser.add_argument("--length_thresh", type=int)
+    parser.add_argument("--model_config_path", type=str, nargs='?')
+    parser.add_argument("--pretrained_checkpoint", type=str, nargs='?')
+    parser.add_argument("--in_scaler_path", type=str, nargs='?')
+    parser.add_argument("--out_scaler_path", type=str, nargs='?')
+    parser.add_argument("--batch_size", type=int, nargs='?')
+    parser.add_argument("--length_thresh", type=int, nargs='?')
     return parser
 
 
