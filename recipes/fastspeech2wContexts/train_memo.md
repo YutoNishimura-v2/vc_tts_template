@@ -171,28 +171,28 @@
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 0
         - 2段階学習後半戦. 当該発話の感情
-        - jobID:
-    - LINE_wContextwProsody_12(未実行)
+        - jobID: 8387698
+    - LINE_wContextwProsody_12qs
         - spk: LINE_wContextwProsody
         - pretrain: LINE_wContextwProsody_9
         - +accent
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
         - 2段階学習後半戦. 当該発話の感情
-        - jobID:
-    - LINE_wContextwProsody_13(未実行)
+        - jobID: 8388025
+    - LINE_wContextwProsody_13
         - spk: LINE_wContextwProsody_2
         - pretrain: LINE_wContextwProsody_10
         - +accent
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 0
         - 2段階学習後半戦. 当該発話1つ前の感情
-        - jobID:
-    - LINE_wContextwProsody_14(未実行)
+        - jobID: 8388744
+    - LINE_wContextwProsody_14
         - spk: LINE_wContextwProsody_2
         - pretrain: LINE_wContextwProsody_10
         - +accent
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
         - 2段階学習後半戦. 当該発話1つ前の感情
-        - jobID:
+        - jobID: 8388939
