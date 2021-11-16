@@ -184,7 +184,6 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
         prosody_emb_dir = Path(to_absolute_path(data_config.prosody_emb_dir))  # type:ignore
         g_prosody_emb_dir = Path(to_absolute_path(data_config.g_prosody_emb_dir))  # type:ignore
         dialogue_info = Path(to_absolute_path(data_config.dialogue_info))  # type:ignore
-
         in_feats_paths = [in_dir / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_mel_paths = [out_dir / "mel" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_pitch_paths = [out_dir / "pitch" / f"{utt_id}-feats.npy" for utt_id in utt_ids]

@@ -1,33 +1,46 @@
-        self.fastspeech2VC = fastspeech2VC(
-            n_mel_channel,
-            attention_dim,
-            encoder_hidden_dim,
-            encoder_num_layer,
-            encoder_num_head,
-            decoder_hidden_dim,
-            decoder_num_layer,
-            decoder_num_head,
-            conv_kernel_size,
-            ff_expansion_factor,
-            conv_expansion_factor,
-            ff_dropout,
-            attention_dropout,
-            conv_dropout,
-            variance_predictor_filter_size,
-            variance_predictor_kernel_size_d,
-            variance_predictor_layer_num_d,
-            variance_predictor_kernel_size_p,
-            variance_predictor_layer_num_p,
-            variance_predictor_kernel_size_e,
-            variance_predictor_layer_num_e,
-            variance_predictor_dropout,
-            stop_gradient_flow_d,
-            stop_gradient_flow_p,
-            stop_gradient_flow_e,
-            reduction_factor,
-            encoder_fix,
-            pitch_AR,
-            lstm_layers,
-            speakers,
-            emotions,
+import shutil
+from pathlib import Path
+from tqdm import tqdm
+from concurrent.futures import ProcessPoolExecutor
+
+all_utt_id = []
+text_emb = Path("recipes/fastspeech2wContexts/dump/LINE_wContext_2_sr22050/text_emb")
+
+for new_path_id in text_emb.glob("*.npy"):
+    all_utt_id.append(new_path_id.name)
+
+g_prosody_emb_base = Path("recipes/fastspeech2wContexts/dump/LINE_wContextwProsody_sr22050/g_prosody_emb")
+prosody_emb_base = Path("recipes/fastspeech2wContexts/dump/LINE_wContextwProsody_sr22050/prosody_emb")
+
+out_g_prosody_emb_base = Path("recipes/fastspeech2wContexts/dump/LINE_wContextwProsody_2_sr22050/g_prosody_emb")
+out_prosody_emb_base = Path("recipes/fastspeech2wContexts/dump/LINE_wContextwProsody_2_sr22050/prosody_emb")
+
+out_g_prosody_emb_base.mkdir(exist_ok=True)
+out_prosody_emb_base.mkdir(exist_ok=True)
+
+p_embs = list(prosody_emb_base.glob("*.npy"))
+
+def copy_emb(p_emb_path):
+    g_emb_path = g_prosody_emb_base / p_emb_path.name
+
+    utt_id_woEmo = p_emb_path.stem.replace("_"+p_emb_path.stem.split("_")[-1], "")
+    new_filename = ""
+    for utt_id in all_utt_id:
+        if utt_id_woEmo in utt_id:
+            new_filename = utt_id
+            break
+
+    shutil.copy(p_emb_path, out_prosody_emb_base / new_filename)
+    shutil.copy(g_emb_path, out_g_prosody_emb_base / new_filename)
+
+
+with ProcessPoolExecutor(20) as executor:
+    futures = [
+        executor.submit(
+            copy_emb,
+            p_emb,
         )
+        for p_emb in p_embs
+    ]
+    for future in tqdm(futures):
+        future.result()

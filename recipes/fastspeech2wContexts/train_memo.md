@@ -11,8 +11,7 @@
     - LINE_wContextwProsody
         - out_LINE_woITAKOから作ったもの.
     - LINE_wContextwProsody_2
-        - LINE_wContextwProsodyから実行のためにprosodyを消し去ったもの
-        これ、単なるLINE_wContextと同じだった.....。
+        - LINE_wContext_2をcopyし, LINE_wContextwProsodyのprosodyの名前を一つ前の感情に書き換えてコピーしたもの.
 
 - exp
     - LINE_wContext_1
@@ -133,19 +132,67 @@
         - global prosody: True, local prosody: False
         - 2段階学習のためのpretrain. 250epoch. emotionは一つ前
         - jobID: 8351470
-    - LINE_wContext_9(未実行)
+    - LINE_wContext_9
         - spk: LINE_wContext
         - pretrain: None
         - +accent
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True
         - 2段階学習のためのpretrain. 250epoch. emotionは当該のもの.
-        - jobID:
-    - LINE_wContext_10(未実行)
+        - jobID: 8360793
+    - LINE_wContext_10
         - spk: LINE_wContext_2
         - pretrain: None
         - +accent
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True
         - 2段階学習のためのpretrain. 250epoch. emotionは一つ前
+        - jobID: 8360833
+    - LINE_wContextwProsody_9
+        - spk: LINE_wContextwProsody
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False, attention: False, use_local_prosody_hist_idx: 0
+        - 2段階学習前半戦. 当該発話の感情
+        - jobID: 8361107
+    - LINE_wContextwProsody_10
+        - spk: LINE_wContextwProsody_2
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False, attention: False, use_local_prosody_hist_idx: 0
+        - 2段階学習前半戦. 当該発話1つ前の感情
+        - jobID: 8362557
+    - LINE_wContextwProsody_11(未実行)
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_9
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 0
+        - 2段階学習後半戦. 当該発話の感情
+        - jobID:
+    - LINE_wContextwProsody_12(未実行)
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_9
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
+        - 2段階学習後半戦. 当該発話の感情
+        - jobID:
+    - LINE_wContextwProsody_13(未実行)
+        - spk: LINE_wContextwProsody_2
+        - pretrain: LINE_wContextwProsody_10
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 0
+        - 2段階学習後半戦. 当該発話1つ前の感情
+        - jobID:
+    - LINE_wContextwProsody_14(未実行)
+        - spk: LINE_wContextwProsody_2
+        - pretrain: LINE_wContextwProsody_10
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
+        - 2段階学習後半戦. 当該発話1つ前の感情
         - jobID:

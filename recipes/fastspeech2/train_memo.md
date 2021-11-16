@@ -279,56 +279,56 @@
         - global prosody: True, local prosody: False
         - globalの次元数修正後にpretrain用を作っていなかったので作る.
         - job_ID: 8350817
-    - LINE_22(未実行)
+    - LINE_22
         - spk: LINE_3
-        - pretrain: LINE_22
+        - pretrain: LINE_21
         - +accent info
         - batch_size: 16
         - 500epoch
         - fastspeech2wGMM. 
         - global prosody: True, local prosody: True, num_gaussians: 1
         - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
-        - job_ID:
-    - LINE_23(未実行)
+        - job_ID: 8360752
+    - LINE_23
         - spk: LINE_3
-        - pretrain: LINE_22
+        - pretrain: LINE_21
         - +accent info
         - batch_size: 16
         - 500epoch
         - fastspeech2wGMM. 
         - global prosody: True, local prosody: True, num_gaussians: 3
         - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
-        - job_ID:
-    - LINE_24(未実行)
+        - job_ID: 8360757
+    - LINE_24
         - spk: LINE_3
-        - pretrain: LINE_22
+        - pretrain: LINE_21
         - +accent info
         - batch_size: 16
         - 500epoch
         - fastspeech2wGMM. 
         - global prosody: True, local prosody: True, num_gaussians: 5
         - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
-        - job_ID:
-    - LINE_25(未実行)
+        - job_ID: 8360759
+    - LINE_25
         - spk: LINE_3
-        - pretrain: LINE_22
+        - pretrain: LINE_21
         - +accent info
         - batch_size: 16
         - 500epoch
         - fastspeech2wGMM. 
         - global prosody: True, local prosody: True, num_gaussians: 7
         - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
-        - job_ID:
-    - LINE_26(未実行)
+        - job_ID: 8360764
+    - LINE_26
         - spk: LINE_3
-        - pretrain: LINE_22
+        - pretrain: LINE_21
         - +accent info
         - batch_size: 16
         - 500epoch
         - fastspeech2wGMM. 
         - global prosody: True, local prosody: True, num_gaussians: 10
         - 混合数を変える実験. global prosodyもつけてみてどうなるかをみる.
-        - job_ID:
+        - job_ID: 8360770
     - LINE_27
         - spk: LINE_3
         - pretrain: None
@@ -349,7 +349,7 @@
         - global prosody: True, local prosody: False, num_gaussians: 10
         - 感情ラベル付きでどうなるかを見るための, global訓練
         - job_ID: 8351162
-    - LINE_29(未実行)
+    - LINE_29
         - spk: LINE_3
         - pretrain: LINE_27
         - +accent info
@@ -358,8 +358,8 @@
         - fastspeech2wGMM. emotion当該発話.
         - global prosody: True, local prosody: True, num_gaussians: 10
         - 感情ラベル付きでどうなるかを見るための実験
-        - job_ID:
-    - LINE_30(未実行)
+        - job_ID: 8360779
+    - LINE_30
         - spk: LINE_4
         - pretrain: LINE_28
         - +accent info
@@ -368,7 +368,7 @@
         - fastspeech2wGMM. emotion1つ前.
         - global prosody: True, local prosody: True, num_gaussians: 10
         - 感情ラベル付きでどうなるかを見るための実験
-        - job_ID:
+        - job_ID: 8360788
 ## 主要な実験
 
 ## 知見

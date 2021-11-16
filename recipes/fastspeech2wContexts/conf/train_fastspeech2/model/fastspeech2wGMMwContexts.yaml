@@ -52,7 +52,7 @@ netG:
   n_mel_channel:
   # other
   encoder_fix: False
-  local_prosody: False
+  local_prosody: True
   global_prosody: True
   stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
   speakers: {"PAD": 0, "Teacher": 1, "MStudent": 2, "FStudent": 3}
