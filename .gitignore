@@ -11,3 +11,4 @@ tts_models/
 dataset/
 *.png
 *.tar.gz
+**/*.wav

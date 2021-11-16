@@ -73,8 +73,8 @@ rsync -ah --no-i-r --info=progress2 \
 # LINE_MStudent_sr22050_LINE_MStudent_1
 echo "LINE_MStudent_sr22050_LINE_MStudent_1"
 rsync -ah --no-i-r --info=progress2 \
-    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_1/ \
-    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_1/
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_1/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_1/
 
 rsync -ah --no-i-r --info=progress2 \
     abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_MStudent_sr22050_LINE_MStudent_1_fastspeech2wGMM/ \

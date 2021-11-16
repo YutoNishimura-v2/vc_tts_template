@@ -81,6 +81,8 @@ fi
 
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     echo "stage 1: Feature generation for fastspeech2"
+    mkdir -p $expdir/data
+    cp -r data/*.list $expdir/data/
     for s in ${datasets[@]}; do
         xrun python preprocess.py data/$s.list $wav_root $lab_root \
             $dump_org_dir/$s --n_jobs $n_jobs \
@@ -92,13 +94,12 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
             --energy_phoneme_averaging $energy_phoneme_averaging  \
             --accent_info $accent_info
     done
-    # preprocess実行時にのみcopyするようにする.
-    mkdir -p $expdir/data
-    cp -r data/*.list $expdir/data/
 fi
 
 if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
     echo "stage 2: feature normalization"
+    mkdir -p $expdir/data
+    cp -r data/*.list $expdir/data/
     for typ in "fastspeech2"; do
        for inout in "out"; do
             for feat in "mel" "pitch" "energy"; do

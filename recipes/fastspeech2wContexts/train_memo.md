@@ -10,7 +10,7 @@
         - out_LINE_woITAKO_before_ITAKOから作ったもの.
     - LINE_wContextwProsody
         - out_LINE_woITAKOから作ったもの.
-    - LINE_wContextwProsody_2
+    - LINE_wContextwProsody_2: dialogue_infoが間違っていた！要修正.
         - LINE_wContext_2をcopyし, LINE_wContextwProsodyのprosodyの名前を一つ前の感情に書き換えてコピーしたもの.
 
 - exp
@@ -23,7 +23,6 @@
         - spk: LINE_wContext
         - pretrain: None
         - +accent+Emotion
-        - 初実行. wEmotionは次かな?
     - LINE_wContext_3
         - spk: LINE_wContext_2
         - pretrain: None
@@ -156,7 +155,7 @@
         - global prosody: True, local prosody: False, attention: False, use_local_prosody_hist_idx: 0
         - 2段階学習前半戦. 当該発話の感情
         - jobID: 8361107
-    - LINE_wContextwProsody_10
+    - LINE_wContextwProsody_10: dialogue_infoが間違っていた！要修正.
         - spk: LINE_wContextwProsody_2
         - pretrain: None
         - +accent
@@ -164,7 +163,7 @@
         - global prosody: True, local prosody: False, attention: False, use_local_prosody_hist_idx: 0
         - 2段階学習前半戦. 当該発話1つ前の感情
         - jobID: 8362557
-    - LINE_wContextwProsody_11(未実行)
+    - LINE_wContextwProsody_11
         - spk: LINE_wContextwProsody
         - pretrain: LINE_wContextwProsody_9
         - +accent
@@ -180,7 +179,7 @@
         - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
         - 2段階学習後半戦. 当該発話の感情
         - jobID: 8388025
-    - LINE_wContextwProsody_13
+    - LINE_wContextwProsody_13: dialogue_infoが間違っていた！要修正.
         - spk: LINE_wContextwProsody_2
         - pretrain: LINE_wContextwProsody_10
         - +accent
@@ -188,7 +187,7 @@
         - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 0
         - 2段階学習後半戦. 当該発話1つ前の感情
         - jobID: 8388744
-    - LINE_wContextwProsody_14
+    - LINE_wContextwProsody_14: dialogue_infoが間違っていた！要修正.
         - spk: LINE_wContextwProsody_2
         - pretrain: LINE_wContextwProsody_10
         - +accent
