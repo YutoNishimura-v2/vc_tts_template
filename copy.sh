@@ -338,3 +338,122 @@ rsync -ah --no-i-r --info=progress2 \
 rsync -ah --no-i-r --info=progress2 \
     abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_8_fastspeech2wGMMwContextswProsody/ \
     /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_8_fastspeech2wGMMwContextswProsody/
+# for wGMM 混合数チェック+global prosody
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_22/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_22/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_23/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_23/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_24/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_24/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_25/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_25/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_26/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_26/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_27/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_27/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_4_sr22050_LINE_28/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_4_sr22050_LINE_28/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_29/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_3_sr22050_LINE_29/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_4_sr22050_LINE_30/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_4_sr22050_LINE_30/
+
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_22_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_22_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_23_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_23_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_24_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_24_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_25_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_25_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_26_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_26_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_27_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_27_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_4_sr22050_LINE_28_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_4_sr22050_LINE_28_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_29_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_3_sr22050_LINE_29_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_4_sr22050_LINE_30_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_4_sr22050_LINE_30_fastspeech2wGMM/
+
+# 提案法+emotion label
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContext_sr22050_LINE_wContext_7/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContext_sr22050_LINE_wContext_7/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContext_2_sr22050_LINE_wContext_8/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContext_2_sr22050_LINE_wContext_8/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContext_sr22050_LINE_wContext_9/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContext_sr22050_LINE_wContext_9/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContext_2_sr22050_LINE_wContext_10/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContext_2_sr22050_LINE_wContext_10/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_9/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_9/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_10/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_10/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_11/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_11/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_12/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_12/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_13/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_13/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_14/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_14/
+
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContext_sr22050_LINE_wContext_7_fastspeech2wGMMwContexts/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContext_sr22050_LINE_wContext_7_fastspeech2wGMMwContexts/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContext_2_sr22050_LINE_wContext_8_fastspeech2wGMMwContexts/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContext_2_sr22050_LINE_wContext_8_fastspeech2wGMMwContexts/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContext_sr22050_LINE_wContext_9_fastspeech2wGMMwContexts/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContext_sr22050_LINE_wContext_9_fastspeech2wGMMwContexts/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContext_2_sr22050_LINE_wContext_10_fastspeech2wGMMwContexts/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContext_2_sr22050_LINE_wContext_10_fastspeech2wGMMwContexts/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_9_fastspeech2wGMMwContextswProsody/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_9_fastspeech2wGMMwContextswProsody/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_10_fastspeech2wGMMwContextswProsody/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_10_fastspeech2wGMMwContextswProsody/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_11_fastspeech2wGMMwContextswProsody/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_11_fastspeech2wGMMwContextswProsody/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_12_fastspeech2wGMMwContextswProsody/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_sr22050_LINE_wContextwProsody_12_fastspeech2wGMMwContextswProsody/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_13_fastspeech2wGMMwContextswProsody/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_13_fastspeech2wGMMwContextswProsody/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_14_fastspeech2wGMMwContextswProsody/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_14_fastspeech2wGMMwContextswProsody/
