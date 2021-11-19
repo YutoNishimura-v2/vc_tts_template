@@ -20,15 +20,24 @@ def synthesis(device, lab_file, context_embedding, prosody_embedding,
     else:
         speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in ids])
         h_speakers = np.array([speaker_dict[speaker] for speaker in history_speakers])
-        h_prosody_speakers = np.array([speaker_dict[spk] for spk in h_prosody_speakers])
+        if h_prosody_speakers is not None:
+            h_prosody_speakers = np.array([speaker_dict[spk] for spk in h_prosody_speakers])
+        else:
+            h_prosody_speakers = None
     if emotion_dict is None:
         emotions = np.array([0])
         h_emotions = np.array([0 for _ in range(len(h_speakers))])
-        h_prosody_emotions = np.array([0])
+        if h_prosody_emotions is not None:
+            h_prosody_emotions = np.array([0])
+        else:
+            h_prosody_emotions = None
     else:
         emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
         h_emotions = np.array([emotion_dict[emotion] for emotion in history_emotions])
-        h_prosody_emotions = np.array([emotion_dict[emo] for emo in h_prosody_emotions])
+        if h_prosody_emotions is not None:
+            h_prosody_emotions = np.array([emotion_dict[emo] for emo in h_prosody_emotions])
+        else:
+            h_prosody_emotions = None
 
     in_feats = np.load(lab_file)
     src_lens = [in_feats.shape[0]]
@@ -48,8 +57,8 @@ def synthesis(device, lab_file, context_embedding, prosody_embedding,
         [h_prosody_emb.size(1)], dtype=torch.long
     ).to(device) if h_prosody_emb is not None else None
     h_g_prosody_embs = torch.tensor(h_g_prosody_embs).unsqueeze(0).to(device) if h_g_prosody_embs is not None else None
-    h_prosody_speakers = torch.tensor(speakers, dtype=torch.long).to(device)
-    h_prosody_emotions = torch.tensor(emotions, dtype=torch.long).to(device)
+    h_prosody_speakers = torch.tensor(speakers, dtype=torch.long).to(device) if h_prosody_speakers is not None else None
+    h_prosody_emotions = torch.tensor(emotions, dtype=torch.long).to(device) if h_prosody_emotions is not None else None
 
     output = acoustic_model(
         ids=ids,
