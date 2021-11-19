@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContext_2"
+spk: "LINE_wContextwProsody_2"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContext_3"
+tag: "LINE_wContextwProsody_16"
 
 sample_rate: 22050
 
@@ -51,7 +51,7 @@ BERT_weight: "colorfulscoop/sbert-base-ja"
 use_hist_num: 10
 # for with Prosody
 # if 0, the latest one is used.
-use_local_prosody_hist_idx: 0
+use_local_prosody_hist_idx: 1
 # plase replace train/dev/eval to {} for emb_preprocess.py
 input_duration_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/duration"
 output_mel_file_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/mel"
@@ -61,17 +61,17 @@ pretrained_checkpoints: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_1/
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wContexts
+acoustic_model: fastspeech2wGMMwContextswProsody
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
 vocoder_config: "conf/train_hifigan/model/hifigan.yaml"
-vocoder_weight_base_path: "../fastspeech2/exp/LINE_sr22050_LINE_1/hifigan"
+vocoder_weight_base_path: "../fastspeech2/exp/LINE_3_sr22050_LINE_6/hifigan"
 
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
-fastspeech2_train_nepochs: 500
-fastspeech2_data_batch_size: 8
+fastspeech2_train_nepochs: 250
+fastspeech2_data_batch_size: 16
 
 ### hifigan ###
 hifigan_train_nepochs: 50
@@ -93,4 +93,4 @@ reverse: false
 num_eval_utts: -1
 
 acoustic_eval_checkpoint: latest.pth
-vocoder_eval_checkpoint: best_loss.pth
+vocoder_eval_checkpoint: latest.pth

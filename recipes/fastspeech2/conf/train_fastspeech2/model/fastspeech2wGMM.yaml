@@ -24,7 +24,7 @@ netG:
   pp_conv_n_layers: 2
   pp_conv_dropout: 0.2
   pp_zoneout: 0.1
-  num_gaussians: 10
+  num_gaussians: 3
   softmax_temperature: 1.0
   global_gru_n_layers: 2
   global_d_gru: 512

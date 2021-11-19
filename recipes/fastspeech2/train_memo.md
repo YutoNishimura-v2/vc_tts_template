@@ -369,6 +369,16 @@
         - global prosody: True, local prosody: True, num_gaussians: 10
         - 感情ラベル付きでどうなるかを見るための実験
         - job_ID: 8360788
+    - LINE_31
+        - spk: LINE_4
+        - pretrain: LINE_28
+        - +accent info
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. emotion1つ前.
+        - global prosody: True, local prosody: True, num_gaussians: 3
+        - 感情ラベル付き+num_gaussian=3
+        - job_ID: 8459915
 ## 主要な実験
 
 ## 知見

@@ -133,7 +133,7 @@
         - jobID: 8351470
     - LINE_wContext_9
         - spk: LINE_wContext
-        - pretrain: None
+        - pretrain: LINE_wContext_7
         - +accent
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True
@@ -141,7 +141,7 @@
         - jobID: 8360793
     - LINE_wContext_10
         - spk: LINE_wContext_2
-        - pretrain: None
+        - pretrain: LINE_wContext_8
         - +accent
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True
@@ -195,3 +195,43 @@
         - global prosody: True, local prosody: True, attention: True, use_local_prosody_hist_idx: 1
         - 2段階学習後半戦. 当該発話1つ前の感情
         - jobID: 8388939
+    - LINE_wContext_11
+        - spk: LINE_wContext
+        - pretrain: LINE_wContext_5
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, num_gaussian=3
+        - 250epoch
+        - jobID: 8459923
+    - LINE_wContext_12
+        - spk: LINE_wContext_2
+        - pretrain: LINE_wContext_8
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, num_gaussian=3
+        - 250epoch. emotionは一つ前
+        - jobID: 8459937
+    - LINE_wContextwProsody_15
+        - spk: LINE_wContextwProsody
+        - pretrain: LINE_wContextwProsody_7
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, num_gaussian: 3, use_local_prosody_hist_idx: 1
+        - 2段階学習後半戦. emotion labelはなし. ラベルが間違っていたので.
+        - jobID: 8459942
+    - LINE_wContextwProsody_16
+        - spk: LINE_wContextwProsody_2
+        - pretrain: None
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: False, attention: False
+        - 2段階学習前半戦. 1つまえのemotion. ラベルが間違っていたので.
+        - jobID: 8460047
+    - LINE_wContextwProsody_17(未実行)
+        - spk: LINE_wContextwProsody_2
+        - pretrain: LINE_wContextwProsody_16
+        - +accent
+        - batch_size=16, wGMM
+        - global prosody: True, local prosody: True, attention: True, num_gaussian: 3, use_local_prosody_hist_idx: 1
+        - 2段階学習後半戦. 1つまえのemotion. ラベルが間違っていたので.
+        - jobID:

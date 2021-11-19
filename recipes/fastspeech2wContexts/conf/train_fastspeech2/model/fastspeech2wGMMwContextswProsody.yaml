@@ -30,7 +30,7 @@ netG:
   pp_conv_n_layers: 2
   pp_conv_dropout: 0.2
   pp_zoneout: 0.1
-  num_gaussians: 10
+  num_gaussians: 3
   softmax_temperature: 1.0
   global_gru_n_layers: 2
   global_d_gru: 256
@@ -57,9 +57,9 @@ netG:
   n_mel_channel:
   # other
   encoder_fix: False
-  local_prosody: True
+  local_prosody: False
   global_prosody: True
-  prosody_attention: True
+  prosody_attention: False
   stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
   speakers: {"PAD": 0, "Teacher": 1, "MStudent": 2, "FStudent": 3}
   emotions: {"PAD": 0, "Normal": 1, "Happy": 2, "Sad": 3, "Angry": 4}
