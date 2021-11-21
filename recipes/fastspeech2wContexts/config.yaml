@@ -2,7 +2,7 @@
 spk: "LINE_wContextwProsody_2"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwProsody_16"
+tag: "LINE_wContextwProsody_17"
 
 sample_rate: 22050
 
@@ -93,8 +93,4 @@ reverse: false
 num_eval_utts: -1
 
 acoustic_eval_checkpoint: latest.pth
-<<<<<<< HEAD
 vocoder_eval_checkpoint: latest.pth
-=======
-vocoder_eval_checkpoint: latest.pth
->>>>>>> 62a30f9e4f4445df1ff461a34dea9d433a4db556

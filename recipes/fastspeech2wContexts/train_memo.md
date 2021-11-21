@@ -227,11 +227,11 @@
         - global prosody: True, local prosody: False, attention: False
         - 2段階学習前半戦. 1つまえのemotion. ラベルが間違っていたので.
         - jobID: 8460047
-    - LINE_wContextwProsody_17(未実行)
+    - LINE_wContextwProsody_17
         - spk: LINE_wContextwProsody_2
         - pretrain: LINE_wContextwProsody_16
         - +accent
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True, attention: True, num_gaussian: 3, use_local_prosody_hist_idx: 1
         - 2段階学習後半戦. 1つまえのemotion. ラベルが間違っていたので.
-        - jobID:
+        - jobID: 8466021
