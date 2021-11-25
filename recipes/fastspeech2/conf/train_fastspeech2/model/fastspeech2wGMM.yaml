@@ -51,5 +51,5 @@ netG:
   global_prosody: True
   stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
   speakers:
-  emotions: {"Normal": 0, "Happy": 1, "Sad": 2, "Angry": 3}
+  emotions:
   accent_info:

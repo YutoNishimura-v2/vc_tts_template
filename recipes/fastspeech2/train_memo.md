@@ -380,22 +380,22 @@
         - 感情ラベル付き+num_gaussian=3
         - job_ID: 8459915
 
-    - LINE_32
-        - spk: LINE_4
+    - JSUT_1
+        - spk: jsut
         - pretrain: None
         - batch_size: 16
         - 500epoch
-        - fastspeech2. emotion1つ前.
+        - fastspeech2.
         - JSUTでpretrainする.
-        - job_ID:
-    - LINE_33
-        - spk: LINE_4
+        - job_ID: 8530141
+    - JSUT_2
+        - spk: jsut
         - pretrain: None
         - batch_size: 16
         - 500epoch
-        - fastspeech2wGMM. emotion1つ前.
+        - fastspeech2wGMM.
         - JSUTでpretrainする.
-        - job_ID:
+        - job_ID: 8530184
 
 ## 主要な実験
 
