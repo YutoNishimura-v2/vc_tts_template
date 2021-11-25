@@ -379,6 +379,24 @@
         - global prosody: True, local prosody: True, num_gaussians: 3
         - 感情ラベル付き+num_gaussian=3
         - job_ID: 8459915
+
+    - LINE_32
+        - spk: LINE_4
+        - pretrain: None
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2. emotion1つ前.
+        - JSUTでpretrainする.
+        - job_ID:
+    - LINE_33
+        - spk: LINE_4
+        - pretrain: None
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM. emotion1つ前.
+        - JSUTでpretrainする.
+        - job_ID:
+
 ## 主要な実験
 
 ## 知見
