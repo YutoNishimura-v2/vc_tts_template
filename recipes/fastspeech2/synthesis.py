@@ -73,9 +73,9 @@ def my_app(config: DictConfig) -> None:
         )
 
     # add reconstruct wav output
-    out_dir = out_dir / "reconstruct"
-    out_dir.mkdir(parents=True, exist_ok=True)
     if config.in_mel_dir is not None:
+        out_dir_rec = out_dir / "reconstruct"
+        out_dir_rec.mkdir(parents=True, exist_ok=True)
         in_mel_dir = Path(to_absolute_path(config.in_mel_dir))
         mel_files = [in_mel_dir / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
 
@@ -88,7 +88,48 @@ def my_app(config: DictConfig) -> None:
             mel_org = torch.Tensor(mel_org).unsqueeze(0).to(device)
             wav = vocoder_model(mel_org.transpose(1, 2)).squeeze(1).cpu().data.numpy()[0]
             utt_id = Path(mel_file).name.replace("-feats.npy", "")
-            out_wav_path = out_dir / f"{utt_id}.wav"
+            out_wav_path = out_dir_rec / f"{utt_id}.wav"
+            wavfile.write(
+                out_wav_path,
+                rate=config.sample_rate,
+                data=(wav * 32767.0).astype(np.int16),
+            )
+
+    # only for wGMM
+    if (config.in_mel_dir is not None) and (config.in_duration_dir is not None):
+        out_dir_pro = out_dir / "prosody_teacher_forcing"
+        out_dir_pro.mkdir(parents=True, exist_ok=True)
+        in_mel_dir = Path(to_absolute_path(config.in_mel_dir))
+        in_duration_dir = Path(to_absolute_path(config.in_duration_dir))
+
+        utt_ids = load_utt_list(to_absolute_path(config.utt_list))
+        if config.reverse:
+            utt_ids = utt_ids[::-1]
+
+        lab_files = [in_dir / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
+        mel_files = [in_mel_dir / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
+        duration_files = [in_duration_dir / f"{utt_id.strip()}-feats.npy" for utt_id in utt_ids]
+        if config.num_eval_utts is not None and config.num_eval_utts > 0:
+            lab_files = lab_files[: config.num_eval_utts]
+            mel_files = mel_files[: config.num_eval_utts]
+            duration_files = duration_files[: config.num_eval_utts]
+
+        # Run synthesis for each utt.
+        for lab_file, mel_file, duration_file in optional_tqdm(config.tqdm, desc="Utterance")(
+            zip(lab_files, mel_files, duration_files)
+        ):
+            mel = np.load(mel_file)
+            duration = np.load(duration_file)
+            wav = synthesis(
+                device, lab_file, acoustic_config.netG.speakers, acoustic_config.netG.emotions,
+                acoustic_model, acoustic_out_scaler, vocoder_model,
+                mel, duration,
+            )
+
+            wav = np.clip(wav, -1.0, 1.0)
+
+            utt_id = Path(lab_file).name.replace("-feats.npy", "")
+            out_wav_path = out_dir_pro / f"{utt_id}.wav"
             wavfile.write(
                 out_wav_path,
                 rate=config.sample_rate,

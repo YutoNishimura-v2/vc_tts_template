@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 
+import torch
 import torch.nn as nn
 
 from vc_tts_template.fastspeech2.fastspeech2 import FastSpeech2
@@ -224,6 +225,71 @@ class FastSpeech2wGMM(FastSpeech2):
             p_control,
             e_control,
             d_control,
+        )
+
+        output, postnet_output, mel_masks = self.decoder_forward(
+            output, mel_masks
+        )
+
+        return (
+            output,
+            postnet_output,
+            p_predictions,
+            e_predictions,
+            log_d_predictions,
+            d_rounded,
+            src_masks,
+            mel_masks,
+            src_lens,
+            mel_lens,
+            prosody_features,
+        )
+
+    def prosody_teacher_forcing(
+        self,
+        ids,
+        speakers,
+        emotions,
+        texts,
+        src_lens,
+        max_src_len,
+        mels,
+        d_targets,
+    ):
+        # prosodyのみteacher forcingする場合.
+        # init
+        mel_lens = torch.tensor([mel.size(0) for mel in mels]).long().to(mels.device)
+        max_mel_len = torch.max(mel_lens)
+
+        src_lens, max_src_len, src_masks, mel_lens, max_mel_len, mel_masks = self.init_forward(
+            src_lens, max_src_len, mel_lens, max_mel_len
+        )
+        output = self.encoder_forward(
+            texts, src_masks, max_src_len, speakers, emotions
+        )
+
+        output, prosody_features = self.prosody_forward(
+            output, src_lens, mels, True, d_targets,
+        )
+        (
+            output,
+            p_predictions,
+            e_predictions,
+            log_d_predictions,
+            d_rounded,
+            mel_lens,
+            mel_masks,
+        ) = self.variance_adaptor(
+            output,
+            src_masks,
+            mel_masks,
+            max_mel_len,
+            None,
+            None,
+            d_targets,
+            1.0,
+            1.0,
+            1.0,
         )
 
         output, postnet_output, mel_masks = self.decoder_forward(
