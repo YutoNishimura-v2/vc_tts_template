@@ -420,7 +420,7 @@
         - 500epoch
         - fastspeech2wGMM.
         - JSUTでpretrainする.
-        - job_ID: 8551541
+        - job_ID: 8551637
 ## 主要な実験
 
 ## 知見
