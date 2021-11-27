@@ -396,7 +396,31 @@
         - fastspeech2wGMM.
         - JSUTでpretrainする.
         - job_ID: 8530184
-
+    
+    - LINE_FStudent_2
+        - spk: LINE_FStudent       
+        - pretrain: JSUT_2
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM.
+        - JSUTでpretrainする.
+        - job_ID: 8551522
+    - LINE_MStudent_2
+        - spk: LINE_MStudent       
+        - pretrain: JSUT_2
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM.
+        - JSUTでpretrainする.
+        - job_ID: 8551536
+    - LINE_Teacher_2
+        - spk: LINE_Teacher
+        - pretrain: JSUT_2
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM.
+        - JSUTでpretrainする.
+        - job_ID: 8551541
 ## 主要な実験
 
 ## 知見
