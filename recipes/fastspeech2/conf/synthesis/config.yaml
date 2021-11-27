@@ -11,6 +11,7 @@ utt_list:
 in_dir:
 # for reconstruct. normalized one is considered.
 in_mel_dir:
+in_duration_dir:
 out_dir:
 
 # リストの逆順で発話を処理する
