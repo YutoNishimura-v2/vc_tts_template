@@ -387,7 +387,7 @@
         - 500epoch
         - fastspeech2.
         - JSUTでpretrainする.
-        - job_ID: 8530141
+        - job_ID: 8557331
     - JSUT_2
         - spk: jsut
         - pretrain: None
@@ -395,7 +395,7 @@
         - 500epoch
         - fastspeech2wGMM.
         - JSUTでpretrainする.
-        - job_ID: 8530184
+        - job_ID: 8557334
     
     - LINE_FStudent_2
         - spk: LINE_FStudent       

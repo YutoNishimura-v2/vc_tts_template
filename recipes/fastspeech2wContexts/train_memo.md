@@ -261,7 +261,7 @@
         - jobID: 
     - LINE_wContextwProsody_21
         - spk: LINE_wContextwProsody_2
-        - pretrain: LINE_wContextwProsody_18
+        - pretrain: LINE_wContextwProsody_19
         - +accent
         - batch_size=16, wGMM
         - global prosody: True, local prosody: True, attention: True, num_gaussian: 3, use_local_prosody_hist_idx: 1

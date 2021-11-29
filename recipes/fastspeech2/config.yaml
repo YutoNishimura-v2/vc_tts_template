@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_Teacher"
+spk: "jsut"
 
 # exp tag(for managing experiments)
-tag: "LINE_Teacher_2"
+tag: "JSUT_2"
 
 sample_rate: 22050
 
@@ -44,7 +44,7 @@ clip: 0.00001
 log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
-accent_info: 1
+accent_info: 0
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
