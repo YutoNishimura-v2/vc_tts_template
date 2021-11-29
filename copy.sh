@@ -497,3 +497,23 @@ rsync -ah --no-i-r --info=progress2 \
 rsync -ah --no-i-r --info=progress2 \
     abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_17_fastspeech2wGMMwContextswProsody/ \
     /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/tensorboard/LINE_wContextwProsody_2_sr22050_LINE_wContextwProsody_17_fastspeech2wGMMwContextswProsody/
+
+# LINE_Teacher, MStudent, FStudent 2
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_2/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_2/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_Teacher_sr22050_LINE_Teacher_2_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_Teacher_sr22050_LINE_Teacher_2_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_2/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_2/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_MStudent_sr22050_LINE_MStudent_2_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_MStudent_sr22050_LINE_MStudent_2_fastspeech2wGMM/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_2/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_2/
+rsync -ah --no-i-r --info=progress2 \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_FStudent_sr22050_LINE_FStudent_2_fastspeech2wGMM/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_FStudent_sr22050_LINE_FStudent_2_fastspeech2wGMM/
