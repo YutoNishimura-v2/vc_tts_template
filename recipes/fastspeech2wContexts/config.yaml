@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwProsody_2"
+spk: "LINE_wContextwProsody_4"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwProsody_21"
+tag: "LINE_wContextwProsody_4_data_making"
 
 sample_rate: 22050
 
@@ -27,10 +27,10 @@ dialogue_info: "../../../dataset/out_LINE_woITAKO_before_emotion/dialogue_info.t
 
 n_jobs: 8
 
-train_num: 1006
-deveval_num: 196
-dev_num: 146
-eval_num: 50
+train_num:
+deveval_num:
+dev_num:
+eval_num:
 
 ###########################################################
 #                FEATURE EXTRACTION SETTING               #
@@ -51,12 +51,12 @@ BERT_weight: "colorfulscoop/sbert-base-ja"
 use_hist_num: 10
 # for with Prosody
 # if 0, the latest one is used.
-use_local_prosody_hist_idx: 1
+use_local_prosody_hist_idx: 0
 # plase replace train/dev/eval to {} for emb_preprocess.py
 input_duration_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/duration"
 output_mel_file_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/mel"
-model_config_paths: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_1/fastspeech2wGMM/model.yaml,../fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_1/fastspeech2wGMM/model.yaml,../fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_1/fastspeech2wGMM/model.yaml,"
-pretrained_checkpoints: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_1/fastspeech2wGMM/latest.pth,../fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_1/fastspeech2wGMM/latest.pth,../fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_1/fastspeech2wGMM/latest.pth"
+model_config_paths: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_2/fastspeech2wGMM/model.yaml,../fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_2/fastspeech2wGMM/model.yaml,../fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_2/fastspeech2wGMM/model.yaml,"
+pretrained_checkpoints: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_2/fastspeech2wGMM/latest.pth,../fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_2/fastspeech2wGMM/latest.pth,../fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_2/fastspeech2wGMM/latest.pth"
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################

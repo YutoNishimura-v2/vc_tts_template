@@ -12,6 +12,10 @@
         - out_LINE_woITAKOから作ったもの.
     - LINE_wContextwProsody_2: dialogue_infoが間違っていた！要修正.
         - LINE_wContext_2をcopyし, LINE_wContextwProsodyのprosodyの名前を一つ前の感情に書き換えてコピーしたもの.
+    - LINE_wContextwProsody_3
+        - out_LINE_woITAKOから作る. prosody embを作り直したので, こちらも作り直し.
+    - LINE_wContextwProsody_4
+        - out_LINE_woITAKO_before_emotionから作る. prosody embを作り直したので, こちらも作り直し.
 
 - exp
     - LINE_wContext_1

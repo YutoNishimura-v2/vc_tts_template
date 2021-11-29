@@ -517,3 +517,10 @@ rsync -ah --no-i-r --info=progress2 \
 rsync -ah --no-i-r --info=progress2 \
     abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_FStudent_sr22050_LINE_FStudent_2_fastspeech2wGMM/ \
     /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/LINE_FStudent_sr22050_LINE_FStudent_2_fastspeech2wGMM/
+
+rsync -ah --no-i-r --info=progress2 \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/dump/LINE_wContextwProsody_3_sr22050/ \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/dump/LINE_wContextwProsody_3_sr22050/
+rsync -ah --no-i-r --info=progress2 \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/dump/LINE_wContextwProsody_4_sr22050/ \
+    abci:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/dump/LINE_wContextwProsody_4_sr22050/

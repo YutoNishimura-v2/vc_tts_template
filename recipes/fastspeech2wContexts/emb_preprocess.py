@@ -144,8 +144,8 @@ def get_prosody_embeddings(
                     batch_mel = pad_2d(batch_mel)
 
                     batch_src_len = torch.tensor(batch_src_len, dtype=torch.long).to(device)
-                    batch_duration = torch.tensor(batch_duration).to(device)
-                    batch_mel = torch.tensor(batch_mel).to(device)
+                    batch_duration = torch.tensor(batch_duration, dtype=torch.long).to(device)
+                    batch_mel = torch.tensor(batch_mel, dtype=torch.float32).to(device)
 
                     with torch.no_grad():
                         prosody_target, g_prosody_target = model.prosody_extractor(
