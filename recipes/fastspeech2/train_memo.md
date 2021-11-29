@@ -396,6 +396,14 @@
         - fastspeech2wGMM.
         - JSUTでpretrainする.
         - job_ID: 8557334
+    - JSUT_3
+        - spk: jsut
+        - pretrain: None
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM.
+        - JSUTでpretrainする. global=False
+        - job_ID: 8557809
     
     - LINE_FStudent_2
         - spk: LINE_FStudent       
