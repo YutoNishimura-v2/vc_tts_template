@@ -429,6 +429,49 @@
         - fastspeech2wGMM.
         - JSUTでpretrainする.
         - job_ID: 8556197
+    
+    ## 実行祭り開催
+    - 共通パラメタ
+        - accent_info: 1
+        - batch_size: 16
+        - 500epoch
+    - LINE_32_FS
+        - spk: LINE_3
+        - pretrain: JSUT_1
+        - job_ID: 8572772
+    - LINE_33_FS_EMO1
+        - spk: LINE_3
+        - pretrain: JSUT_1
+        - job_ID: 8572777
+    - LINE_34_FS_EMO2
+        - spk: LINE_4
+        - pretrain: JSUT_1
+        - job_ID: 8572779
+    - LINE_35_FS_GMM
+        - spk: LINE_3
+        - pretrain: JSUT_3
+        - job_ID: 8572788
+    - LINE_36_FS_GMM_EMO1
+        - spk: LINE_3
+        - pretrain: JSUT_3
+        - job_ID: 8572997
+    - LINE_37_FS_GMM_EMO2
+        - spk: LINE_4
+        - pretrain: JSUT_3
+        - job_ID: 8573020
+    - LINE_38_FS_GMM_g_p
+        - spk: LINE_3
+        - pretrain: JSUT_2
+        - job_ID: 8573049
+    - LINE_39_FS_GMM_g_p_EMO1
+        - spk: LINE_3
+        - pretrain: JSUT_2
+        - job_ID: 8573041
+    - LINE_40_FS_GMM_g_p_EMO2
+        - spk: LINE_4
+        - pretrain: JSUT_2
+        - job_ID: 8573030
+
 ## 主要な実験
 
 ## 知見

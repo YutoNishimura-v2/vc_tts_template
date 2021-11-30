@@ -271,3 +271,122 @@
         - global prosody: True, local prosody: True, attention: True, num_gaussian: 3, use_local_prosody_hist_idx: 1
         - 2段階学習後半戦. 1つまえのemotion. jsutでpretrainしてから.
         - jobID: 
+    ## 実験祭り
+    - 共通パラメタ
+        - accent_info: 1
+        - batch_size: 16
+        - 500epoch
+    - LINE_wContext_13_FS_GMM_CE
+        - spk: LINE_wContext
+        - pretrain: JSUT_3
+        - job_ID: 8573068
+    - LINE_wContext_14_FS_GMM_CE_EMO1
+        - spk: LINE_wContext
+        - pretrain: JSUT_3
+        - job_ID: 8573079
+    - LINE_wContext_15_FS_GMM_CE_EMO2
+        - spk: LINE_wContext_2
+        - pretrain: JSUT_3
+        - job_ID: 8573095
+    - LINE_wContext_16_FS_GMM_CE_g_p
+        - spk: LINE_wContext
+        - pretrain: JSUT_2
+        - job_ID: 8573086
+    - LINE_wContext_17_FS_GMM_CE_g_p_EMO1
+        - spk: LINE_wContext
+        - pretrain: JSUT_2
+        - job_ID: 8573092
+    - LINE_wContext_18_FS_GMM_CE_g_p_EMO2
+        - spk: LINE_wContext_2
+        - pretrain: JSUT_2
+        - job_ID: 8573094
+    - LINE_wContextwProsody_22_FS_GMM_CE_PCE
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_3
+        - attention: False
+        - job_ID: 8573195
+    - LINE_wContextwProsody_23_FS_GMM_CE_PCE_EMO1
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_3
+        - attention: False
+        - job_ID: 8573186
+    - LINE_wContextwProsody_24_FS_GMM_CE_PCE_EMO2
+        - spk: LINE_wContextwProsody_4
+        - pretrain: JSUT_3
+        - attention: False
+        - job_ID: 8573110
+    - LINE_wContextwProsody_25_FS_GMM_CE_PCE_g_p
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_2
+        - attention: False
+        - job_ID: 8573197
+    - LINE_wContextwProsody_26_FS_GMM_CE_PCE_g_p_EMO1
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_2
+        - attention: False 
+        - job_ID: 8573174
+    - LINE_wContextwProsody_27_FS_GMM_CE_PCE_g_p_EMO2
+        - spk: LINE_wContextwProsody_4
+        - pretrain: JSUT_2
+        - attention: False
+        - job_ID: 8573117
+    - LINE_wContextwProsody_28_FS_GMM_CE_PCE_P1
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_3
+        - attention: 1つ前
+        - job_ID: 8573228
+    - LINE_wContextwProsody_29_FS_GMM_CE_PCE_P1_EMO1
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_3
+        - attention: 1つ前
+        - job_ID: 8573155
+    - LINE_wContextwProsody_30_FS_GMM_CE_PCE_P1_EMO2
+        - spk: LINE_wContextwProsody_4
+        - pretrain: JSUT_3
+        - attention: 1つ前
+        - job_ID: 8573122
+    - LINE_wContextwProsody_31_FS_GMM_CE_PCE_P1_g_p
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_2
+        - attention: 1つ前
+        - job_ID: 8573213
+    - LINE_wContextwProsody_32_FS_GMM_CE_PCE_P1_g_p_EMO1
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_2
+        - attention: 1つ前
+        - job_ID: 8573165
+    - LINE_wContextwProsody_33_FS_GMM_CE_PCE_P1_g_p_EMO2
+        - spk: LINE_wContextwProsody_4
+        - pretrain: JSUT_2
+        - attention: 1つ前
+        - job_ID: 8573132
+    - LINE_wContextwProsody_34_FS_GMM_CE_PCE_P2
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_3
+        - attention: 2つ前
+        - job_ID: 8573225
+    - LINE_wContextwProsody_35_FS_GMM_CE_PCE_P2_EMO1
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_3
+        - attention: 2つ前
+        - job_ID: 8573153
+    - LINE_wContextwProsody_36_FS_GMM_CE_PCE_P2_EMO2
+        - spk: LINE_wContextwProsody_4
+        - pretrain: JSUT_3
+        - attention: 2つ前
+        - job_ID: 8573138
+    - LINE_wContextwProsody_37_FS_GMM_CE_PCE_P2_g_p
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_2
+        - attention: 2つ前
+        - job_ID: 8573219
+    - LINE_wContextwProsody_38_FS_GMM_CE_PCE_P2_g_p_EMO1
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_2
+        - attention: 2つ前
+        - job_ID: 8573144
+    - LINE_wContextwProsody_39_FS_GMM_CE_PCE_P2_g_p_EMO2
+        - spk: LINE_wContextwProsody_4
+        - pretrain: JSUT_2
+        - attention: 2つ前
+        - job_ID: 8573133

@@ -22,7 +22,7 @@ netG:
   extra_gru_n_layers: 2
   extra_global_gru_n_layers: 2
   # prosody predictor
-  gru_hidden_dim: 256
+  gru_hidden_dim: 512
   gru_n_layers: 2
   pp_conv_out_channels: 256
   pp_conv_kernel_size: 3
@@ -32,7 +32,7 @@ netG:
   num_gaussians: 3
   softmax_temperature: 1.0
   global_gru_n_layers: 2
-  global_d_gru: 256
+  global_d_gru: 512
   global_num_gaussians: 10
   global_softmax_temperature: 1.0
   # variance predictor
@@ -53,8 +53,9 @@ netG:
   # other
   encoder_fix: False
   local_prosody: True
-  global_prosody: True
+  global_prosody: False
   stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
   speakers: {"PAD": 0, "Teacher": 1, "MStudent": 2, "FStudent": 3}
+  # emotions:
   emotions: {"PAD": 0, "Normal": 1, "Happy": 2, "Sad": 3, "Angry": 4}
   accent_info:

@@ -76,7 +76,7 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         self, encoder_output, h_prosody_emb, h_prosody_lens,
         h_prosody_speakers, h_prosody_emotions,
         target_prosody=None, target_global_prosody=None,
-        src_lens=None, src_mask=None, is_inference=False
+        src_lens=None, is_inference=False
     ):
         encoder_output = self.convnorms(encoder_output)
 

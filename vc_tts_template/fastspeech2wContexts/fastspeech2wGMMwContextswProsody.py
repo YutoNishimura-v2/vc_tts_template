@@ -211,7 +211,6 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         self,
         output,
         src_lens,
-        src_masks,
         mels,
         p_targets,
         d_targets,
@@ -221,28 +220,46 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         h_prosody_emotions,
     ):
         is_inference = True if p_targets is None else False
-        prosody_target, g_prosody_target = self.prosody_extractor(mels, d_targets, src_lens)
-        prosody_prediction, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu = self.prosody_predictor(
-            output, h_prosody_emb, h_prosody_lens, h_prosody_speakers, h_prosody_emotions,
-            target_prosody=prosody_target, target_global_prosody=g_prosody_target,
-            src_lens=src_lens, src_mask=src_masks, is_inference=is_inference
-        )
+
+        if self.global_prosody is False:
+            prosody_target = self.prosody_extractor(mels, d_targets)
+            prosody_prediction, pi_outs, sigma_outs, mu_outs = self.prosody_predictor(
+                output, h_prosody_emb, h_prosody_lens, h_prosody_speakers, h_prosody_emotions,
+                target_prosody=prosody_target, is_inference=is_inference
+            )
+        else:
+            prosody_target, g_prosody_target = self.prosody_extractor(mels, d_targets, src_lens)
+            prosody_prediction, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu = self.prosody_predictor(
+                output, h_prosody_emb, h_prosody_lens, h_prosody_speakers, h_prosody_emotions,
+                target_prosody=prosody_target, target_global_prosody=g_prosody_target,
+                src_lens=src_lens, is_inference=is_inference
+            )
+
         if is_inference is True:
             output = output + self.prosody_linear(prosody_prediction)
         else:
             output = output + self.prosody_linear(prosody_target)
 
-        return (
-            output,
-            [prosody_target,
-                pi_outs,
-                sigma_outs,
-                mu_outs,
-                g_prosody_target,
-                g_pi,
-                g_sigma,
-                g_mu]
-        )
+        if self.global_prosody is True:
+            return (
+                output,
+                [prosody_target,
+                 pi_outs,
+                 sigma_outs,
+                 mu_outs,
+                 g_prosody_target,
+                 g_pi,
+                 g_sigma,
+                 g_mu]
+            )
+        else:
+            return (
+                output,
+                [prosody_target,
+                 pi_outs,
+                 sigma_outs,
+                 mu_outs]
+            )
 
     def forward(
         self,
@@ -285,7 +302,7 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         )
 
         output, prosody_features = self.prosody_forward(
-            output, src_lens, src_masks,
+            output, src_lens,
             mels, p_targets, d_targets, h_prosody_emb, h_prosody_lens,
             h_prosody_speakers, h_prosody_emotions
         )
