@@ -57,8 +57,12 @@ def synthesis(device, lab_file, context_embedding, prosody_embedding,
         [h_prosody_emb.size(1)], dtype=torch.long
     ).to(device) if h_prosody_emb is not None else None
     h_g_prosody_embs = torch.tensor(h_g_prosody_embs).unsqueeze(0).to(device) if h_g_prosody_embs is not None else None
-    h_prosody_speakers = torch.tensor(speakers, dtype=torch.long).to(device) if h_prosody_speakers is not None else None
-    h_prosody_emotions = torch.tensor(emotions, dtype=torch.long).to(device) if h_prosody_emotions is not None else None
+    h_prosody_speakers = torch.tensor(
+        h_prosody_speakers, dtype=torch.long
+    ).to(device) if h_prosody_speakers is not None else None
+    h_prosody_emotions = torch.tensor(
+        h_prosody_emotions, dtype=torch.long
+    ).to(device) if h_prosody_emotions is not None else None
 
     output = acoustic_model(
         ids=ids,
