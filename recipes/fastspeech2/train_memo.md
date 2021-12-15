@@ -487,7 +487,7 @@
         - pretrain: None
         - 500epoch
         - pretrain用. GMM.
-        - jobID: 8669907
+        - jobID: 8669910
 
 ## 主要な実験
 
