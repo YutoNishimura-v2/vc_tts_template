@@ -26,7 +26,7 @@ lab_root: ../../../dataset/out_JSUT_NICT_LINE_wo_Teacher/textgrid
 
 n_jobs: 8
 
-train_num: 22000
+train_num: 21978
 deveval_num: 374
 dev_num: 350
 eval_num: 24
