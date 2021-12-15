@@ -34,6 +34,10 @@
         - 同様
     - LINE_FStudent
         - 同様
+    
+    - JSUT_NICT_LINE_wo_Teacher
+        - GMMのデータ不足説を立証するために, 持ちうるデータすべてを用いてpretrainする.
+        - こちらは論文には使えない, Studentの入っているデータ.
 
 - exp
     - jsut_1
@@ -471,6 +475,18 @@
         - spk: LINE_4
         - pretrain: JSUT_2
         - job_ID: 8573030
+    
+    # GMMのためのデータ量増強
+    - LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
+        - spk: JSUT_NICT_LINE_wo_Teacher
+        - pretrain: None
+        - 500epoch
+        - pretrain用. 公平性のため, FSもこれで訓練.
+    - LINE_42_JSUT_NICT_LINE_wo_Teacher_FS_GMM
+        - spk: JSUT_NICT_LINE_wo_Teacher
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM.
 
 ## 主要な実験
 
