@@ -488,6 +488,10 @@
         - 500epoch
         - pretrain用. GMM.
         - jobID: 8669910
+    - LINE_43_JSUT_NICT_LINE_wo_Teacher_finetuning_FS
+        - spk: LINE_3
+        - pretrain: LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
+        - 500epoch
 
 ## 主要な実験
 
