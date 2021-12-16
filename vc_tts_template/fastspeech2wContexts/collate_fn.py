@@ -125,15 +125,16 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             )
             history_prosody_speakers = history_prosody_speakers[0]
             history_prosody_emotions = history_prosody_emotions[0]
-        elif len(self.g_prosody_emb_paths) > 0:
+        else:
+            history_prosody_speakers = None
+            history_prosody_emotions = None
+            history_prosody_emb = None
+        if len(self.g_prosody_emb_paths) > 0:
             _, history_g_prosody_embs, _, _, _ = get_embs(
                 self.in_paths[idx].name.replace("-feats.npy", ""), self.g_prosody_emb_paths,
                 self.utt2id, self.id2utt, self.use_hist_num, start_index=1
             )
         else:
-            history_prosody_speakers = None
-            history_prosody_emotions = None
-            history_prosody_emb = None
             history_g_prosody_embs = None
 
         return (

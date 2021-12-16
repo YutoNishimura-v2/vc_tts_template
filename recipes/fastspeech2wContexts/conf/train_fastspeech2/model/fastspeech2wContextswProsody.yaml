@@ -1,5 +1,5 @@
 netG:
-  _target_: vc_tts_template.fastspeech2wContextswProsody.Fastspeech2wContextswProsody
+  _target_: vc_tts_template.fastspeech2wContexts.Fastspeech2wContextswProsody
   max_seq_len: 4000
   num_vocab: 53
   # encoder

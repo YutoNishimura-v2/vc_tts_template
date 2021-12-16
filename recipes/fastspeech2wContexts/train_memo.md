@@ -399,4 +399,4 @@
     - LINE_wContextwProsody_40_FS_CE_PCE_EMO1
         - spk: LINE_wContextwProsody_3
         - pretrain: JSUT_1
-        - job_ID: 8672909
+        - job_ID: 8672942
