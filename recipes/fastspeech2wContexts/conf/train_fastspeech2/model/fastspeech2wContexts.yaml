@@ -1,6 +1,6 @@
 netG:
   _target_: vc_tts_template.fastspeech2wContexts.FastSpeech2wContexts
-  max_seq_len: 1000
+  max_seq_len: 4000
   num_vocab: 53
   # encoder
   encoder_hidden_dim: 256

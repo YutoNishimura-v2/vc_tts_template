@@ -7,7 +7,7 @@ from vc_tts_template.fastspeech2wContexts.context_encoder import ConversationalP
 
 
 class Fastspeech2wContextswProsody(FastSpeech2):
-    """ FastSpeech2wContexts """
+    """ Fastspeech2wContextswProsody """
 
     def __init__(
         self,

@@ -1,6 +1,6 @@
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContext_2_sr22050_LINE_wContext_15_202111301112.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContextwProsody_3_sr22050_LINE_wContextwProsody_28_202111301214.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_3_sr22050_LINE_38_202111301049.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContext_sr22050_LINE_wContext_19_202112170004.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContextwProsody_3_sr22050_LINE_wContextwProsody_40_202112170009.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_3_sr22050_LINE_43_202112162317.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_4_sr22050_LINE_40_202111301042.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/JSUT_NICT_LINE_wo_Teacher_sr22050_LINE_42_202112160859.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/jsut_sr22050_JSUT_3_20211129136.log run_at_abci.sh
@@ -14,8 +14,8 @@ module load gcc/9.3.0 python/3.8/3.8.7 cuda/11.1/11.1.1 cudnn/8.0/8.0.5
 source ~/venv/vc_tts_template/bin/activate
 
 # 具体的処理
-cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/fastspeech2  # node A
-# cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts  # node A
+# cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/fastspeech2  # node A
+cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts  # node A
 # cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/tacotronVC  # node A
 # cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/recipes/fastspeech2VC  # node A
 export PYTHONPATH="/groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template:$PYTHONPATH"  # node A

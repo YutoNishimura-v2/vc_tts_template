@@ -492,6 +492,7 @@
         - spk: LINE_3
         - pretrain: LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
         - 500epoch
+        - jobID: 8672807
 
 ## 主要な実験
 

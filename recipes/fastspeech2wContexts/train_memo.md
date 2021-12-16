@@ -390,3 +390,13 @@
         - pretrain: JSUT_2
         - attention: 2つ前
         - job_ID: 8573133
+
+    # 追加実行
+    - LINE_wContext_19_FS_CE_EMO1
+        - spk: LINE_wContext
+        - pretrain: JSUT_1
+        - job_ID: 8672897
+    - LINE_wContextwProsody_40_FS_CE_PCE_EMO1
+        - spk: LINE_wContextwProsody_3
+        - pretrain: JSUT_1
+        - job_ID: 8672909
