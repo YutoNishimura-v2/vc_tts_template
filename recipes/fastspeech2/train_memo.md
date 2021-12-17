@@ -493,6 +493,45 @@
         - pretrain: LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
         - 500epoch
         - jobID: 8672807
+    - LINE_43_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM(未実行)
+        - spk: JSUT_NICT_LINE_wo_Teacher
+        - pretrain: LINE_42_JSUT_NICT_LINE_wo_Teacher_FS_GMM
+        - 500epoch
+        - jobID:
+    - LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - spk: JSUT_NICT_LINE_wo_Teacher
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM. 話者性をpredictorの手前で抜いたもの.
+        - jobID: 8682264
+    - LINE_45_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_spk_ind(未実行)
+        - spk: JSUT_NICT_LINE_wo_Teacher
+        - pretrain: LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - 500epoch
+        - GMM. 話者性をpredictorの手前で抜いたもの.
+        - jobID:
+    
+    # GMMgpの訓練
+    - JSUT_4
+        - spk: jsut
+        - pretrain: None
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM.
+        - JSUTでpretrainする. gpのみTrue. GMMgpということ.
+        - job_ID: 8681720
+    - LINE_46_JSUT_NICT_LINE_wo_Teacher_FS_GMMgp
+        - spk: JSUT_NICT_LINE_wo_Teacher
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMMgp.
+        - jobID: 8682948
+    - LINE_47_JSUT_NICT_LINE_wo_Teacher_FS_GMMgp_spk_ind
+        - spk: JSUT_NICT_LINE_wo_Teacher
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMMgp. 話者性をpredictorの手前で抜いたもの.
+        - jobID: 8682940
 
 ## 主要な実験
 

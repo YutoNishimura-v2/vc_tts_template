@@ -54,7 +54,7 @@ class ProsodyExtractor(nn.Module):
             self.global_bi_gru = GRUwSort(
                 input_size=d_out,
                 hidden_size=d_out // 2, num_layers=global_gru_n_layers,
-                batch_first=True, bidirectional=True, sort=True if local_prosody is True else False
+                batch_first=True, bidirectional=True, sort=True
             )
         self.local_prosody = local_prosody
         self.global_prosody = global_prosody

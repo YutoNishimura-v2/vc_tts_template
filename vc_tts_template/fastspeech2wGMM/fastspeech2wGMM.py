@@ -59,6 +59,7 @@ class FastSpeech2wGMM(FastSpeech2):
         n_mel_channel: int,
         # other
         encoder_fix: bool = False,
+        prosody_spk_independence: bool = False,
         local_prosody: bool = True,
         global_prosody: bool = True,
         stats: Dict = {},
@@ -130,6 +131,7 @@ class FastSpeech2wGMM(FastSpeech2):
         )
 
         self.global_prosody = global_prosody
+        self.prosody_spk_independence = prosody_spk_independence
 
     def prosody_forward(
         self,
@@ -138,8 +140,14 @@ class FastSpeech2wGMM(FastSpeech2):
         mels,
         p_targets,
         d_targets,
+        speakers = None,
     ):
         is_inference = True if p_targets is None else False
+
+        if self.prosody_spk_independence is True:
+            output = output - self.speaker_emb(speakers).unsqueeze(1).expand(
+                -1, output.size(1), -1
+            )
 
         if self.global_prosody is False:
             prosody_target = self.prosody_extractor(mels, d_targets)
@@ -156,6 +164,11 @@ class FastSpeech2wGMM(FastSpeech2):
             output = output + self.prosody_linear(prosody_prediction)
         else:
             output = output + self.prosody_linear(prosody_target)
+        
+        if self.prosody_spk_independence is True:
+            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
+                -1, output.size(1), -1
+            )
 
         if self.global_prosody is True:
             return (
@@ -204,7 +217,7 @@ class FastSpeech2wGMM(FastSpeech2):
         )
 
         output, prosody_features = self.prosody_forward(
-            output, src_lens, mels, p_targets, d_targets,
+            output, src_lens, mels, p_targets, d_targets, speakers
         )
         (
             output,
