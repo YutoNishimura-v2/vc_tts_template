@@ -488,6 +488,7 @@
         - 500epoch
         - pretrain用. GMM.
         - jobID: 8669910
+        - jobID: 8704811(2回目)
     - LINE_43_JSUT_NICT_LINE_wo_Teacher_finetuning_FS
         - spk: LINE_3
         - pretrain: LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
@@ -504,6 +505,7 @@
         - 500epoch
         - pretrain用. GMM. 話者性をpredictorの手前で抜いたもの.
         - jobID: 8682264
+        - jobID: 8704818
     - LINE_45_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_spk_ind(未実行)
         - spk: JSUT_NICT_LINE_wo_Teacher
         - pretrain: LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
