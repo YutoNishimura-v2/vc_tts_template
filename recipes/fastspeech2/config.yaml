@@ -2,7 +2,7 @@
 spk: "LINE_3"
 
 # exp tag(for managing experiments)
-tag: "LINE_50_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMMgp_spk_ind"
+tag: "LINE_51_JSUT_FS_GMMgp"
 
 sample_rate: 22050
 

@@ -554,6 +554,14 @@
         - 500epoch
         - GMMgp_spk_ind. finetuning
         - jobID: 8723713
+    - LINE_51_JSUT_FS_GMMgp
+        - spk: LINE_3
+        - pretrain: JSUT_1
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2wGMM.
+        - JSUT pretrainのfinetuning. GMMは未学習のもので初期化してみる.
+        - job_ID: 8731061
 
 ## 主要な実験
 
