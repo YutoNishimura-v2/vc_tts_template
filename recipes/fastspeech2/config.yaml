@@ -1,8 +1,8 @@
 # General settings.
-spk: "JSUT_NICT_LINE_wo_Teacher"
+spk: "LINE_3"
 
 # exp tag(for managing experiments)
-tag: "LINE_46_JSUT_NICT_LINE_wo_Teacher_FS_GMMgp"
+tag: "LINE_50_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMMgp_spk_ind"
 
 sample_rate: 22050
 
@@ -21,8 +21,8 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-wav_root: ../../../dataset/out_JSUT_NICT_LINE_wo_Teacher/JSUT_NICT_LINE_wo_Teacher/wav/22050
-lab_root: ../../../dataset/out_JSUT_NICT_LINE_wo_Teacher/textgrid
+wav_root:
+lab_root:
 
 n_jobs: 8
 
@@ -44,7 +44,7 @@ clip: 0.00001
 log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
-accent_info: 0
+accent_info: 1
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
