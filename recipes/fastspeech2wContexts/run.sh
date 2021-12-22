@@ -200,8 +200,8 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         data.dialogue_info=$dialogue_info \
         data.use_hist_num=$use_hist_num \
         data.use_local_prosody_hist_idx=$use_local_prosody_hist_idx \
-        train.out_dir=${local_dir}$expdir/${acoustic_model} \
-        train.log_dir=${local_dir}tensorboard/${expname}_${acoustic_model} \
+        train.out_dir=$expdir/${acoustic_model} \
+        train.log_dir=tensorboard/${expname}_${acoustic_model} \
         train.nepochs=$fastspeech2_train_nepochs \
         train.sampling_rate=$sample_rate \
         train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
@@ -214,15 +214,6 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         model.netG.energy_feature_level=$energy_phoneme_averaging \
         model.netG.n_mel_channel=$n_mel_channels \
         model.netG.accent_info=$accent_info
-
-    if [ ! -z ${local_dir} ]; then
-        echo "copy results"
-        mkdir -p $expdir/${acoustic_model}
-        mkdir -p tensorboard/${expname}_${acoustic_model}
-
-        rsync -ah --no-i-r --info=progress2 ${local_dir}$expdir/${acoustic_model}/ $expdir/${acoustic_model}/
-        rsync -ah --no-i-r --info=progress2 ${local_dir}tensorboard/${expname}_${acoustic_model}/ tensorboard/${expname}_${acoustic_model}/
-    fi
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
