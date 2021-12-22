@@ -150,6 +150,8 @@ class GRUwSort(nn.Module):
         self.zero_num = 0
         self.allow_zero_length = allow_zero_length
 
+        self.output_dim = hidden_size * 2 if bidirectional is True else hidden_size
+
     def forward(self, x, lens):
         if self.sort is True:
             if type(lens) == torch.Tensor:
@@ -168,9 +170,16 @@ class GRUwSort(nn.Module):
         if self.allow_zero_length is True:
             x, lens = self.remove_zeros(x, lens)
 
-        x = pack_padded_sequence(x, lens, batch_first=self.batch_first)
-        out = self.gru(x)[0]
-        out, _ = pad_packed_sequence(out, batch_first=self.batch_first)
+        if len(lens) > 0:
+            x = pack_padded_sequence(x, lens, batch_first=self.batch_first)
+            out = self.gru(x)[0]
+            out, _ = pad_packed_sequence(out, batch_first=self.batch_first)
+        else:
+            if self.allow_zero_length is True:
+                # lensがall zeroだった場合.
+                out = torch.zeros(0, x.size(1), self.output_dim).to(x.device)
+            else:
+                raise RuntimeError(f"lens: {lens}. データがおかしい可能性があるので確認しましょう.")
 
         if self.allow_zero_length is True:
             out = self.restore_zeros(out)

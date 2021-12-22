@@ -415,12 +415,12 @@
         - spk: LINE_wContextwPEProsody_1
         - pretrain: fastspeech2/LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
         - 大量データでGMMをpretrainしてどうなるのかを見る実験. PEPCE初出動
-        - jobID: 8746864
+        - jobID: 8750299
     - LINE_wContextwPEProsody_2_FS_GMM_CE_PEPCE_P1
         - spk: LINE_wContextwPEProsody_1
         - pretrain: fastspeech2/LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
-        - jobID: 8746882
+        - jobID: 8750305
     - LINE_wContextwPEProsody_3_FS_GMM_CE_PEPCE_P2
         - spk: LINE_wContextwPEProsody_1
         - pretrain: fastspeech2/LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
-        - jobID: 8746887
+        - jobID: 8750309
