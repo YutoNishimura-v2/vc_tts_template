@@ -190,12 +190,13 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
             energy_bins=self.variance_adaptor.energy_bins,
             n_bins=n_bins
         )
-        self.peprosody_local_encoder = PEProsodyLocalEncoder(
-            pitch_embedding=self.variance_adaptor.pitch_embedding,
-            energy_embedding=self.variance_adaptor.energy_embedding,
-            pitch_bins=self.variance_adaptor.pitch_bins,
-            energy_bins=self.variance_adaptor.energy_bins,
-        )
+        if prosody_attention is True:
+            self.peprosody_local_encoder = PEProsodyLocalEncoder(
+                pitch_embedding=self.variance_adaptor.pitch_embedding,
+                energy_embedding=self.variance_adaptor.energy_embedding,
+                pitch_bins=self.variance_adaptor.pitch_bins,
+                energy_bins=self.variance_adaptor.energy_bins,
+            )
 
     def contexts_forward(
         self,
@@ -241,13 +242,20 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
         h_local_prosody_emb,
         h_local_prosody_emb_lens,
         h_local_prosody_speakers,
-        h_local_prosody_emotions
+        h_local_prosody_emotions,
+        speakers,
     ):
         # h_local_prosody_emb: (B, time, 2)
         # h_local_prosody_emb_lens: (B)
-        h_local_prosody_emb = self.peprosody_local_encoder(h_local_prosody_emb)
+        if h_local_prosody_emb is not None:
+            h_local_prosody_emb = self.peprosody_local_encoder(h_local_prosody_emb)
 
         is_inference = True if p_targets is None else False
+
+        if (self.prosody_spk_independence is True) and (self.speaker_emb is not None):
+            output = output - self.speaker_emb(speakers).unsqueeze(1).expand(
+                -1, output.size(1), -1
+            )
 
         if self.global_prosody is False:
             prosody_target = self.prosody_extractor(mels, d_targets)
@@ -269,6 +277,11 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
             output = output + self.prosody_linear(prosody_prediction)
         else:
             output = output + self.prosody_linear(prosody_target)
+
+        if (self.prosody_spk_independence is True) and (self.speaker_emb is not None):
+            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
+                -1, output.size(1), -1
+            )
 
         if self.global_prosody is True:
             return (
@@ -336,7 +349,8 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
             output, src_lens,
             mels, p_targets, d_targets,
             h_local_prosody_emb, h_local_prosody_emb_lens,
-            h_local_prosody_speakers, h_local_prosody_emotions
+            h_local_prosody_speakers, h_local_prosody_emotions,
+            speakers
         )
         (
             output,

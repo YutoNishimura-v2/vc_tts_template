@@ -140,7 +140,7 @@ class FastSpeech2wGMM(FastSpeech2):
         mels,
         p_targets,
         d_targets,
-        speakers=None,
+        speakers,
     ):
         is_inference = True if p_targets is None else False
 

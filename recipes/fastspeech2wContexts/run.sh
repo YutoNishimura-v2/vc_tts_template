@@ -180,6 +180,8 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         unzip -q -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/text_emb.zip
         if [ -e ${dumpdir}/${spk}_sr${sample_rate}/prosody_emb.zip ]; then
             unzip -q -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/prosody_emb.zip
+        fi
+        if [ -e ${dumpdir}/${spk}_sr${sample_rate}/g_prosody_emb.zip ]; then
             unzip -q -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/g_prosody_emb.zip
         fi
     fi

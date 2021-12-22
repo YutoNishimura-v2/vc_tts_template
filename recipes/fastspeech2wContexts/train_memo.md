@@ -406,7 +406,21 @@
         - job_ID: 8672942
 
     # 新しい実行
-    - LINE_wContextwPEProsody_1_FS_GMM_CE
+    - LINE_wContext_20_FS_GMM_CE
         - spk: LINE_wContextwPEProsody_1
         - pretrain: fastspeech2/LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
-        - jobID: 
+        - 大量データでGMMをpretrainしてどうなるのかを見る実験
+        - jobID: 8746504
+    - LINE_wContextwPEProsody_1_FS_GMM_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_1
+        - pretrain: fastspeech2/LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - 大量データでGMMをpretrainしてどうなるのかを見る実験. PEPCE初出動
+        - jobID: 8746864
+    - LINE_wContextwPEProsody_2_FS_GMM_CE_PEPCE_P1
+        - spk: LINE_wContextwPEProsody_1
+        - pretrain: fastspeech2/LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - jobID: 8746882
+    - LINE_wContextwPEProsody_3_FS_GMM_CE_PEPCE_P2
+        - spk: LINE_wContextwPEProsody_1
+        - pretrain: fastspeech2/LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - jobID: 8746887

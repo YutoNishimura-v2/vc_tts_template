@@ -118,7 +118,8 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         mu_outs = []
         outs = []
 
-        h_prosody_mask = make_pad_mask(h_prosody_lens)
+        if self.prosody_attention is True:
+            h_prosody_mask = make_pad_mask(h_prosody_lens)
 
         for t in range(encoder_output.size()[1]):
             # Pre-Net

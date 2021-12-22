@@ -220,8 +220,14 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         h_prosody_lens,
         h_prosody_speakers,
         h_prosody_emotions,
+        speakers
     ):
         is_inference = True if p_targets is None else False
+
+        if (self.prosody_spk_independence is True) and (self.speaker_emb is not None):
+            output = output - self.speaker_emb(speakers).unsqueeze(1).expand(
+                -1, output.size(1), -1
+            )
 
         if self.global_prosody is False:
             prosody_target = self.prosody_extractor(mels, d_targets)
@@ -241,6 +247,11 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
             output = output + self.prosody_linear(prosody_prediction)
         else:
             output = output + self.prosody_linear(prosody_target)
+
+        if (self.prosody_spk_independence is True) and (self.speaker_emb is not None):
+            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
+                -1, output.size(1), -1
+            )
 
         if self.global_prosody is True:
             return (
@@ -306,7 +317,7 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         output, prosody_features = self.prosody_forward(
             output, src_lens,
             mels, p_targets, d_targets, h_prosody_emb, h_prosody_lens,
-            h_prosody_speakers, h_prosody_emotions
+            h_prosody_speakers, h_prosody_emotions, speakers
         )
         (
             output,
