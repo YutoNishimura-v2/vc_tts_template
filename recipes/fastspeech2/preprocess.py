@@ -126,7 +126,7 @@ def get_alignmentwPP(PP, start_times, end_times, sr, hop_length):
 def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
                       n_mels, fmin, fmax, clip_thresh, log_base,
                       pitch_phoneme_averaging, energy_phoneme_averaging,
-                      accent_info):
+                      accent_info, return_utt_id=False):
     if accent_info is True:
         labels = hts.load(lab_path)
         PP = pp_symbols(labels.contexts, all_accent_info=accent_info)
@@ -209,6 +209,15 @@ def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
             pos += d
         energy = energy[: len(duration)]
 
+    if return_utt_id is True:
+        return (
+            text,
+            mel_spectrogram,  # (T, mel)
+            pitch,
+            energy,
+            np.array(duration),
+            wav_path.stem,
+        )
     return (
         text,
         mel_spectrogram,  # (T, mel)
@@ -282,7 +291,7 @@ def preprocess(
     )
     return (
         pitch,
-        energy
+        energy,
     )
 
 

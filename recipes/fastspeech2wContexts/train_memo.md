@@ -16,6 +16,10 @@
         - out_LINE_woITAKOから作る. prosody embを作り直したので, こちらも作り直し.
     - LINE_wContextwProsody_4
         - out_LINE_woITAKO_before_emotionから作る. prosody embを作り直したので, こちらも作り直し.
+    - LINE_wContextwPEProsody_1
+        - out_LINE_woITAKOから作る. 
+        - prosody embとして, pitchとenergyを利用するもの. wavとtextgrid(or lab)を指定することで利用する.
+        - 今までのprosody embとしてpitch, energyを格納する.
 
 - exp
     - LINE_wContext_1
@@ -400,3 +404,9 @@
         - spk: LINE_wContextwProsody_3
         - pretrain: JSUT_1
         - job_ID: 8672942
+
+    # 新しい実行
+    - LINE_wContextwPEProsody_1_FS_GMM_CE
+        - spk: LINE_wContextwPEProsody_1
+        - pretrain: fastspeech2/LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - jobID: 

@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwProsody_3"
+spk: "LINE_wContextwPEProsody_1"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwProsody_40_FS_CE_PCE_EMO1"
+tag: "LINE_wContextwPEProsody_1_FS_GMM_CE"
 
 sample_rate: 22050
 
@@ -53,10 +53,17 @@ use_hist_num: 10
 # if 0, the latest one is used.
 use_local_prosody_hist_idx: 0
 # plase replace train/dev/eval to {} for emb_preprocess.py
-input_duration_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/duration,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/duration"
-output_mel_file_paths: "../fastspeech2/dump/LINE_Teacher_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_MStudent_sr22050/norm/{}/out_fastspeech2/mel,../fastspeech2/dump/LINE_FStudent_sr22050/norm/{}/out_fastspeech2/mel"
-model_config_paths: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_2/fastspeech2wGMM/model.yaml,../fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_2/fastspeech2wGMM/model.yaml,../fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_2/fastspeech2wGMM/model.yaml,"
-pretrained_checkpoints: "../fastspeech2/exp/LINE_Teacher_sr22050_LINE_Teacher_2/fastspeech2wGMM/latest.pth,../fastspeech2/exp/LINE_MStudent_sr22050_LINE_MStudent_2/fastspeech2wGMM/latest.pth,../fastspeech2/exp/LINE_FStudent_sr22050_LINE_FStudent_2/fastspeech2wGMM/latest.pth"
+## もし, GMMを学習して作成するembを利用したい場合は以下を埋める
+input_duration_paths:
+output_mel_file_paths:
+model_config_paths:
+pretrained_checkpoints:
+## そうではなく, pitch, energyを利用したい場合は以下を埋める
+## labかtextgridは片方を埋めればよい
+input_wav_paths: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050,../../../dataset/out_LINE_MStudent/LINE_MStudent/wav/22050,../../../dataset/out_LINE_FStudent/LINE_FStudent/wav/22050"
+input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
+input_textgrid_paths:
+
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################

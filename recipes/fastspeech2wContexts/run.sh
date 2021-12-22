@@ -51,7 +51,15 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     xrun python emb_preprocess.py $dialogue_info \
         $dumpdir/${spk}_sr${sample_rate} --BERT_weight $BERT_weight \
         --input_duration_paths $input_duration_paths --output_mel_file_paths $output_mel_file_paths \
-        --model_config_paths $model_config_paths --pretrained_checkpoints $pretrained_checkpoints
+        --model_config_paths $model_config_paths --pretrained_checkpoints $pretrained_checkpoints \
+        --input_wav_paths $input_wav_paths --input_lab_paths $input_lab_paths --input_textgrid_paths $input_textgrid_paths \
+        --sample_rate $sample_rate --filter_length $filter_length \
+        --hop_length $hop_length --win_length $win_length \
+        --n_mel_channels $n_mel_channels --mel_fmin $mel_fmin --mel_fmax $mel_fmax \
+        --clip $clip --log_base $log_base \
+        --pitch_phoneme_averaging $pitch_phoneme_averaging \
+        --energy_phoneme_averaging $energy_phoneme_averaging \
+        --n_jobs $n_jobs
 
     for s in ${datasets[@]}; do
         xrun python preprocess.py data/$s.list $wav_root $lab_root \

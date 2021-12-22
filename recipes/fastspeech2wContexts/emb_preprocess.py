@@ -1,5 +1,6 @@
 import argparse
 import sys
+from concurrent.futures import ProcessPoolExecutor
 
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
@@ -12,6 +13,7 @@ from omegaconf import OmegaConf
 
 sys.path.append("../..")
 from vc_tts_template.utils import adaptive_load_state_dict, pad_1d, pad_2d
+from recipes.fastspeech2wContexts.preprocess import process_utterance
 
 
 def init_for_list(input_):
@@ -26,28 +28,32 @@ def get_parser():
     parser.add_argument("dialogue_info", type=str, help="dialogue_info")
     parser.add_argument("out_dir", type=str, help="out directory")
     parser.add_argument("--BERT_weight", type=str)
+    # for GMM
     parser.add_argument(
         "--input_duration_paths",
-        default="",
         type=init_for_list,
-        help='durationのbasepathを「，」区切りで与えてください.'
+        help='durationのbasepathを「，」区切りで与えてください.',
+        nargs='?'
     )
-    parser.add_argument(
-        "--output_mel_file_paths",
-        default="",
-        type=init_for_list,
-    )
-    parser.add_argument(
-        "--model_config_paths",
-        default="",
-        type=init_for_list,
-    )
-    parser.add_argument(
-        "--pretrained_checkpoints",
-        default="",
-        type=init_for_list,
-    )
-
+    parser.add_argument("--output_mel_file_paths", type=init_for_list, nargs='?')
+    parser.add_argument("--model_config_paths", type=init_for_list, nargs='?')
+    parser.add_argument("--pretrained_checkpoints", type=init_for_list, nargs='?')
+    # for wav
+    parser.add_argument("--input_wav_paths", type=init_for_list, nargs='?')
+    parser.add_argument("--input_lab_paths", type=init_for_list, nargs='?')
+    parser.add_argument("--input_textgrid_paths", type=init_for_list, nargs='?')
+    parser.add_argument("--sample_rate", type=int)
+    parser.add_argument("--filter_length", type=int)
+    parser.add_argument("--hop_length", type=int)
+    parser.add_argument("--win_length", type=int)
+    parser.add_argument("--n_mel_channels", type=int)
+    parser.add_argument("--mel_fmin", type=int)
+    parser.add_argument("--mel_fmax", type=int)
+    parser.add_argument("--clip", type=float)
+    parser.add_argument("--log_base", type=str)
+    parser.add_argument("--pitch_phoneme_averaging", type=int)
+    parser.add_argument("--energy_phoneme_averaging", type=int)
+    parser.add_argument("--n_jobs", type=int)
     return parser
 
 
@@ -78,7 +84,7 @@ def get_text_embeddings(input_txt_file_path, output_dir, BERT_weight, batch_size
             continue
 
 
-def get_prosody_embeddings(
+def get_prosody_embeddings_wGMM(
     input_duration_paths, output_mel_file_paths,
     output_dir,
     model_config_paths, pretrained_checkpoints,
@@ -89,9 +95,6 @@ def get_prosody_embeddings(
       dump/spk_sr22050/train/in_*をいくつか指定する.
       また, 既に正規化されている前提.
     """
-    if len(input_duration_paths[0]) == 0:
-        return
-
     output_dir = Path(output_dir)
     (output_dir / "prosody_emb").mkdir(parents=True, exist_ok=True)
     (output_dir / "g_prosody_emb").mkdir(parents=True, exist_ok=True)
@@ -171,6 +174,59 @@ def get_prosody_embeddings(
                     continue
 
 
+def get_prosody_embeddings_wWav(
+    input_wav_paths, input_lab_paths, input_textgrid_paths, output_dir,
+    sample_rate, filter_length, hop_length, win_length,
+    n_mel_channels, mel_fmin, mel_fmax, clip, log_base,
+    pitch_phoneme_averaging, energy_phoneme_averaging, n_jobs
+):
+    if (input_lab_paths is not None) and (input_textgrid_paths is not None):
+        raise ValueError("labを利用したいのか, textgridを利用したいのか, どちらか一方のみを埋めてください")
+
+    input_context_path = input_lab_paths if input_lab_paths is not None else input_textgrid_paths
+    input_context_path_postfix = ".lab" if input_lab_paths is not None else ".TextGrid"
+
+    output_dir = Path(output_dir) / "prosody_emb"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    for input_wav_path_base, input_context_path_base in zip(input_wav_paths, input_context_path):
+        wav_files = list(Path(input_wav_path_base).glob("*.wav"))
+        lab_files = [
+            Path(input_context_path_base) / (input_wav_path.stem + input_context_path_postfix)
+            for input_wav_path in wav_files
+        ]
+        with ProcessPoolExecutor(n_jobs) as executor:
+            futures = [
+                executor.submit(
+                    process_utterance,
+                    wav_file,
+                    lab_file,
+                    sample_rate,
+                    filter_length,
+                    hop_length,
+                    win_length,
+                    n_mel_channels,
+                    mel_fmin,
+                    mel_fmax,
+                    clip,
+                    log_base,
+                    pitch_phoneme_averaging > 0,
+                    energy_phoneme_averaging > 0,
+                    input_context_path_postfix == ".lab",
+                    return_utt_id=True
+                )
+                for wav_file, lab_file in zip(wav_files, lab_files)
+            ]
+            for future in tqdm(futures):
+                _, _, pitch, energy, _, utt_id = future.result()
+                prosody = np.stack([pitch, energy], -1)
+                np.save(
+                    output_dir / f"{utt_id}-feats.npy",
+                    prosody.astype(np.float32),
+                    allow_pickle=False,
+                )
+
+
 if __name__ == "__main__":
     args = get_parser().parse_args(sys.argv[1:])
 
@@ -181,8 +237,22 @@ if __name__ == "__main__":
     in_text_emb_dir.mkdir(parents=True, exist_ok=True)
     print("get text embeddings...")
     get_text_embeddings(args.dialogue_info, in_text_emb_dir, args.BERT_weight)
-    print("get prosody embeddings...")
-    get_prosody_embeddings(
-        args.input_duration_paths, args.output_mel_file_paths,
-        args.out_dir, args.model_config_paths, args.pretrained_checkpoints
-    )
+
+    if (args.input_duration_paths is not None) and (args.input_wav_paths is not None):
+        raise ValueError("GMMを利用したいのか, wavを利用したいのか, どちらか一方のみを埋めてください")
+
+    if args.input_duration_paths is not None:
+        print("get prosody embeddings from GMM...")
+        get_prosody_embeddings_wGMM(
+            args.input_duration_paths, args.output_mel_file_paths,
+            args.out_dir, args.model_config_paths, args.pretrained_checkpoints
+        )
+    elif args.input_wav_paths is not None:
+        print("get prosody embeddings from wavs...")
+        get_prosody_embeddings_wWav(
+            args.input_wav_paths, args.input_lab_paths, args.input_textgrid_paths, args.out_dir,
+            args.sample_rate, args.filter_length, args.hop_length, args.win_length,
+            args.n_mel_channels, args.mel_fmin, args.mel_fmax, args.clip, args.log_base,
+            args.pitch_phoneme_averaging, args.energy_phoneme_averaging,
+            args.n_jobs,
+        )
