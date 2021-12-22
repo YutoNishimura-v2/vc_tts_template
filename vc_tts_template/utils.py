@@ -202,6 +202,39 @@ def pad_2d(x: Union[np.ndarray, List], max_len: Optional[int] = None, constant_v
     return x  # type: ignore
 
 
+def pad_3d(
+    x: Union[np.ndarray, List], pad_axis: int,
+    max_len: Optional[int] = None, constant_values: Optional[int] = 0
+) -> np.ndarray:
+    """Pad a 3d-tensor."""
+    def pad(x, max_len, constant_values, axis):
+        pad_filter = []
+        for i in range(3):
+            if i == axis:
+                pad_filter.append((0, max_len - x.shape[axis]))
+            else:
+                pad_filter.append((0, 0))
+
+        x = np.pad(
+            x,
+            pad_filter,
+            mode="constant",
+            constant_values=constant_values,
+        )
+        return x
+
+    if type(x) is list:
+        max_len = max((x_.shape[pad_axis] for x_ in x))
+        x = np.stack([pad(x_, max_len, constant_values, pad_axis) for x_ in x])
+    elif type(x) is np.ndarray:
+        assert max_len is not None, "you cant pad without maxlen"
+        x = pad(x, max_len, constant_values, pad_axis)
+    else:
+        raise RuntimeError("please len(x.shape) < 3")
+
+    return x  # type: ignore
+
+
 def pad(x: torch.Tensor, max_length: Optional[int] = None) -> torch.Tensor:
     """padding. batch入力を想定した, ネットワーク内で利用できるpad.
     """

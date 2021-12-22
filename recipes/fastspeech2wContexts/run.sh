@@ -193,6 +193,7 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         data.dev.out_dir=${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/ \
         data.batch_size=$fastspeech2_data_batch_size \
         data.accent_info=$accent_info \
+        data.acoustic_model=$acoustic_model \
         data.emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/text_emb \
         data.prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/prosody_emb \
         data.g_prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/g_prosody_emb \

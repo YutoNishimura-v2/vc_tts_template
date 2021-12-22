@@ -5,29 +5,13 @@ from hydra.utils import to_absolute_path
 from torch.utils import data as data_utils
 import numpy as np
 
-from vc_tts_template.utils import load_utt_list, pad_1d, pad_2d
+from vc_tts_template.utils import load_utt_list, pad_1d, pad_2d, pad_3d
+from vc_tts_template.fastspeech2wContexts.collate_fn import make_dialogue_dict, get_embs
 
 
-def make_dialogue_dict(dialogue_info):
-    # utt_idを投げたら, 対話IDと対話内IDを返してくれるような辞書と,
-    # その逆で, 対話IDと対話内IDを投げたらそのutt_idを返してくれるような辞書を用意.
-    utt2id = {}
-    id2utt = {}
-
-    with open(dialogue_info, 'r') as f:
-        dialogue_data = f.readlines()
-
-    for dialogue in dialogue_data:
-        utt_id, dialogue_id, in_dialogue_id, _ = dialogue.strip().split(":")
-        utt2id[utt_id] = (dialogue_id, in_dialogue_id)
-        id2utt[(dialogue_id, in_dialogue_id)] = utt_id
-
-    return utt2id, id2utt
-
-
-def get_embs(
+def get_peprosody_embs(
     utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use_hist_num: int,
-    start_index: int = 0, only_latest: bool = False, use_local_prosody_hist_idx: int = 0
+    start_index: int = 0, use_local_prosody_hist_idx: int = 0
 ):
     current_d_id, current_in_d_id = utt2id[utt_id]
 
@@ -58,19 +42,29 @@ def get_embs(
         history_speakers.append("PAD")
         history_emotions.append("PAD")
 
-    if only_latest is True:
-        hist_embs = hist_embs[use_local_prosody_hist_idx]
-        history_speakers = [history_speakers[use_local_prosody_hist_idx]]
-        history_emotions = [history_emotions[use_local_prosody_hist_idx]]
+    if use_local_prosody_hist_idx > -1:
+        hist_for_local_emb = hist_embs[use_local_prosody_hist_idx]
+        hist_for_local_speaker = history_speakers[use_local_prosody_hist_idx]  # type:ignore
+        hist_for_local_emotion = history_emotions[use_local_prosody_hist_idx]  # type:ignore
     else:
-        hist_embs = np.stack(hist_embs)  # type: ignore
+        hist_for_local_emb = hist_for_local_speaker = hist_for_local_emotion = None  # type:ignore
+
+    hist_embs_lens = []
+    for i, emb in enumerate(hist_embs):
+        if i < hist_emb_len:
+            hist_embs_lens.append(emb.shape[0])
+        else:
+            hist_embs_lens.append(0)
+    hist_embs = pad_2d(hist_embs)  # type:ignore
+
     return (
-        np.array(current_emb), hist_embs, hist_emb_len,
-        np.array(history_speakers), np.array(history_emotions)
+        hist_embs, np.array(hist_embs_lens), hist_emb_len,
+        np.array(history_speakers), np.array(history_emotions),
+        hist_for_local_emb, hist_for_local_speaker, hist_for_local_emotion
     )
 
 
-class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
+class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
     """Dataset for numpy files
 
     Args:
@@ -88,9 +82,8 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         dialogue_info: Path,
         text_emb_paths: List,
         prosody_emb_paths: List,
-        g_prosody_emb_paths: List,
         use_hist_num: int,
-        use_local_prosody_hist_idx: int
+        use_local_prosody_hist_idx: int,
     ):
         self.in_paths = in_paths
         self.out_mel_paths = out_mel_paths
@@ -100,7 +93,6 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         self.utt2id, self.id2utt = make_dialogue_dict(dialogue_info)
         self.text_emb_paths = text_emb_paths
         self.prosody_emb_paths = prosody_emb_paths
-        self.g_prosody_emb_paths = g_prosody_emb_paths
         self.use_hist_num = use_hist_num
         self.use_local_prosody_hist_idx = use_local_prosody_hist_idx
 
@@ -117,25 +109,14 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             self.in_paths[idx].name.replace("-feats.npy", ""), self.text_emb_paths,
             self.utt2id, self.id2utt, self.use_hist_num
         )
-        if len(self.prosody_emb_paths) > 0:
-            _, history_prosody_emb, _, history_prosody_speakers, history_prosody_emotions = get_embs(
-                self.in_paths[idx].name.replace("-feats.npy", ""), self.prosody_emb_paths,
-                self.utt2id, self.id2utt, self.use_hist_num, start_index=1, only_latest=True,
-                use_local_prosody_hist_idx=self.use_local_prosody_hist_idx
-            )
-            history_prosody_speakers = history_prosody_speakers[0]
-            history_prosody_emotions = history_prosody_emotions[0]
-        else:
-            history_prosody_speakers = None
-            history_prosody_emotions = None
-            history_prosody_emb = None
-        if len(self.g_prosody_emb_paths) > 0:
-            _, history_g_prosody_embs, _, _, _ = get_embs(
-                self.in_paths[idx].name.replace("-feats.npy", ""), self.g_prosody_emb_paths,
-                self.utt2id, self.id2utt, self.use_hist_num, start_index=1
-            )
-        else:
-            history_g_prosody_embs = None
+        (
+            hist_prosody_embs, hist_prosody_embs_lens, _, _, _,
+            hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
+        ) = get_peprosody_embs(
+            self.in_paths[idx].name.replace("-feats.npy", ""), self.prosody_emb_paths,
+            self.utt2id, self.id2utt, self.use_hist_num, start_index=1,
+            use_local_prosody_hist_idx=self.use_local_prosody_hist_idx
+        )
 
         return (
             self.in_paths[idx].name,
@@ -149,10 +130,11 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
             hist_emb_len,
             history_speakers,
             history_emotions,
-            history_prosody_emb,  # local prosody
-            history_g_prosody_embs,  # global prosody
-            history_prosody_speakers,  # speaker of local prosody
-            history_prosody_emotions,  # emotion local prosody
+            hist_prosody_embs,
+            hist_prosody_embs_lens,
+            hist_local_prosody_emb,
+            hist_local_prosody_speaker,
+            hist_local_prosody_emotion
         )
 
     def __len__(self):
@@ -164,7 +146,7 @@ class fastspeech2wContexts_Dataset(data_utils.Dataset):  # type: ignore
         return len(self.in_paths)
 
 
-def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data_utils.DataLoader]:
+def fastspeech2wPEProsody_get_data_loaders(data_config: Dict, collate_fn: Callable) -> Dict[str, data_utils.DataLoader]:
     """Get data loaders for training and validation.
 
     Args:
@@ -183,7 +165,6 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
 
         emb_dir = Path(to_absolute_path(data_config.emb_dir))  # type:ignore
         prosody_emb_dir = Path(to_absolute_path(data_config.prosody_emb_dir))  # type:ignore
-        g_prosody_emb_dir = Path(to_absolute_path(data_config.g_prosody_emb_dir))  # type:ignore
         dialogue_info = Path(to_absolute_path(data_config.dialogue_info))  # type:ignore
         in_feats_paths = [in_dir / f"{utt_id}-feats.npy" for utt_id in utt_ids]
         out_mel_paths = [out_dir / "mel" / f"{utt_id}-feats.npy" for utt_id in utt_ids]
@@ -193,9 +174,8 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
 
         text_emb_paths = list(emb_dir.glob("*.npy"))
         prosody_emb_paths = list(prosody_emb_dir.glob("*.npy"))
-        g_prosody_emb_paths = list(g_prosody_emb_dir.glob("*.npy"))
 
-        dataset = fastspeech2wContexts_Dataset(
+        dataset = fastspeech2wPEProsody_Dataset(
             in_feats_paths,
             out_mel_paths,
             out_pitch_paths,
@@ -204,7 +184,6 @@ def fastspeech2wContexts_get_data_loaders(data_config: Dict, collate_fn: Callabl
             dialogue_info,
             text_emb_paths,
             prosody_emb_paths,
-            g_prosody_emb_paths,
             use_hist_num=data_config.use_hist_num,  # type:ignore
             use_local_prosody_hist_idx=data_config.use_local_prosody_hist_idx,  # type:ignore
         )
@@ -232,35 +211,36 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     h_txt_emb_lens = [batch[idx][8] for idx in idxs]
     h_speakers = [batch[idx][9] for idx in idxs]
     h_emotions = [batch[idx][10] for idx in idxs]
-    h_prosody_emb = [batch[idx][11] for idx in idxs]
-    h_g_prosody_embs = [batch[idx][12] for idx in idxs]
-    h_prosody_speakers = [batch[idx][13] for idx in idxs]
-    h_prosody_emotions = [batch[idx][14] for idx in idxs]
+    h_prosody_embs = [batch[idx][11] for idx in idxs]  # [(10, time, 2), (10, time, 2), ...]
+    h_prosody_embs_lens = [batch[idx][12] for idx in idxs]  # [[t1, t2, ...], [t1, t2, ...], ...]
+    h_local_prosody_emb = [batch[idx][13] for idx in idxs]  # [(time, 2), (time, 2), ...]
+    h_local_prosody_speaker = [batch[idx][14] for idx in idxs]  # [spk_id, spk_id, ...]
+    h_local_prosody_emotion = [batch[idx][15] for idx in idxs]  # [emo_id, emo_id, ...]
 
     ids = np.array([fname.replace("-feats.npy", "") for fname in file_names])
     if speaker_dict is not None:
         speakers = np.array([speaker_dict[fname.split("_")[0]] for fname in ids])
         h_speakers = np.array([[speaker_dict[spk] for spk in speakers] for speakers in h_speakers])
-        if h_prosody_speakers[0] is not None:
-            h_prosody_speakers = np.array([speaker_dict[spk] for spk in h_prosody_speakers])
+        if h_local_prosody_speaker[0] is not None:
+            h_local_prosody_speakers = np.array([speaker_dict[spk] for spk in h_local_prosody_speaker])
         else:
-            h_prosody_speakers = None
+            h_local_prosody_speakers = None
     else:
         raise ValueError("You Need speaker_dict")
     if emotion_dict is not None:
         emotions = np.array([emotion_dict[fname.split("_")[-1]] for fname in ids])
         h_emotions = np.array([[emotion_dict[emo] for emo in emotions] for emotions in h_emotions])
-        if h_prosody_emotions[0] is not None:
-            h_prosody_emotions = np.array([emotion_dict[emo] for emo in h_prosody_emotions])
+        if h_local_prosody_emotion[0] is not None:
+            h_local_prosody_emotions = np.array([emotion_dict[emo] for emo in h_local_prosody_emotion])
         else:
-            h_prosody_emotions = None
+            h_local_prosody_emotions = None
     else:
         emotions = np.array([0 for _ in idxs])
         h_emotions = np.array([[0 for _ in range(len(h_speakers[0]))] for _ in idxs])
-        if h_prosody_emotions[0] is not None:
-            h_prosody_emotions = np.array([0 for _ in idxs])
+        if h_local_prosody_emotion[0] is not None:
+            h_local_prosody_emotions = np.array([0 for _ in idxs])
         else:
-            h_prosody_emotions = None
+            h_local_prosody_emotions = None
 
     # reprocessの内容をここに.
 
@@ -272,8 +252,16 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     pitches = pad_1d(pitches)
     energies = pad_1d(energies)
     durations = pad_1d(durations)
-    h_prosody_lens = np.array([p_emb.shape[0] for p_emb in h_prosody_emb]) if h_prosody_emb[0] is not None else None
-    h_prosody_emb = pad_2d(h_prosody_emb) if h_prosody_emb[0] is not None else None
+
+    # history prosodyについて
+    h_prosody_embs = pad_3d(h_prosody_embs, pad_axis=1)
+
+    # local prosodyについて
+    h_local_prosody_emb_lens = np.array(
+        [p_emb.shape[0] for p_emb in h_local_prosody_emb]
+    ) if h_local_prosody_emb[0] is not None else None
+    h_local_prosody_emb = pad_2d(h_local_prosody_emb) if h_local_prosody_emb[0] is not None else None
+
     return (
         ids,
         speakers,
@@ -290,17 +278,18 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         np.array(c_txt_embs),
         np.array(h_txt_embs),
         np.array(h_txt_emb_lens),
-        h_speakers,
-        h_emotions,
-        h_prosody_emb,
-        h_prosody_lens,
-        np.array(h_g_prosody_embs) if h_g_prosody_embs[0] is not None else None,
-        h_prosody_speakers,
-        h_prosody_emotions,
+        h_speakers,  # prosodyと共通
+        h_emotions,  # prosodyと共通
+        h_prosody_embs,
+        np.array(h_prosody_embs_lens),
+        h_local_prosody_emb,
+        h_local_prosody_emb_lens,
+        h_local_prosody_speakers,
+        h_local_prosody_emotions,
     )
 
 
-def collate_fn_fastspeech2wContexts(batch, batch_size, speaker_dict=None, emotion_dict=None):
+def collate_fn_fastspeech2wPEProsody(batch, batch_size, speaker_dict=None, emotion_dict=None):
     """Collate function for Tacotron.
     Args:
         batch (list): List of tuples of the form (inputs, targets).
