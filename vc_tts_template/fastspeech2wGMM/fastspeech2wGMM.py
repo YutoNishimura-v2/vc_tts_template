@@ -140,7 +140,7 @@ class FastSpeech2wGMM(FastSpeech2):
         mels,
         p_targets,
         d_targets,
-        speakers = None,
+        speakers=None,
     ):
         is_inference = True if p_targets is None else False
 
@@ -164,7 +164,7 @@ class FastSpeech2wGMM(FastSpeech2):
             output = output + self.prosody_linear(prosody_prediction)
         else:
             output = output + self.prosody_linear(prosody_target)
-        
+
         if (self.prosody_spk_independence is True) and (self.speaker_emb is not None):
             output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
                 -1, output.size(1), -1

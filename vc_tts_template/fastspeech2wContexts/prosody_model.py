@@ -7,6 +7,7 @@ sys.path.append("../..")
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyPredictor
 from vc_tts_template.tacotron.decoder import LocationSensitiveAttention
 from vc_tts_template.utils import make_pad_mask
+from vc_tts_template.fastspeech2wGMM.layers import GRUwSort
 
 
 class ProsodyPredictorwAttention(ProsodyPredictor):
@@ -170,3 +171,97 @@ class ProsodyPredictorwAttention(ProsodyPredictor):
         if self.global_prosody is True:
             return outs, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu
         return outs, pi_outs, sigma_outs, mu_outs
+
+
+class PEProsodyEncoder(nn.Module):
+    """
+    pitch, energyを受け取って, globalなprosodyへとencodeするクラス
+    """
+    def __init__(
+        self,
+        peprosody_encoder_gru_dim: int,
+        peprosody_encoder_gru_num_layer: int,
+        pitch_embedding: nn.Embedding,
+        energy_embedding: nn.Embedding,
+        pitch_bins: nn.Parameter,
+        energy_bins: nn.Parameter,
+        n_bins: int,
+    ):
+        super().__init__()
+
+        self.global_bi_gru = GRUwSort(
+            input_size=n_bins * 2, hidden_size=peprosody_encoder_gru_dim // 2,
+            num_layers=peprosody_encoder_gru_num_layer, batch_first=True, bidirectional=True,
+            sort=True, allow_zero_length=True
+        )
+
+        self.pitch_embedding = pitch_embedding
+        self.energy_embedding = energy_embedding
+        self.pitch_bins = pitch_bins
+        self.energy_bins = energy_bins
+
+    def forward(self, h_prosody_embs, h_prosody_embs_lens):
+        # h_prosody_embs: (B, hist, time, 2)
+        # h_prosody_embs_lens: (B, hist)
+
+        hist_len = h_prosody_embs.size(1)
+
+        # pitch, energyのembedding化
+        h_pitches = h_prosody_embs[:, :, :, 0]
+        h_energies = h_prosody_embs[:, :, :, 1]
+
+        h_pitch_embs = self.pitch_embedding(
+            torch.bucketize(h_pitches, self.pitch_bins)
+        )
+        h_energy_embs = self.energy_embedding(
+            torch.bucketize(h_energies, self.energy_bins)
+        )
+        h_prosody_embs = torch.concat([h_pitch_embs, h_energy_embs], dim=-1)
+
+        # GRUによるglobal prosody化
+        h_prosody_embs = h_prosody_embs.contiguous().view(
+            -1, h_prosody_embs.size(2), h_prosody_embs.size(3),
+        )
+        h_prosody_embs_lens = h_prosody_embs_lens.contiguous().view(-1)
+
+        h_g_prosody_embs = self.global_bi_gru(h_prosody_embs, h_prosody_embs_lens)[:, -1, :]
+
+        h_g_prosody_embs = h_g_prosody_embs.contiguous().view(-1, hist_len, h_g_prosody_embs.size(-1))
+        return h_g_prosody_embs
+
+
+class PEProsodyLocalEncoder(nn.Module):
+    """
+    pitch, energyを受け取って, globalなprosodyへとencodeするクラス
+    """
+    def __init__(
+        self,
+        pitch_embedding: nn.Embedding,
+        energy_embedding: nn.Embedding,
+        pitch_bins: nn.Parameter,
+        energy_bins: nn.Parameter,
+    ):
+        super().__init__()
+
+        self.pitch_embedding = pitch_embedding
+        self.energy_embedding = energy_embedding
+        self.pitch_bins = pitch_bins
+        self.energy_bins = energy_bins
+
+    def forward(self, h_local_prosody_emb):
+        # h_local_prosody_emb: (B, time, 2)
+        # h_local_prosody_emb_lens: (B)
+
+        # pitch, energyのembedding化
+        h_local_pitch = h_local_prosody_emb[:, :, 0]
+        h_local_energy = h_local_prosody_emb[:, :, 1]
+
+        h_local_pitch_emb = self.pitch_embedding(
+            torch.bucketize(h_local_pitch, self.pitch_bins)
+        )
+        h_local_energy_emb = self.energy_embedding(
+            torch.bucketize(h_local_energy, self.energy_bins)
+        )
+        h_local_prosody_emb = torch.concat([h_local_pitch_emb, h_local_energy_emb], dim=-1)
+
+        return h_local_prosody_emb

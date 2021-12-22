@@ -4,12 +4,12 @@ import torch.nn as nn
 
 from vc_tts_template.fastspeech2wGMM.fastspeech2wGMM import FastSpeech2wGMM
 from vc_tts_template.fastspeech2wContexts.context_encoder import ConversationalProsodyContextEncoder
-from vc_tts_template.fastspeech2wContexts.prosody_model import ProsodyPredictorwAttention
+from vc_tts_template.fastspeech2wContexts.prosody_model import (
+    ProsodyPredictorwAttention, PEProsodyEncoder, PEProsodyLocalEncoder
+)
 
 
-class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
-    """ Fastspeech2wGMMwContextswProsody """
-
+class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
     def __init__(
         self,
         max_seq_len: int,
@@ -27,7 +27,8 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         context_num_layer: int,
         context_encoder_dropout: float,
         text_emb_dim: int,
-        g_prosody_emb_size: int,
+        peprosody_encoder_gru_dim: int,
+        peprosody_encoder_gru_num_layer: int,
         # prosody extractor
         prosody_emb_dim: int,
         extra_conv_kernel_size: int,
@@ -150,7 +151,7 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
             context_layer_num=context_num_layer,
             context_dropout=context_encoder_dropout,
             text_emb_size=text_emb_dim,
-            g_prosody_emb_size=g_prosody_emb_size,
+            g_prosody_emb_size=peprosody_encoder_gru_dim,
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
         )
@@ -172,13 +173,28 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
             global_d_gru=global_d_gru,
             global_num_gaussians=global_num_gaussians,
             global_softmax_temperature=global_softmax_temperature,
-            h_prosody_emb_size=prosody_emb_size,
+            h_prosody_emb_size=n_bins*2,
             prosody_attention=prosody_attention,
             attention_hidden_dim=attention_hidden_dim,
             attention_conv_channels=attention_conv_channels,
             attention_conv_kernel_size=attention_conv_kernel_size,
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
+        )
+        self.peprosody_encoder = PEProsodyEncoder(
+            peprosody_encoder_gru_dim,
+            peprosody_encoder_gru_num_layer,
+            pitch_embedding=self.variance_adaptor.pitch_embedding,
+            energy_embedding=self.variance_adaptor.energy_embedding,
+            pitch_bins=self.variance_adaptor.pitch_bins,
+            energy_bins=self.variance_adaptor.energy_bins,
+            n_bins=n_bins
+        )
+        self.peprosody_local_encoder = PEProsodyLocalEncoder(
+            pitch_embedding=self.variance_adaptor.pitch_embedding,
+            energy_embedding=self.variance_adaptor.energy_embedding,
+            pitch_bins=self.variance_adaptor.pitch_bins,
+            energy_bins=self.variance_adaptor.energy_bins,
         )
 
     def contexts_forward(
@@ -192,8 +208,14 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         h_txt_emb_lens,
         h_speakers,
         h_emotions,
-        h_g_prosody_embs
+        h_prosody_embs,
+        h_prosody_embs_lens,
     ):
+        h_prosody_emb = self.peprosody_encoder(
+            h_prosody_embs,
+            h_prosody_embs_lens,
+        )
+
         context_enc = self.context_encoder(
             c_txt_embs,
             speakers,
@@ -202,7 +224,7 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
             h_speakers,
             h_emotions,
             h_txt_emb_lens,
-            h_g_prosody_embs,
+            h_prosody_emb,
         )
         output = output + context_enc.unsqueeze(1).expand(
             -1, max_src_len, -1
@@ -216,23 +238,29 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         mels,
         p_targets,
         d_targets,
-        h_prosody_emb,
-        h_prosody_lens,
-        h_prosody_speakers,
-        h_prosody_emotions,
+        h_local_prosody_emb,
+        h_local_prosody_emb_lens,
+        h_local_prosody_speakers,
+        h_local_prosody_emotions
     ):
+        # h_local_prosody_emb: (B, time, 2)
+        # h_local_prosody_emb_lens: (B)
+        h_local_prosody_emb = self.peprosody_local_encoder(h_local_prosody_emb)
+
         is_inference = True if p_targets is None else False
 
         if self.global_prosody is False:
             prosody_target = self.prosody_extractor(mels, d_targets)
             prosody_prediction, pi_outs, sigma_outs, mu_outs = self.prosody_predictor(
-                output, h_prosody_emb, h_prosody_lens, h_prosody_speakers, h_prosody_emotions,
+                output, h_local_prosody_emb, h_local_prosody_emb_lens,
+                h_local_prosody_speakers, h_local_prosody_emotions,
                 target_prosody=prosody_target, is_inference=is_inference
             )
         else:
             prosody_target, g_prosody_target = self.prosody_extractor(mels, d_targets, src_lens)
             prosody_prediction, pi_outs, sigma_outs, mu_outs, g_pi, g_sigma, g_mu = self.prosody_predictor(
-                output, h_prosody_emb, h_prosody_lens, h_prosody_speakers, h_prosody_emotions,
+                output, h_local_prosody_emb, h_local_prosody_emb_lens,
+                h_local_prosody_speakers, h_local_prosody_emotions,
                 target_prosody=prosody_target, target_global_prosody=g_prosody_target,
                 src_lens=src_lens, is_inference=is_inference
             )
@@ -276,11 +304,12 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         h_txt_emb_lens,
         h_speakers,
         h_emotions,
-        h_prosody_emb,
-        h_prosody_lens,
-        h_g_prosody_embs,
-        h_prosody_speakers,
-        h_prosody_emotions,
+        h_prosody_embs,
+        h_prosody_embs_lens,
+        h_local_prosody_emb,
+        h_local_prosody_emb_lens,
+        h_local_prosody_speakers,
+        h_local_prosody_emotions,
         mels=None,
         mel_lens=None,
         max_mel_len=None,
@@ -300,13 +329,14 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         output = self.contexts_forward(
             output, max_src_len, c_txt_embs, speakers, emotions,
             h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
-            h_g_prosody_embs,
+            h_prosody_embs, h_prosody_embs_lens,
         )
 
         output, prosody_features = self.prosody_forward(
             output, src_lens,
-            mels, p_targets, d_targets, h_prosody_emb, h_prosody_lens,
-            h_prosody_speakers, h_prosody_emotions
+            mels, p_targets, d_targets,
+            h_local_prosody_emb, h_local_prosody_emb_lens,
+            h_local_prosody_speakers, h_local_prosody_emotions
         )
         (
             output,

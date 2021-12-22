@@ -2,7 +2,7 @@
 spk: "LINE_wContextwPEProsody_1"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_1_FS_GMM_CE"
+tag: "LINE_wContextwPEProsody_1_FS_GMM_CE_PEPCE"
 
 sample_rate: 22050
 
@@ -51,7 +51,7 @@ BERT_weight: "colorfulscoop/sbert-base-ja"
 use_hist_num: 10
 # for with Prosody
 # if 0, the latest one is used. if -1, data will not be loaded.
-use_local_prosody_hist_idx: -1
+use_local_prosody_hist_idx: 0
 # plase replace train/dev/eval to {} for emb_preprocess.py
 ## もし, GMMを学習して作成するembを利用したい場合は以下を埋める
 input_duration_paths:
@@ -68,7 +68,7 @@ input_textgrid_paths:
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wPEProsody
+acoustic_model: fastspeech2wGMMwContextswPEProsody
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
