@@ -83,15 +83,15 @@ train:
       max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 
   
   criterion:
-    # _target_: vc_tts_template.fastspeech2.loss.FastSpeech2Loss
-    _target_: vc_tts_template.fastspeech2wGMM.loss.FastSpeech2Loss
+    _target_: vc_tts_template.fastspeech2.loss.FastSpeech2Loss
+    # _target_: vc_tts_template.fastspeech2wGMM.loss.FastSpeech2Loss
     pitch_feature_level:
     energy_feature_level:
-    beta: 0.02
-    g_beta: 0.02
+    # beta: 0.02
+    # g_beta: 0.02
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
     # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
-    checkpoint: ../fastspeech2/exp/JSUT_NICT_LINE_wo_Teacher_sr22050_LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind/fastspeech2wGMM/epoch0500.pth
+    checkpoint: ../fastspeech2/exp/JSUT_NICT_LINE_wo_Teacher_sr22050_LINE_41_JSUT_NICT_LINE_wo_Teacher_FS/fastspeech2/epoch0500.pth
     optimizer_reset: True

@@ -428,9 +428,9 @@
         - spk: LINE_wContextwPEProsody_1
         - pretrain: fastspeech2/LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
         - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
-        - jobID:
+        - jobID: 8751187
     - LINE_wContextwPEProsody_4_FS_CE_PEPCE
         - spk: LINE_wContextwPEProsody_1
         - pretrain: fastspeech2/LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
         - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
-        - jobID:
+        - jobID: 8751198
