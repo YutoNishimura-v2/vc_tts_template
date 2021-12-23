@@ -11,8 +11,12 @@ from scipy.io import wavfile
 
 sys.path.append("../..")
 from vc_tts_template.fastspeech2wContexts.gen import synthesis
+from vc_tts_template.fastspeech2wContexts.gen_PEProsody import synthesis_PEProsody
 from vc_tts_template.fastspeech2wContexts.collate_fn import (
     make_dialogue_dict, get_embs
+)
+from vc_tts_template.fastspeech2wContexts.collate_fn_PEProsody import (
+    get_peprosody_embs
 )
 from vc_tts_template.utils import load_utt_list, optional_tqdm
 
@@ -76,21 +80,41 @@ def my_app(config: DictConfig) -> None:
         context_embeddings.append([current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions])
 
     # prepare prosody embedding
+    acoustic_model_name = Path(config.acoustic.model_yaml).parent.stem
     prosody_embeddings = []
     for utt_id in utt_ids:
-        if len(prosody_emb_paths) > 0:
-            _, h_prosody_emb, _, h_prosody_speakers, h_prosody_emotions = get_embs(
+        if "wProsody" in acoustic_model_name:
+            if len(prosody_emb_paths) > 0:
+                _, h_prosody_emb, _, h_prosody_speakers, h_prosody_emotions = get_embs(
+                    utt_id, prosody_emb_paths,
+                    utt2id, id2utt, use_hist_num,
+                    start_index=1, only_latest=True,
+                    use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
+                )
+            else:
+                h_prosody_emb = h_prosody_speakers = h_prosody_emotions = None
+            if len(g_prosody_emb_paths) > 0:
+                _, h_g_prosody_embs, _, _, _ = get_embs(
+                    utt_id, g_prosody_emb_paths,
+                    utt2id, id2utt, use_hist_num,
+                    start_index=1
+                )
+            else:
+                h_g_prosody_embs = None
+            prosody_embeddings.append([h_prosody_emb, h_g_prosody_embs, h_prosody_speakers, h_prosody_emotions])
+        elif "wPEProsody" in acoustic_model_name:
+            (
+                hist_prosody_embs, hist_prosody_embs_lens, _, _, _,
+                hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
+            ) = get_peprosody_embs(
                 utt_id, prosody_emb_paths,
-                utt2id, id2utt, use_hist_num,
-                start_index=1, only_latest=True,
+                utt2id, id2utt, use_hist_num, start_index=1,
                 use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
             )
-            _, h_g_prosody_embs, _, _, _ = get_embs(
-                utt_id, g_prosody_emb_paths,
-                utt2id, id2utt, use_hist_num,
-                start_index=1
-            )
-            prosody_embeddings.append([h_prosody_emb, h_g_prosody_embs, h_prosody_speakers, h_prosody_emotions])
+            prosody_embeddings.append([
+                hist_prosody_embs, hist_prosody_embs_lens,
+                hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
+            ])
         else:
             prosody_embeddings.append([None, None, None, None])
 
@@ -98,10 +122,11 @@ def my_app(config: DictConfig) -> None:
         lab_files = lab_files[: config.num_eval_utts]
 
     # Run synthesis for each utt.
+    _synthesis = synthesis_PEProsody if "wPEProsody" in acoustic_model_name else synthesis
     for lab_file, context_embedding, prosody_embedding in optional_tqdm(config.tqdm, desc="Utterance")(
         zip(lab_files, context_embeddings, prosody_embeddings)
     ):
-        wav = synthesis(
+        wav = _synthesis(
             device, lab_file, context_embedding, prosody_embedding,
             acoustic_config.netG.speakers, acoustic_config.netG.emotions,
             acoustic_model, acoustic_out_scaler, vocoder_model

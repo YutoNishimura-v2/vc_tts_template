@@ -424,3 +424,13 @@
         - spk: LINE_wContextwPEProsody_1
         - pretrain: fastspeech2/LINE_44_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
         - jobID: 8750309
+    - LINE_wContext_21_FS_CE
+        - spk: LINE_wContextwPEProsody_1
+        - pretrain: fastspeech2/LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
+        - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
+        - jobID:
+    - LINE_wContextwPEProsody_4_FS_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_1
+        - pretrain: fastspeech2/LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
+        - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
+        - jobID:
