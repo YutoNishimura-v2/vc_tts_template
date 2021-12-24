@@ -39,3 +39,27 @@
 
 ### ttsの利用方法
 - fastspeech2のtts.pyを利用してください.
+
+## 2021-12-24: pitch, energy量子化の問題点
+- pretrainとfinetuningでbinは固定する必要がある
+    - そうしないと, pretrainで得た特徴がfinetuningに役に立たない
+    - 例: pretrain(LINE), finetuning(JSUT)
+        - pretrainにてbin=255はほとんど外れ値. かなり演技が入っている.
+        - これをJSUTのbin幅に置き換えてしまうと, 幅が狭い分簡単にbin=255に行くが, それはpretrainで言うところのかなりの演技.
+        - つまり, pitch幅が違うと意味がないので.
+- さらに, 標準化している時点で↑これは成立しない
+    - なぜなら, JSUTなど, stdが小さいほうが過大評価されるため.
+    - 実際, pitchの標準化後のQ3値は,
+        - JSUT+NICT+LINE: {"pitch_min": -0.8101340727883142, "pitch_max": 0.700753939829083, "energy_min": -0.7406348586082458, "energy_max": 0.4284781515598297}
+        - JSUT: {"pitch_min": -0.8220028797645906, "pitch_max": 0.7265703738211664, "energy_min": -0.8273443728685379, "energy_max": 0.6603641211986542}
+    - とかなので, もう固定しようがあてにならない.
+- つまり, binを使うこと自体が微妙の可能性あり
+    - 実際, espnetでは使っていない
+    - https://espnet.github.io/espnet/_modules/espnet2/tts/fastspeech2/fastspeech2.html
+    - 議論されている: https://github.com/espnet/espnet/issues/2019
+- なしバージョンも作成せよ!!!
+
+## 2021-12-24: multi-speakerについて
+- 「話者ごとに正規化しろ!!!」
+- 当然のことを忘れていた.
+- pretrainにもmulti-speakerは使うし, PEPCEにも使うので, これの実装は必須.

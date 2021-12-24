@@ -562,6 +562,15 @@
         - fastspeech2wGMM.
         - JSUT pretrainのfinetuning. GMMは未学習のもので初期化してみる.
         - job_ID: 8731061
+    
+    # pitch, energyの量子化をなくしてみた場合の訓練
+    - JSUT_5
+        - spk: jsut
+        - pretrain: None
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2.
+        - JSUTでpretrainする. stats=None
 
 ## 主要な実験
 

@@ -1,15 +1,13 @@
 import sys
 from collections import OrderedDict
-from typing import Dict
+from typing import Dict, Optional
 
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 
 sys.path.append('.')
 from vc_tts_template.utils import make_pad_mask, pad
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class VarianceAdaptor(nn.Module):
@@ -24,7 +22,11 @@ class VarianceAdaptor(nn.Module):
         pitch_quantization: str,
         energy_quantization: str,
         n_bins: int,
-        stats: Dict
+        stats: Optional[Dict],
+        pitch_embed_kernel_size: int = 9,
+        pitch_embed_dropout: float = 0.5,
+        energy_embed_kernel_size: int = 9,
+        energy_embed_dropout: float = 0.5,
     ):
         super(VarianceAdaptor, self).__init__()
         # duration, pitch, energyで共通なのね.
@@ -48,88 +50,112 @@ class VarianceAdaptor(nn.Module):
             variance_predictor_dropout,
         )
 
-        # default: pitch: feature: "phoneme_level"
         self.pitch_feature_level = "phoneme_level" if pitch_feature_level > 0 else "frame_level"
         self.energy_feature_level = "phoneme_level" if energy_feature_level > 0 else "frame_level"
 
         assert self.pitch_feature_level in ["phoneme_level", "frame_level"]
         assert self.energy_feature_level in ["phoneme_level", "frame_level"]
 
-        # default: variance_embedding: pitch_quantization: "linear"
-        pitch_quantization = pitch_quantization
-        energy_quantization = energy_quantization
-        # default: n_bins: 256
-        n_bins = n_bins
-        assert pitch_quantization in ["linear", "log"]
-        assert energy_quantization in ["linear", "log"]
+        self.stats = stats
 
-        pitch_min, pitch_max = stats["pitch_min"], stats["pitch_max"]
-        energy_min, energy_max = stats["energy_min"], stats["energy_max"]
+        if stats is not None:
+            pitch_quantization = pitch_quantization
+            energy_quantization = energy_quantization
+            assert pitch_quantization in ["linear", "log"]
+            assert energy_quantization in ["linear", "log"]
+            pitch_min, pitch_max = stats["pitch_min"], stats["pitch_max"]
+            energy_min, energy_max = stats["energy_min"], stats["energy_max"]
 
-        if pitch_quantization == "log":
-            self.pitch_bins = nn.Parameter(
-                torch.exp(
-                    torch.linspace(np.log(pitch_min),
-                                   np.log(pitch_max), n_bins - 1)
-                ),
-                requires_grad=False,
+            if pitch_quantization == "log":
+                self.pitch_bins = nn.Parameter(
+                    torch.exp(
+                        torch.linspace(np.log(pitch_min),
+                                       np.log(pitch_max), n_bins - 1)
+                    ),
+                    requires_grad=False,
+                )
+            else:
+                self.pitch_bins = nn.Parameter(
+                    torch.linspace(pitch_min, pitch_max, n_bins - 1),
+                    requires_grad=False,
+                )
+            if energy_quantization == "log":
+                self.energy_bins = nn.Parameter(
+                    torch.exp(
+                        torch.linspace(np.log(energy_min),
+                                       np.log(energy_max), n_bins - 1)
+                    ),
+                    requires_grad=False,
+                )
+            else:
+                self.energy_bins = nn.Parameter(
+                    torch.linspace(energy_min, energy_max, n_bins - 1),
+                    requires_grad=False,
+                )
+
+            self.pitch_embedding = nn.Embedding(
+                n_bins, encoder_hidden_dim
+            )
+            self.energy_embedding = nn.Embedding(
+                n_bins, encoder_hidden_dim
             )
         else:
-            self.pitch_bins = nn.Parameter(
-                torch.linspace(pitch_min, pitch_max, n_bins - 1),
-                requires_grad=False,
-            )
-        if energy_quantization == "log":
-            self.energy_bins = nn.Parameter(
-                torch.exp(
-                    torch.linspace(np.log(energy_min),
-                                   np.log(energy_max), n_bins - 1)
+            self.pitch_embedding = nn.Sequential(
+                nn.Conv1d(
+                    in_channels=1,
+                    out_channels=encoder_hidden_dim,
+                    kernel_size=pitch_embed_kernel_size,
+                    padding=(pitch_embed_kernel_size - 1) // 2,
                 ),
-                requires_grad=False,
+                nn.Dropout(pitch_embed_dropout),
             )
-        else:
-            self.energy_bins = nn.Parameter(
-                torch.linspace(energy_min, energy_max, n_bins - 1),
-                requires_grad=False,
+            self.energy_embedding = nn.Sequential(
+                nn.Conv1d(
+                    in_channels=1,
+                    out_channels=encoder_hidden_dim,
+                    kernel_size=energy_embed_kernel_size,
+                    padding=(energy_embed_kernel_size - 1) // 2,
+                ),
+                nn.Dropout(energy_embed_dropout),
             )
-
-        # pitchとenergyに関してはなんとembedding!
-        self.pitch_embedding = nn.Embedding(
-            n_bins, encoder_hidden_dim
-        )
-        self.energy_embedding = nn.Embedding(
-            n_bins, encoder_hidden_dim
-        )
 
     def get_pitch_embedding(self, x, target, mask, control):
         prediction = self.pitch_predictor(x, mask)
-        if target is not None:  # つまりtrain時.
-            # bucketizeで, その値がどのself.pitch_binsの間に入っているかを調べて, そのindexを返す.
-            # 例: target = 2, pitch_bins = 1,3,5
-            # なら, returnは, 1となる.
-            # 要するに, pitchの大きさに対する特徴を学習させようとしている.
-            # embeddingで次元を膨らませている感じ(既に, targetだけでpitchの値はあるにはあるので)
-            embedding = self.pitch_embedding(
-                torch.bucketize(target, self.pitch_bins))
-        else:  # inference時.
-            # 同様に, こっちはpredictionに対して. それはそうだが.
+        if target is not None:
+            if self.stats is not None:
+                embedding = self.pitch_embedding(
+                    torch.bucketize(target, self.pitch_bins))
+            else:
+                embedding = self.pitch_embedding(
+                    target.unsqueeze(-1).transpose(1, 2)).transpose(1, 2)
+        else:
             prediction = prediction * control
-            embedding = self.pitch_embedding(
-                torch.bucketize(prediction, self.pitch_bins)
-            )
+            if self.stats is not None:
+                embedding = self.pitch_embedding(
+                    torch.bucketize(prediction, self.pitch_bins)
+                )
+            else:
+                embedding = self.pitch_embedding(
+                    prediction.unsqueeze(-1).transpose(1, 2)).transpose(1, 2)
         return prediction, embedding
 
     def get_energy_embedding(self, x, target, mask, control):
-        # pitchとやっていることは同じ.
         prediction = self.energy_predictor(x, mask)
         if target is not None:
-            embedding = self.energy_embedding(
-                torch.bucketize(target, self.energy_bins))
+            if self.stats is not None:
+                embedding = self.energy_embedding(
+                    torch.bucketize(target, self.energy_bins))
+            else:
+                embedding = self.energy_embedding(
+                    target.unsqueeze(-1).transpose(1, 2)).transpose(1, 2)
         else:
             prediction = prediction * control
-            embedding = self.energy_embedding(
-                torch.bucketize(prediction, self.energy_bins)
-            )
+            if self.stats is not None:
+                embedding = self.energy_embedding(
+                    torch.bucketize(prediction, self.energy_bins))
+            else:
+                embedding = self.energy_embedding(
+                    prediction.unsqueeze(-1).transpose(1, 2)).transpose(1, 2)
         return prediction, embedding
 
     def forward(
@@ -145,12 +171,9 @@ class VarianceAdaptor(nn.Module):
         e_control=1.0,
         d_control=1.0,
     ):
-        # まずは, durationを計算する.
         log_duration_prediction = self.duration_predictor(x, src_mask)
 
-        # pitchがphoneme, つまりframe_levelではない場合
         if self.pitch_feature_level == "phoneme_level":
-            # get_pitch_embeddingはこのクラスの関数.
             pitch_prediction, pitch_embedding = self.get_pitch_embedding(
                 x, pitch_target, src_mask, p_control
             )
@@ -162,29 +185,21 @@ class VarianceAdaptor(nn.Module):
             )
             x = x + energy_embedding
 
-        # durationの正解データがあるのであれば, targetとともにreguratorへ.
         if duration_target is not None:
             x, mel_len = self.length_regulator(x, duration_target, max_len)
             duration_rounded = duration_target
         else:
-            # そうでないなら, predictionを利用.
-            duration_rounded = torch.clamp(  # 最小値を0にする. マイナスは許さない.
+            duration_rounded = torch.clamp(
                 (torch.round(torch.exp(log_duration_prediction) - 1) * d_control),
                 min=0,
             )
-            # そして, predictで作ったduration_roundedを使ってregulatorへ.
             x, mel_len = self.length_regulator(x, duration_rounded, max_len)
-            # inferenceではmel_maskもないので, Noneとしてくる.
             mel_mask = make_pad_mask(mel_len)
 
         if self.pitch_feature_level == "frame_level":
-            # frame_levelなら, 一気に見るので, src_maskではなく, mel_maskを見てもらう.
-            # mel_maskじゃないと次元も合わないよね.
-            # 違いはそこだけ.
             pitch_prediction, pitch_embedding = self.get_pitch_embedding(
                 x, pitch_target, mel_mask, p_control
             )
-            # embbeddingのほうを足しておく.
             x = x + pitch_embedding
         if self.energy_feature_level == "frame_level":
             energy_prediction, energy_embedding = self.get_energy_embedding(
@@ -220,7 +235,7 @@ class LengthRegulator(nn.Module):
                                 duration.size(1)).numpy()
         alignment = self.create_alignment(alignment,
                                           duration.cpu().numpy())
-        alignment = torch.from_numpy(alignment).to(device)
+        alignment = torch.from_numpy(alignment).to(x.device)
 
         output = alignment @ x
         if (max_len is not None) and (max_len > output.size(1)):

@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_3"
+spk: "jsut"
 
 # exp tag(for managing experiments)
-tag: "LINE_51_JSUT_FS_GMMgp"
+tag: "JSUT_5"
 
 sample_rate: 22050
 
@@ -26,10 +26,10 @@ lab_root:
 
 n_jobs: 8
 
-train_num: 21978
-deveval_num: 374
-dev_num: 350
-eval_num: 24
+train_num:
+deveval_num:
+dev_num:
+eval_num:
 
 ###########################################################
 #                FEATURE EXTRACTION SETTING               #
@@ -44,12 +44,12 @@ clip: 0.00001
 log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
-accent_info: 1
+accent_info: 0
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wGMM
+acoustic_model: fastspeech2
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
