@@ -571,7 +571,13 @@
         - 500epoch
         - fastspeech2.
         - JSUTでpretrainする. stats=None
-
+    - LINE_52_JSUT_FS_woBin
+        - spk: LINE_3
+        - pretrain: JSUT_5
+        - batch_size: 16
+        - 500epoch
+        - fastspeech2.
+        - JSUTでpretrainしたもの. stats=None
 ## 主要な実験
 
 ## 知見
