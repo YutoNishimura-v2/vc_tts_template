@@ -578,7 +578,7 @@
         - 500epoch
         - fastspeech2.
         - JSUTでpretrainしたもの. stats=None
-        - jobID: 8780352
+        - jobID: 8780354
 
 ## 主要な実験
 
