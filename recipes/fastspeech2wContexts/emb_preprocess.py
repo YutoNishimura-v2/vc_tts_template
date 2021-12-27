@@ -186,8 +186,12 @@ def get_prosody_embeddings_wWav(
     input_context_path = input_lab_paths if input_lab_paths is not None else input_textgrid_paths
     input_context_path_postfix = ".lab" if input_lab_paths is not None else ".TextGrid"
 
-    output_dir = Path(output_dir) / "prosody_emb"
+    output_dir = Path(output_dir)
+    output_dir_prosody = output_dir / "prosody_emb"
     output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir_prosody.mkdir(parents=True, exist_ok=True)
+
+    utt_ids = []
 
     for input_wav_path_base, input_context_path_base in zip(input_wav_paths, input_context_path):
         wav_files = list(Path(input_wav_path_base).glob("*.wav"))
@@ -221,10 +225,13 @@ def get_prosody_embeddings_wWav(
                 _, _, pitch, energy, _, utt_id = future.result()
                 prosody = np.stack([pitch, energy], -1)
                 np.save(
-                    output_dir / f"{utt_id}-feats.npy",
+                    output_dir_prosody / f"{utt_id}-feats.npy",
                     prosody.astype(np.float32),
                     allow_pickle=False,
                 )
+                utt_ids.append(utt_id+'\n')
+    with open(output_dir / "prosody_emb.list", "w") as f:
+        f.writelines(utt_ids)
 
 
 if __name__ == "__main__":

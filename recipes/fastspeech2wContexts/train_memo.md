@@ -20,6 +20,11 @@
         - out_LINE_woITAKOから作る. 
         - prosody embとして, pitchとenergyを利用するもの. wavとtextgrid(or lab)を指定することで利用する.
         - 今までのprosody embとしてpitch, energyを格納する.
+    - LINE_wContextwPEProsody_2
+        - out_LINE_woITAKOから作る. 
+        - prosody embとして, pitchとenergyを利用するもの. wavとtextgrid(or lab)を指定することで利用する.
+        - 今までのprosody embとしてpitch, energyを格納する.
+        - pitch, energyをちゃんと標準化して利用.
 
 - exp
     - LINE_wContext_1
@@ -434,3 +439,32 @@
         - pretrain: fastspeech2/LINE_41_JSUT_NICT_LINE_wo_Teacher_FS
         - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
         - jobID: 8751198
+
+    # 新しい実行2(multi-speaker対応後)
+    - LINE_wContext_22_FS_GMM_CE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - jobID:
+    - LINE_wContextwPEProsody_5_FS_GMM_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - 大量データでGMMをpretrainしてどうなるのかを見る実験. PEPCE初出動
+        - jobID:
+    - LINE_wContextwPEProsody_6_FS_GMM_CE_PEPCE_P1
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - jobID:
+    - LINE_wContextwPEProsody_7_FS_GMM_CE_PEPCE_P2
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - jobID:
+    - LINE_wContext_23_FS_CE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
+        - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
+        - jobID:
+    - LINE_wContextwPEProsody_8_FS_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
+        - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
+        - jobID:

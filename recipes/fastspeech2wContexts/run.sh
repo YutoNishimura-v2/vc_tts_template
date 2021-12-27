@@ -113,6 +113,17 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
             done
         done
     done
+
+    if [ ! -z ${input_wav_paths} ]; then
+        xrun python $COMMON_ROOT/fit_scaler.py $dumpdir/${spk}_sr${sample_rate}/prosody_emb.list \
+            $dumpdir/${spk}_sr${sample_rate}/prosody_emb \
+            $dumpdir/${spk}_sr${sample_rate}/prosody_emb_scaler.joblib \
+            --speakers_list $emb_speakers
+        xrun python $COMMON_ROOT/preprocess_normalize.py $dumpdir/${spk}_sr${sample_rate}/prosody_emb.list \
+            $dumpdir/${spk}_sr${sample_rate}/prosody_emb_scaler.joblib \
+            $dumpdir/${spk}_sr${sample_rate}/prosody_emb \
+            $dumpdir/${spk}_sr${sample_rate}/prosody_emb --n_jobs $n_jobs
+    fi
 fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then

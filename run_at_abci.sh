@@ -1,12 +1,12 @@
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContext_sr22050_LINE_wContext_19_202112170004.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContextwProsody_3_sr22050_LINE_wContextwProsody_40_202112170009.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_3_sr22050_LINE_52_202112242346.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_4_sr22050_LINE_40_202111301042.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/JSUT_NICT_LINE_wo_Teacher_2_sr22050_LINE_53_202112271925.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/jsut_sr22050_JSUT_4_202112171319.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_Teacher_sr22050_LINE_Teacher_2_202111281851.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/fastspeech2VC/JSUT_NICT_LINE_4_sr22050_JSUT_NICT_LINE_4_202111162213.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='50:00:00' -o ~/logs/LINE_wContextwPEProsody_1_sr22050_LINE_wContextwPEProsody_4_202112230955.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContext_sr22050_LINE_wContext_19_202112170004.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwProsody_3_sr22050_LINE_wContextwProsody_40_202112170009.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_3_sr22050_LINE_52_202112242346.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_4_sr22050_LINE_40_202111301042.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/JSUT_NICT_LINE_wo_Teacher_2_sr22050_LINE_53_202112271925.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/jsut_sr22050_JSUT_4_202112171319.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_Teacher_sr22050_LINE_Teacher_2_202111281851.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/fastspeech2VC/JSUT_NICT_LINE_4_sr22050_JSUT_NICT_LINE_4_202111162213.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_1_sr22050_LINE_wContextwPEProsody_4_202112230955.log run_at_abci.sh
 # 例: 8250289
 # 例: qrsh -g $ABCI_GROUP -l rt_AG.small=1 -l h_rt=10:00:00
 
