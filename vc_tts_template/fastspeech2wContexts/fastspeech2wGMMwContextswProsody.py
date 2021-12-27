@@ -60,6 +60,10 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
         energy_feature_level: int,  # 0 is frame 1 is phoneme
         pitch_quantization: str,
         energy_quantization: str,
+        pitch_embed_kernel_size: int,
+        pitch_embed_dropout: float,
+        energy_embed_kernel_size: int,
+        energy_embed_dropout: float,
         n_bins: int,
         # decoder
         decoder_hidden_dim: int,
@@ -113,6 +117,10 @@ class Fastspeech2wGMMwContextswProsody(FastSpeech2wGMM):
             energy_feature_level,
             pitch_quantization,
             energy_quantization,
+            pitch_embed_kernel_size,
+            pitch_embed_dropout,
+            energy_embed_kernel_size,
+            energy_embed_dropout,
             n_bins,
             decoder_hidden_dim,
             decoder_num_layer,

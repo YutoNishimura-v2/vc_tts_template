@@ -21,12 +21,12 @@ class VarianceAdaptor(nn.Module):
         energy_feature_level: int,
         pitch_quantization: str,
         energy_quantization: str,
+        pitch_embed_kernel_size: int,
+        pitch_embed_dropout: float,
+        energy_embed_kernel_size: int,
+        energy_embed_dropout: float,
         n_bins: int,
         stats: Optional[Dict],
-        pitch_embed_kernel_size: int = 9,
-        pitch_embed_dropout: float = 0.5,
-        energy_embed_kernel_size: int = 9,
-        energy_embed_dropout: float = 0.5,
     ):
         super(VarianceAdaptor, self).__init__()
         # duration, pitch, energyで共通なのね.
@@ -100,7 +100,7 @@ class VarianceAdaptor(nn.Module):
                 n_bins, encoder_hidden_dim
             )
         else:
-            self.pitch_embedding = nn.Sequential(
+            self.pitch_embedding = nn.Sequential(  # type:ignore
                 nn.Conv1d(
                     in_channels=1,
                     out_channels=encoder_hidden_dim,
@@ -109,7 +109,7 @@ class VarianceAdaptor(nn.Module):
                 ),
                 nn.Dropout(pitch_embed_dropout),
             )
-            self.energy_embedding = nn.Sequential(
+            self.energy_embedding = nn.Sequential(  # type:ignore
                 nn.Conv1d(
                     in_channels=1,
                     out_channels=encoder_hidden_dim,
