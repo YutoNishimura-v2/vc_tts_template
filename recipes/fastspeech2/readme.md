@@ -58,8 +58,11 @@
     - https://espnet.github.io/espnet/_modules/espnet2/tts/fastspeech2/fastspeech2.html
     - 議論されている: https://github.com/espnet/espnet/issues/2019
 - なしバージョンも作成せよ!!!
+    - 作成. ststs=Noneで動くようになります
 
 ## 2021-12-24: multi-speakerについて
 - 「話者ごとに正規化しろ!!!」
 - 当然のことを忘れていた.
 - pretrainにもmulti-speakerは使うし, PEPCEにも使うので, これの実装は必須.
+- 対応しました. scalerとして新クラスを定義.
+- configでspeakersを設定しましょう.

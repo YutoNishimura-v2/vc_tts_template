@@ -22,14 +22,16 @@ def get_parser():
 
 def process(path, scaler, inverse, out_dir):
     x = np.load(path)
+
+    speaker = path.stem.split("_")[0] if scaler.multi_speaker is True else ""
     is_1d = 0
     if len(x.shape) == 1:
         x = x.reshape(-1, 1)
         is_1d = 1
     if inverse:
-        y = scaler.inverse_transform(x)
+        y = scaler.inverse_transform(x, speaker)
     else:
-        y = scaler.transform(x)
+        y = scaler.transform(x, speaker)
     assert x.dtype == y.dtype
     if is_1d > 0:
         y = y.reshape(-1)

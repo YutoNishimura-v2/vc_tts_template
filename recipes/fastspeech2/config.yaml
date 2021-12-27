@@ -45,6 +45,9 @@ log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
 accent_info: 1
+# if you want to use multi-speaker, fill below.
+# example: "JSUT,NICT"
+speakers:
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################

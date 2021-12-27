@@ -84,7 +84,8 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
             for feat in "mel" "pitch" "energy"; do
                 xrun python $COMMON_ROOT/fit_scaler.py data/train.list \
                     $dump_org_dir/$train_set/${inout}_${typ}/${feat} \
-                    $dump_org_dir/${inout}_${typ}_${feat}_scaler.joblib
+                    $dump_org_dir/${inout}_${typ}_${feat}_scaler.joblib \
+                    --speakers_list $speakers
             done
         done
     done
