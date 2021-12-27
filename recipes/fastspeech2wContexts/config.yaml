@@ -67,6 +67,7 @@ pretrained_checkpoints:
 input_wav_paths: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050,../../../dataset/out_LINE_MStudent/LINE_MStudent/wav/22050,../../../dataset/out_LINE_FStudent/LINE_FStudent/wav/22050"
 input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
 input_textgrid_paths:
+emb_speakers: "Teacher,MStudent,FStudent"
 
 ###########################################################
 #                TRAINING SETTING                         #

@@ -30,12 +30,14 @@ class MultiSpeakerStandardScaler():
     def transform(self, X, speaker=""):
         if speaker not in self.speakers:
             raise KeyError("存在する話者かどうかを確認して下さい")
-        self.scalers_dict[speaker].transform(X)
+        y = self.scalers_dict[speaker].transform(X)
+        return y
 
     def inverse_transform(self, X, speaker=""):
         if speaker not in self.speakers:
             raise KeyError("存在する話者かどうかを確認して下さい")
-        self.scalers_dict[speaker].inverse_transform(X)
+        y = self.scalers_dict[speaker].inverse_transform(X)
+        return y
 
     @property
     def mean_(self):

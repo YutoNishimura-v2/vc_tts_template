@@ -7,6 +7,8 @@ import joblib
 import numpy as np
 from tqdm import tqdm
 
+from fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
+
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Normalization")
