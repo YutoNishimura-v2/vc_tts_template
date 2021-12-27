@@ -38,6 +38,11 @@
     - JSUT_NICT_LINE_wo_Teacher
         - GMMのデータ不足説を立証するために, 持ちうるデータすべてを用いてpretrainする.
         - こちらは論文には使えない, Studentの入っているデータ.
+    
+    - JSUT_NICT_LINE_wo_Teacher_2
+        - GMMのデータ不足説を立証するために, 持ちうるデータすべてを用いてpretrainする.
+        - こちらは論文には使えない, Studentの入っているデータ.
+        - multi-speaker用にStandardScalerを用意したのでそれに基づいて用意
 
 - exp
     - jsut_1
@@ -579,6 +584,39 @@
         - fastspeech2.
         - JSUTでpretrainしたもの. stats=None
         - jobID: 8780354
+    
+    # GMMのためのデータ量増強, やり直し
+    - LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. 公平性のため, FSもこれで訓練.
+    - LINE_54_JSUT_NICT_LINE_wo_Teacher_FS_GMM
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM.
+    - LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM. 話者性抜いたもの.
+    - LINE_56_JSUT_NICT_LINE_wo_Teacher_finetuning_FS
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
+        - 500epoch
+        - pretrain用. 公平性のため, FSもこれで訓練.
+    - LINE_57_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: LINE_54_JSUT_NICT_LINE_wo_Teacher_FS_GMM
+        - 500epoch
+        - pretrain用. GMM.
+    - LINE_58_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_spk_ind
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
+        - 500epoch
+        - pretrain用. GMM. 話者性抜いたもの.
+
 
 ## 主要な実験
 
