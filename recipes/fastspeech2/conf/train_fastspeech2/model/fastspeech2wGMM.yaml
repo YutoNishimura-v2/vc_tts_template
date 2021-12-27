@@ -38,6 +38,10 @@ netG:
   energy_feature_level:
   pitch_quantization: "linear"
   energy_quantization: "linear"
+  pitch_embed_kernel_size: 9
+  pitch_embed_dropout: 0.5
+  energy_embed_kernel_size: 9
+  energy_embed_dropout: 0.5
   n_bins: 256
   # decoder
   decoder_hidden_dim: 256
@@ -47,10 +51,11 @@ netG:
   n_mel_channel:
   # other
   encoder_fix: False
-  prosody_spk_independence: False
-  local_prosody: False
-  global_prosody: True
-  stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
-  speakers:
+  prosody_spk_independence: True
+  local_prosody: True
+  global_prosody: False
+  stats:
+  # stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
+  speakers: {"JSUT": 0, "NICT": 1, "Teacher": 2, "FStudent": 3, "MStudent": 4}
   emotions:
   accent_info:
