@@ -19,6 +19,7 @@ from vc_tts_template.fastspeech2wContexts.collate_fn_PEProsody import (
     get_peprosody_embs
 )
 from vc_tts_template.utils import load_utt_list, optional_tqdm
+from recipes.common.fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
 
 
 @hydra.main(config_path="conf/synthesis", config_name="config")

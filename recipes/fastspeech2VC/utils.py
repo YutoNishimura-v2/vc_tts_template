@@ -10,6 +10,7 @@ from omegaconf import OmegaConf
 
 from vc_tts_template.utils import adaptive_load_state_dict, pad_2d
 from vc_tts_template.train_utils import plot_attention
+from recipes.common.fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
 
 
 def get_alignment_model(

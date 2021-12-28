@@ -5,6 +5,7 @@ from pathlib import Path
 import joblib
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
 
 
 def get_parser():

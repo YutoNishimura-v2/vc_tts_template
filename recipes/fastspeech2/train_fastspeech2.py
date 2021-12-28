@@ -13,6 +13,7 @@ from vc_tts_template.fastspeech2.collate_fn import (
 from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer, free_tensors_memory
 from recipes.common.train_loop import train_loop
 from recipes.fastspeech2.utils import plot_mel_with_prosody
+from recipes.common.fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
 
 warnings.simplefilter('ignore', UserWarning)
 
@@ -93,6 +94,7 @@ def fastspeech2_eval_model(
         if phase == 'train':
             file_name = f"utt_{idx}"
 
+        speakers = [batch[0][idx].split("_")[0]]
         mel_post = output[1][idx].cpu().data.numpy().T
         pitch = output[2][idx].cpu().data.numpy()
         energy = output[3][idx].cpu().data.numpy()
@@ -103,8 +105,8 @@ def fastspeech2_eval_model(
         pitch_gt = batch[-3][idx].cpu().data.numpy()
         energy_gt = batch[-2][idx].cpu().data.numpy()
         duration_gt = batch[-1][idx].cpu().data.numpy()
-        audio_recon = vocoder_infer(batch[-6][idx][:mel_len_gt].unsqueeze(0))[0]
-        audio_synth = vocoder_infer(output[1][idx][:mel_len_pre].unsqueeze(0))[0]
+        audio_recon = vocoder_infer(batch[-6][idx][:mel_len_gt].unsqueeze(0), speakers)[0]
+        audio_synth = vocoder_infer(output[1][idx][:mel_len_pre].unsqueeze(0), speakers)[0]
 
         mel_gts = [mel_gt, pitch_gt, energy_gt, duration_gt]
         if is_inference:

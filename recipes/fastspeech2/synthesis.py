@@ -12,6 +12,7 @@ from scipy.io import wavfile
 sys.path.append("../..")
 from vc_tts_template.fastspeech2.gen import synthesis
 from vc_tts_template.utils import load_utt_list, optional_tqdm
+from recipes.common.fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
 
 
 @hydra.main(config_path="conf/synthesis", config_name="config")

@@ -18,6 +18,7 @@ from torch.utils.tensorboard import SummaryWriter
 from vc_tts_template.logger import getLogger
 from vc_tts_template.utils import (adaptive_load_state_dict, init_seed,
                                    load_utt_list)
+from recipes.common.fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
 
 
 def free_tensors_memory(x: List[torch.Tensor]):
@@ -342,7 +343,8 @@ def get_vocoder(device: torch.device, model_name: str,
     return None
 
 
-def vocoder_infer(mels: torch.Tensor, vocoder_dict: Dict,
+def vocoder_infer(mels: torch.Tensor, speakers: List[str],
+                  vocoder_dict: Dict,
                   mel_scaler_path: str,
                   max_wav_value: Optional[int] = None,
                   lengths: Optional[List[int]] = None
@@ -361,8 +363,14 @@ def vocoder_infer(mels: torch.Tensor, vocoder_dict: Dict,
 
     if model_name == "hifigan":
         scaler = joblib.load(to_absolute_path(mel_scaler_path))
+
+        if scaler.multi_speaker is False:
+            speakers = ["" for _ in range(len(speakers))]
+
         device = mels.device
-        mels = np.array([scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mels])  # type: ignore
+        mels = np.array([
+            scaler.inverse_transform(mel.cpu().data.numpy(), spk) for mel, spk in zip(mels, speakers)
+        ])  # type: ignore
         mels = torch.Tensor(mels).to(device)
         with torch.no_grad():
             # 基本(time, dim)だが, hifiganはなぜか(dim, time)で扱う.

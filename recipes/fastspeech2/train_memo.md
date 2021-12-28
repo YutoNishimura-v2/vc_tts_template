@@ -591,19 +591,19 @@
         - pretrain: None
         - 500epoch
         - pretrain用. 公平性のため, FSもこれで訓練.
-        - jobID: 8811096
+        - jobID: 8824464
     - LINE_54_JSUT_NICT_LINE_wo_Teacher_FS_GMM
         - spk: JSUT_NICT_LINE_wo_Teacher_2
         - pretrain: None
         - 500epoch
         - pretrain用. GMM.
-        - jobID: 8816626
+        - jobID: 8822321
     - LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
         - spk: JSUT_NICT_LINE_wo_Teacher_2
         - pretrain: None
         - 500epoch
         - pretrain用. GMM. 話者性抜いたもの.
-        - jobID: 8816462
+        - jobID: 8822166
     - LINE_56_JSUT_NICT_LINE_wo_Teacher_finetuning_FS
         - spk: JSUT_NICT_LINE_wo_Teacher_2
         - pretrain: LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
