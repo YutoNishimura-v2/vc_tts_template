@@ -2,7 +2,7 @@
 spk: "JSUT_NICT_LINE_wo_Teacher_2"
 
 # exp tag(for managing experiments)
-tag: "LINE_53_JSUT_NICT_LINE_wo_Teacher_FS"
+tag: "LINE_56_JSUT_NICT_LINE_wo_Teacher_FS_wBins"
 
 sample_rate: 22050
 

@@ -604,6 +604,12 @@
         - 500epoch
         - pretrain用. GMM. 話者性抜いたもの.
         - jobID: 8822166
+    - LINE_56_JSUT_NICT_LINE_wo_Teacher_FS_wBins
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. 公平性のため, FSもこれで訓練. binあり
+        - jobID:
     - LINE_56_JSUT_NICT_LINE_wo_Teacher_finetuning_FS
         - spk: JSUT_NICT_LINE_wo_Teacher_2
         - pretrain: LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
