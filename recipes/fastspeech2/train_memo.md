@@ -591,7 +591,8 @@
         - pretrain: None
         - 500epoch
         - pretrain用. 公平性のため, FSもこれで訓練.
-        - jobID: 8824464
+        - multi-speaker対応, binなし
+        - jobID: 8844285
     - LINE_54_JSUT_NICT_LINE_wo_Teacher_FS_GMM
         - spk: JSUT_NICT_LINE_wo_Teacher_2
         - pretrain: None
@@ -609,19 +610,24 @@
         - pretrain: None
         - 500epoch
         - pretrain用. 公平性のため, FSもこれで訓練. binあり
-        - jobID: 8840289
-    - LINE_56_JSUT_NICT_LINE_wo_Teacher_finetuning_FS
-        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - jobID: 8844290
+    - LINE_57_JSUT_NICT_LINE_wo_Teacher_finetuning_FS
+        - spk: LINE_3
         - pretrain: LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
         - 500epoch
         - pretrain用. 公平性のため, FSもこれで訓練.
-    - LINE_57_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM
-        - spk: JSUT_NICT_LINE_wo_Teacher_2
+    - LINE_58_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_wBins
+        - spk: LINE_3
+        - pretrain: LINE_56_JSUT_NICT_LINE_wo_Teacher_FS_wBins
+        - 500epoch
+        - pretrain用. 公平性のため, FSもこれで訓練.
+    - LINE_59_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM
+        - spk: LINE_3
         - pretrain: LINE_54_JSUT_NICT_LINE_wo_Teacher_FS_GMM
         - 500epoch
         - pretrain用. GMM.
-    - LINE_58_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_spk_ind
-        - spk: JSUT_NICT_LINE_wo_Teacher_2
+    - LINE_60_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_spk_ind
+        - spk: LINE_3
         - pretrain: LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
         - 500epoch
         - pretrain用. GMM. 話者性抜いたもの.
