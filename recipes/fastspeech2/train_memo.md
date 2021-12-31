@@ -616,21 +616,25 @@
         - pretrain: LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
         - 500epoch
         - pretrain用. 公平性のため, FSもこれで訓練.
+        - jobID: 8848374
     - LINE_58_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_wBins
         - spk: LINE_3
         - pretrain: LINE_56_JSUT_NICT_LINE_wo_Teacher_FS_wBins
         - 500epoch
         - pretrain用. 公平性のため, FSもこれで訓練.
+        - jobID: 8848379
     - LINE_59_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM
         - spk: LINE_3
         - pretrain: LINE_54_JSUT_NICT_LINE_wo_Teacher_FS_GMM
         - 500epoch
         - pretrain用. GMM.
+        - jobID: 8848386
     - LINE_60_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_spk_ind
         - spk: LINE_3
         - pretrain: LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
         - 500epoch
         - pretrain用. GMM. 話者性抜いたもの.
+        - jobID: 8848391
 
 
 ## 主要な実験

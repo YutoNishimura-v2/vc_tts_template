@@ -1,8 +1,8 @@
 # General settings.
-spk: "JSUT_NICT_LINE_wo_Teacher_2"
+spk: "LINE_3"
 
 # exp tag(for managing experiments)
-tag: "LINE_56_JSUT_NICT_LINE_wo_Teacher_FS_wBins"
+tag: "LINE_60_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_spk_ind"
 
 sample_rate: 22050
 
@@ -44,15 +44,16 @@ clip: 0.00001
 log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
-accent_info: 0
+accent_info: 1
 # if you want to use multi-speaker, fill below.
 # example: "JSUT,NICT"
-speakers: "JSUT,NICT,Teacher,FStudent,MStudent"
+speakers:
+# speakers: "JSUT,NICT,Teacher,FStudent,MStudent"
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2
+acoustic_model: fastspeech2wGMM
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
