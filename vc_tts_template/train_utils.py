@@ -364,13 +364,18 @@ def vocoder_infer(mels: torch.Tensor, speakers: List[str],
     if model_name == "hifigan":
         scaler = joblib.load(to_absolute_path(mel_scaler_path))
 
-        if scaler.multi_speaker is False:
-            speakers = ["" for _ in range(len(speakers))]
+        if hasattr(scaler, "multi_speaker") is True:
+            if scaler.multi_speaker is False:
+                speakers = ["" for _ in range(len(speakers))]
 
-        device = mels.device
-        mels = np.array([
-            scaler.inverse_transform(mel.cpu().data.numpy(), spk) for mel, spk in zip(mels, speakers)
-        ])  # type: ignore
+            device = mels.device
+            mels = np.array([
+                scaler.inverse_transform(mel.cpu().data.numpy(), spk) for mel, spk in zip(mels, speakers)
+            ])  # type: ignore
+        else:
+            # 昔に作った, 通常StandardScaler対応
+            device = mels.device
+            mels = np.array([scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mels])  # type: ignore
         mels = torch.Tensor(mels).to(device)
         with torch.no_grad():
             # 基本(time, dim)だが, hifiganはなぜか(dim, time)で扱う.
