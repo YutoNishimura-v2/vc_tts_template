@@ -16,6 +16,7 @@ from vc_tts_template.fastspeech2wContexts.collate_fn_PEProsody import (
 from vc_tts_template.train_utils import setup, get_vocoder, vocoder_infer
 from recipes.common.train_loop import train_loop
 from recipes.fastspeech2.train_fastspeech2 import fastspeech2_train_step, fastspeech2_eval_model
+from recipes.common.fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
 
 warnings.simplefilter('ignore', UserWarning)
 

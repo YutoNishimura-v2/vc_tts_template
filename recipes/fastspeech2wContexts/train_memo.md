@@ -444,27 +444,27 @@
     - LINE_wContext_22_FS_GMM_CE
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
-        - jobID: 8852096
+        - jobID: 8852367
     - LINE_wContextwPEProsody_5_FS_GMM_CE_PEPCE
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
         - 大量データでGMMをpretrainしてどうなるのかを見る実験. PEPCE初出動
-        - jobID: 8852129
+        - jobID: 8852368
     - LINE_wContextwPEProsody_6_FS_GMM_CE_PEPCE_P1
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
-        - jobID: 8852132
+        - jobID: 8852369
     - LINE_wContextwPEProsody_7_FS_GMM_CE_PEPCE_P2
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
-        - jobID: 8852155
+        - jobID: 8852370
     - LINE_wContext_23_FS_CE
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
         - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
-        - jobID: 8852178
+        - jobID: 8852365
     - LINE_wContextwPEProsody_8_FS_CE_PEPCE
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
         - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
-        - jobID: 8852176
+        - jobID: 8852366
