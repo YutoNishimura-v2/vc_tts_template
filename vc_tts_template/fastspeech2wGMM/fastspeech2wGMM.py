@@ -66,7 +66,7 @@ class FastSpeech2wGMM(FastSpeech2):
         prosody_spk_independence: bool = False,
         local_prosody: bool = True,
         global_prosody: bool = True,
-        stats: Dict = {},
+        stats: Optional[Dict] = None,
         speakers: Optional[Dict] = None,
         emotions: Optional[Dict] = None,
         accent_info: int = 0,

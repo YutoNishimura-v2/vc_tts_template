@@ -78,7 +78,7 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
         local_prosody: bool,
         global_prosody: bool,
         prosody_attention: bool,
-        stats: Dict,
+        stats: Optional[Dict],
         speakers: Dict,
         emotions: Optional[Dict] = None,
         accent_info: int = 0,
@@ -189,22 +189,35 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
         )
-        self.peprosody_encoder = PEProsodyEncoder(
-            peprosody_encoder_gru_dim,
-            peprosody_encoder_gru_num_layer,
-            pitch_embedding=self.variance_adaptor.pitch_embedding,
-            energy_embedding=self.variance_adaptor.energy_embedding,
-            pitch_bins=self.variance_adaptor.pitch_bins,
-            energy_bins=self.variance_adaptor.energy_bins,
-            n_bins=n_bins
-        )
-        if prosody_attention is True:
-            self.peprosody_local_encoder = PEProsodyLocalEncoder(
+        if stats is not None:
+            self.peprosody_encoder = PEProsodyEncoder(
+                peprosody_encoder_gru_dim,
+                peprosody_encoder_gru_num_layer,
                 pitch_embedding=self.variance_adaptor.pitch_embedding,
                 energy_embedding=self.variance_adaptor.energy_embedding,
                 pitch_bins=self.variance_adaptor.pitch_bins,
                 energy_bins=self.variance_adaptor.energy_bins,
+                n_bins=n_bins
             )
+            if prosody_attention is True:
+                self.peprosody_local_encoder = PEProsodyLocalEncoder(
+                    pitch_embedding=self.variance_adaptor.pitch_embedding,
+                    energy_embedding=self.variance_adaptor.energy_embedding,
+                    pitch_bins=self.variance_adaptor.pitch_bins,
+                    energy_bins=self.variance_adaptor.energy_bins,
+                )
+        else:
+            self.peprosody_encoder = PEProsodyEncoder(
+                peprosody_encoder_gru_dim,
+                peprosody_encoder_gru_num_layer,
+                pitch_embedding=self.variance_adaptor.pitch_embedding,
+                energy_embedding=self.variance_adaptor.energy_embedding,
+            )
+            if prosody_attention is True:
+                self.peprosody_local_encoder = PEProsodyLocalEncoder(
+                    pitch_embedding=self.variance_adaptor.pitch_embedding,
+                    energy_embedding=self.variance_adaptor.energy_embedding,
+                )
 
     def contexts_forward(
         self,

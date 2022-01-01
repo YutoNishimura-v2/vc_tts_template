@@ -41,7 +41,7 @@ class FastSpeech2(nn.Module):
         decoder_dropout: float,
         n_mel_channel: int,
         encoder_fix: bool,
-        stats: Dict,
+        stats: Optional[Dict],
         speakers: Optional[Dict] = None,
         emotions: Optional[Dict] = None,
         accent_info: int = 0,

@@ -1,4 +1,5 @@
 import sys
+from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -184,14 +185,20 @@ class PEProsodyEncoder(nn.Module):
         peprosody_encoder_gru_num_layer: int,
         pitch_embedding: nn.Embedding,
         energy_embedding: nn.Embedding,
-        pitch_bins: nn.Parameter,
-        energy_bins: nn.Parameter,
-        n_bins: int,
+        pitch_bins: Optional[nn.Parameter] = None,
+        energy_bins: Optional[nn.Parameter] = None,
+        n_bins: Optional[int] = None,
     ):
         super().__init__()
 
+        if n_bins is None:
+            self.hidden_sise = pitch_embedding.out_channels
+            gru_input_size = self.hidden_sise * 2  # type:ignore
+        else:
+            gru_input_size = n_bins * 2
+
         self.global_bi_gru = GRUwSort(
-            input_size=n_bins * 2, hidden_size=peprosody_encoder_gru_dim // 2,
+            input_size=gru_input_size, hidden_size=peprosody_encoder_gru_dim // 2,
             num_layers=peprosody_encoder_gru_num_layer, batch_first=True, bidirectional=True,
             sort=True, allow_zero_length=True
         )
@@ -211,12 +218,23 @@ class PEProsodyEncoder(nn.Module):
         h_pitches = h_prosody_embs[:, :, :, 0]
         h_energies = h_prosody_embs[:, :, :, 1]
 
-        h_pitch_embs = self.pitch_embedding(
-            torch.bucketize(h_pitches, self.pitch_bins)
-        )
-        h_energy_embs = self.energy_embedding(
-            torch.bucketize(h_energies, self.energy_bins)
-        )
+        if self.pitch_bins is not None:
+            h_pitch_embs = self.pitch_embedding(
+                torch.bucketize(h_pitches, self.pitch_bins)
+            )
+            h_energy_embs = self.energy_embedding(
+                torch.bucketize(h_energies, self.energy_bins)
+            )
+        else:
+            h_pitches = h_pitches.view(h_pitches.size(0), -1).unsqueeze(-1)
+            h_energies = h_energies.view(h_energies.size(0), -1).unsqueeze(-1)
+
+            h_pitch_embs = self.pitch_embedding(
+                h_pitches.transpose(1, 2)
+            ).transpose(1, 2).view(h_pitches.size(0), hist_len, -1, self.hidden_sise)
+            h_energy_embs = self.energy_embedding(
+                h_energies.transpose(1, 2)
+            ).transpose(1, 2).view(h_energies.size(0), hist_len, -1, self.hidden_sise)
         h_prosody_embs = torch.concat([h_pitch_embs, h_energy_embs], dim=-1)
 
         # GRUによるglobal prosody化
@@ -239,8 +257,8 @@ class PEProsodyLocalEncoder(nn.Module):
         self,
         pitch_embedding: nn.Embedding,
         energy_embedding: nn.Embedding,
-        pitch_bins: nn.Parameter,
-        energy_bins: nn.Parameter,
+        pitch_bins: Optional[nn.Parameter] = None,
+        energy_bins: Optional[nn.Parameter] = None,
     ):
         super().__init__()
 
@@ -257,12 +275,21 @@ class PEProsodyLocalEncoder(nn.Module):
         h_local_pitch = h_local_prosody_emb[:, :, 0]
         h_local_energy = h_local_prosody_emb[:, :, 1]
 
-        h_local_pitch_emb = self.pitch_embedding(
-            torch.bucketize(h_local_pitch, self.pitch_bins)
-        )
-        h_local_energy_emb = self.energy_embedding(
-            torch.bucketize(h_local_energy, self.energy_bins)
-        )
+        if self.pitch_bins is not None:
+            h_local_pitch_emb = self.pitch_embedding(
+                torch.bucketize(h_local_pitch, self.pitch_bins)
+            )
+            h_local_energy_emb = self.energy_embedding(
+                torch.bucketize(h_local_energy, self.energy_bins)
+            )
+        else:
+            h_local_pitch_emb = self.pitch_embedding(
+                h_local_pitch.unsqueeze(-1).transpose(1, 2)
+            ).transpose(1, 2)
+            h_local_energy_emb = self.energy_embedding(
+                h_local_energy.unsqueeze(-1).transpose(1, 2)
+            ).transpose(1, 2)
+
         h_local_prosody_emb = torch.concat([h_local_pitch_emb, h_local_energy_emb], dim=-1)
 
         return h_local_prosody_emb
