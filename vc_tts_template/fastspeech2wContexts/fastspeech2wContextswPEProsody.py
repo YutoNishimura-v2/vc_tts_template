@@ -50,7 +50,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         n_mel_channel: int,
         # other
         encoder_fix: bool,
-        stats: Dict,
+        stats: Optional[Dict],
         speakers: Dict,
         emotions: Optional[Dict] = None,
         accent_info: int = 0,
@@ -114,16 +114,23 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
         )
-
-        self.peprosody_encoder = PEProsodyEncoder(
-            peprosody_encoder_gru_dim,
-            peprosody_encoder_gru_num_layer,
-            pitch_embedding=self.variance_adaptor.pitch_embedding,
-            energy_embedding=self.variance_adaptor.energy_embedding,
-            pitch_bins=self.variance_adaptor.pitch_bins,
-            energy_bins=self.variance_adaptor.energy_bins,
-            n_bins=n_bins
-        )
+        if stats is not None:
+            self.peprosody_encoder = PEProsodyEncoder(
+                peprosody_encoder_gru_dim,
+                peprosody_encoder_gru_num_layer,
+                pitch_embedding=self.variance_adaptor.pitch_embedding,
+                energy_embedding=self.variance_adaptor.energy_embedding,
+                pitch_bins=self.variance_adaptor.pitch_bins,
+                energy_bins=self.variance_adaptor.energy_bins,
+                n_bins=n_bins
+            )
+        else:
+            self.peprosody_encoder = PEProsodyEncoder(
+                peprosody_encoder_gru_dim,
+                peprosody_encoder_gru_num_layer,
+                pitch_embedding=self.variance_adaptor.pitch_embedding,
+                energy_embedding=self.variance_adaptor.energy_embedding,
+            )
 
     def contexts_forward(
         self,

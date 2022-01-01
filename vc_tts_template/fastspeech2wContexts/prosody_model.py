@@ -192,7 +192,7 @@ class PEProsodyEncoder(nn.Module):
         super().__init__()
 
         if n_bins is None:
-            self.hidden_sise = pitch_embedding.out_channels
+            self.hidden_sise = pitch_embedding[0].out_channels
             gru_input_size = self.hidden_sise * 2  # type:ignore
         else:
             gru_input_size = n_bins * 2
