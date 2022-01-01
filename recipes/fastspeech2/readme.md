@@ -66,3 +66,8 @@
 - pretrainにもmulti-speakerは使うし, PEPCEにも使うので, これの実装は必須.
 - 対応しました. scalerとして新クラスを定義.
 - configでspeakersを設定しましょう.
+
+- pretrainでMS対応がいいかは、状況に依りそう.
+    - finetuning先がsingle-speaker: 正規化した方がよさそう
+    - finetuning先もMS対応 or Single-shotを想定: 全体で正規化した方がよさそう.
+    - もちろん, やってみないとわからないと思うからとりあえずやるべき.
