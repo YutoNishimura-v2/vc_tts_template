@@ -204,19 +204,19 @@ class PEProsodyEncoder(nn.Module):
             sort=True, allow_zero_length=True
         )
 
+        self.pitch_bins = pitch_bins
+        self.energy_bins = energy_bins
         if shere_embedding is True:
             self.pitch_embedding = pitch_embedding
             self.energy_embedding = energy_embedding
-            self.pitch_bins = pitch_bins
-            self.energy_bins = energy_bins
         else:
             if pitch_bins is None:
                 self.pitch_embedding = nn.Sequential(  # type:ignore
                     nn.Conv1d(
                         in_channels=1,
                         out_channels=pitch_embedding[0].out_channels,  # type:ignore
-                        kernel_size=pitch_embedding[0].kernel_size,  # type:ignore
-                        padding=(pitch_embedding[0].kernel_size - 1) // 2,  # type:ignore
+                        kernel_size=pitch_embedding[0].kernel_size[0],  # type:ignore
+                        padding=(pitch_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
                     ),
                     nn.Dropout(pitch_embedding[1].p),  # type:ignore
                 )
@@ -224,8 +224,8 @@ class PEProsodyEncoder(nn.Module):
                     nn.Conv1d(
                         in_channels=1,
                         out_channels=energy_embedding[0].out_channels,  # type:ignore
-                        kernel_size=energy_embedding[0].kernel_size,  # type:ignore
-                        padding=(energy_embedding[0].kernel_size - 1) // 2,  # type:ignore
+                        kernel_size=energy_embedding[0].kernel_size[0],  # type:ignore
+                        padding=(energy_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
                     ),
                     nn.Dropout(energy_embedding[1].p),  # type:ignore
                 )
@@ -292,19 +292,19 @@ class PEProsodyLocalEncoder(nn.Module):
     ):
         super().__init__()
 
+        self.pitch_bins = pitch_bins
+        self.energy_bins = energy_bins
         if shere_embedding is True:
             self.pitch_embedding = pitch_embedding
             self.energy_embedding = energy_embedding
-            self.pitch_bins = pitch_bins
-            self.energy_bins = energy_bins
         else:
             if pitch_bins is None:
                 self.pitch_embedding = nn.Sequential(  # type:ignore
                     nn.Conv1d(
                         in_channels=1,
                         out_channels=pitch_embedding[0].out_channels,  # type:ignore
-                        kernel_size=pitch_embedding[0].kernel_size,  # type:ignore
-                        padding=(pitch_embedding[0].kernel_size - 1) // 2,  # type:ignore
+                        kernel_size=pitch_embedding[0].kernel_size[0],  # type:ignore
+                        padding=(pitch_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
                     ),
                     nn.Dropout(pitch_embedding[1].p),  # type:ignore
                 )
@@ -312,8 +312,8 @@ class PEProsodyLocalEncoder(nn.Module):
                     nn.Conv1d(
                         in_channels=1,
                         out_channels=energy_embedding[0].out_channels,  # type:ignore
-                        kernel_size=energy_embedding[0].kernel_size,  # type:ignore
-                        padding=(energy_embedding[0].kernel_size - 1) // 2,  # type:ignore
+                        kernel_size=energy_embedding[0].kernel_size[0],  # type:ignore
+                        padding=(energy_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
                     ),
                     nn.Dropout(energy_embedding[1].p),  # type:ignore
                 )

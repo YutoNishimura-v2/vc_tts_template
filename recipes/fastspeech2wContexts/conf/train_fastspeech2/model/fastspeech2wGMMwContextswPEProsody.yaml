@@ -17,7 +17,7 @@ netG:
   text_emb_dim: 768
   peprosody_encoder_gru_dim: 256
   peprosody_encoder_gru_num_layer: 2
-  shere_embedding: True
+  shere_embedding: False
   # prosody extractor
   prosody_emb_dim: 64
   extra_conv_kernel_size: 3
