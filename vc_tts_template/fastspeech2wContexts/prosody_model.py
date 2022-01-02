@@ -1,5 +1,5 @@
 import sys
-from typing import Optional
+from typing import Optional, Union
 
 import torch
 import torch.nn as nn
@@ -183,19 +183,20 @@ class PEProsodyEncoder(nn.Module):
         self,
         peprosody_encoder_gru_dim: int,
         peprosody_encoder_gru_num_layer: int,
-        pitch_embedding: nn.Embedding,
-        energy_embedding: nn.Embedding,
+        pitch_embedding: Union[nn.Sequential, nn.Embedding],
+        energy_embedding: Union[nn.Sequential, nn.Embedding],
         pitch_bins: Optional[nn.Parameter] = None,
         energy_bins: Optional[nn.Parameter] = None,
-        n_bins: Optional[int] = None,
+        shere_embedding: bool = True,
     ):
         super().__init__()
 
-        if n_bins is None:
-            self.hidden_sise = pitch_embedding[0].out_channels
+        if pitch_bins is None:
+            # n_binsがNoneなら, 渡されるpitch_embeddingはnn.Sequential
+            self.hidden_sise = pitch_embedding[0].out_channels  # type:ignore
             gru_input_size = self.hidden_sise * 2  # type:ignore
         else:
-            gru_input_size = n_bins * 2
+            gru_input_size = pitch_embedding.embedding_dim * 2  # type:ignore
 
         self.global_bi_gru = GRUwSort(
             input_size=gru_input_size, hidden_size=peprosody_encoder_gru_dim // 2,
@@ -203,10 +204,38 @@ class PEProsodyEncoder(nn.Module):
             sort=True, allow_zero_length=True
         )
 
-        self.pitch_embedding = pitch_embedding
-        self.energy_embedding = energy_embedding
-        self.pitch_bins = pitch_bins
-        self.energy_bins = energy_bins
+        if shere_embedding is True:
+            self.pitch_embedding = pitch_embedding
+            self.energy_embedding = energy_embedding
+            self.pitch_bins = pitch_bins
+            self.energy_bins = energy_bins
+        else:
+            if pitch_bins is None:
+                self.pitch_embedding = nn.Sequential(  # type:ignore
+                    nn.Conv1d(
+                        in_channels=1,
+                        out_channels=pitch_embedding[0].out_channels,  # type:ignore
+                        kernel_size=pitch_embedding[0].kernel_size,  # type:ignore
+                        padding=(pitch_embedding[0].kernel_size - 1) // 2,  # type:ignore
+                    ),
+                    nn.Dropout(pitch_embedding[1].p),  # type:ignore
+                )
+                self.energy_embedding = nn.Sequential(  # type:ignore
+                    nn.Conv1d(
+                        in_channels=1,
+                        out_channels=energy_embedding[0].out_channels,  # type:ignore
+                        kernel_size=energy_embedding[0].kernel_size,  # type:ignore
+                        padding=(energy_embedding[0].kernel_size - 1) // 2,  # type:ignore
+                    ),
+                    nn.Dropout(energy_embedding[1].p),  # type:ignore
+                )
+            else:
+                self.pitch_embedding = nn.Embedding(
+                    pitch_embedding.num_embeddings, pitch_embedding.embedding_dim  # type:ignore
+                )
+                self.energy_embedding = nn.Embedding(
+                    energy_embedding.num_embeddings, energy_embedding.embedding_dim  # type:ignore
+                )
 
     def forward(self, h_prosody_embs, h_prosody_embs_lens):
         # h_prosody_embs: (B, hist, time, 2)
@@ -259,13 +288,42 @@ class PEProsodyLocalEncoder(nn.Module):
         energy_embedding: nn.Embedding,
         pitch_bins: Optional[nn.Parameter] = None,
         energy_bins: Optional[nn.Parameter] = None,
+        shere_embedding: bool = True,
     ):
         super().__init__()
 
-        self.pitch_embedding = pitch_embedding
-        self.energy_embedding = energy_embedding
-        self.pitch_bins = pitch_bins
-        self.energy_bins = energy_bins
+        if shere_embedding is True:
+            self.pitch_embedding = pitch_embedding
+            self.energy_embedding = energy_embedding
+            self.pitch_bins = pitch_bins
+            self.energy_bins = energy_bins
+        else:
+            if pitch_bins is None:
+                self.pitch_embedding = nn.Sequential(  # type:ignore
+                    nn.Conv1d(
+                        in_channels=1,
+                        out_channels=pitch_embedding[0].out_channels,  # type:ignore
+                        kernel_size=pitch_embedding[0].kernel_size,  # type:ignore
+                        padding=(pitch_embedding[0].kernel_size - 1) // 2,  # type:ignore
+                    ),
+                    nn.Dropout(pitch_embedding[1].p),  # type:ignore
+                )
+                self.energy_embedding = nn.Sequential(  # type:ignore
+                    nn.Conv1d(
+                        in_channels=1,
+                        out_channels=energy_embedding[0].out_channels,  # type:ignore
+                        kernel_size=energy_embedding[0].kernel_size,  # type:ignore
+                        padding=(energy_embedding[0].kernel_size - 1) // 2,  # type:ignore
+                    ),
+                    nn.Dropout(energy_embedding[1].p),  # type:ignore
+                )
+            else:
+                self.pitch_embedding = nn.Embedding(
+                    pitch_embedding.num_embeddings, pitch_embedding.embedding_dim  # type:ignore
+                )
+                self.energy_embedding = nn.Embedding(
+                    energy_embedding.num_embeddings, energy_embedding.embedding_dim  # type:ignore
+                )
 
     def forward(self, h_local_prosody_emb):
         # h_local_prosody_emb: (B, time, 2)

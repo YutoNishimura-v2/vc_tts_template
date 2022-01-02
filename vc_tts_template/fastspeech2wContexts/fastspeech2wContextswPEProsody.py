@@ -29,6 +29,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         text_emb_dim: int,
         peprosody_encoder_gru_dim: int,
         peprosody_encoder_gru_num_layer: int,
+        shere_embedding: bool,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -122,7 +123,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
                 energy_embedding=self.variance_adaptor.energy_embedding,
                 pitch_bins=self.variance_adaptor.pitch_bins,
                 energy_bins=self.variance_adaptor.energy_bins,
-                n_bins=n_bins
+                shere_embedding=shere_embedding
             )
         else:
             self.peprosody_encoder = PEProsodyEncoder(
@@ -130,6 +131,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
                 peprosody_encoder_gru_num_layer,
                 pitch_embedding=self.variance_adaptor.pitch_embedding,
                 energy_embedding=self.variance_adaptor.energy_embedding,
+                shere_embedding=shere_embedding
             )
 
     def contexts_forward(

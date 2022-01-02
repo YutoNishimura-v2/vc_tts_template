@@ -29,6 +29,7 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
         text_emb_dim: int,
         peprosody_encoder_gru_dim: int,
         peprosody_encoder_gru_num_layer: int,
+        shere_embedding: bool,
         # prosody extractor
         prosody_emb_dim: int,
         extra_conv_kernel_size: int,
@@ -181,7 +182,7 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
             global_d_gru=global_d_gru,
             global_num_gaussians=global_num_gaussians,
             global_softmax_temperature=global_softmax_temperature,
-            h_prosody_emb_size=n_bins*2,
+            h_prosody_emb_size=encoder_hidden_dim*2,
             prosody_attention=prosody_attention,
             attention_hidden_dim=attention_hidden_dim,
             attention_conv_channels=attention_conv_channels,
@@ -197,7 +198,7 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
                 energy_embedding=self.variance_adaptor.energy_embedding,
                 pitch_bins=self.variance_adaptor.pitch_bins,
                 energy_bins=self.variance_adaptor.energy_bins,
-                n_bins=n_bins
+                shere_embedding=shere_embedding
             )
             if prosody_attention is True:
                 self.peprosody_local_encoder = PEProsodyLocalEncoder(
@@ -205,6 +206,7 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
                     energy_embedding=self.variance_adaptor.energy_embedding,
                     pitch_bins=self.variance_adaptor.pitch_bins,
                     energy_bins=self.variance_adaptor.energy_bins,
+                    shere_embedding=shere_embedding
                 )
         else:
             self.peprosody_encoder = PEProsodyEncoder(
@@ -212,11 +214,13 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
                 peprosody_encoder_gru_num_layer,
                 pitch_embedding=self.variance_adaptor.pitch_embedding,
                 energy_embedding=self.variance_adaptor.energy_embedding,
+                shere_embedding=shere_embedding
             )
             if prosody_attention is True:
                 self.peprosody_local_encoder = PEProsodyLocalEncoder(
                     pitch_embedding=self.variance_adaptor.pitch_embedding,
                     energy_embedding=self.variance_adaptor.energy_embedding,
+                    shere_embedding=shere_embedding
                 )
 
     def contexts_forward(
