@@ -290,7 +290,7 @@ class FastSpeech2wGMM(FastSpeech2):
         )
 
         output, prosody_features = self.prosody_forward(
-            output, src_lens, mels, True, d_targets,
+            output, src_lens, mels, True, d_targets, speakers,
         )
         (
             output,
