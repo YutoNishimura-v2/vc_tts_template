@@ -584,7 +584,7 @@
         - fastspeech2.
         - JSUTでpretrainしたもの. stats=None
         - jobID: 8780354
-    
+
     # GMMのためのデータ量増強, やり直し
     - LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
         - spk: JSUT_NICT_LINE_wo_Teacher_2

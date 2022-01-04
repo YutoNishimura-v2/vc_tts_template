@@ -490,3 +490,14 @@
         - 大量データでGMMをpretrainしてどうなるのかを見る実験, 比較用
         - embeddingをshareしない
         - jobID: 8853382
+
+    # JSUT pretrainedでPEPCEを再実行する
+    - LINE_wContext_24_FS_CE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID:
+    - LINE_wContextwPEProsody_13_FS_CE_PEPCE_share-emb-false
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - embeddingをshareしない
+        - jobID:
