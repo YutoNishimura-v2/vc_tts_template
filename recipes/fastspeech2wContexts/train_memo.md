@@ -492,12 +492,20 @@
         - jobID: 8853382
 
     # JSUT pretrainedでPEPCEを再実行する
-    - LINE_wContext_24_FS_CE
+    - LINE_wContext_24_FS_CE_pretrain_JSUT_5
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/JSUT_5
-        - jobID:
-    - LINE_wContextwPEProsody_13_FS_CE_PEPCE_share-emb-false
+        - jobID: 8857577
+    - LINE_wContextwPEProsody_13_FS_CE_PEPCE_share-emb-false_pretrain_JSUT_5
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/JSUT_5
         - embeddingをshareしない
-        - jobID:
+        - jobID: 8857584
+    - LINE_wContextwPEProsody_14_FS_CE_PEPCE_share-emb-false_pretrain_JSUT_5_bench_false
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - embeddingをshareしない
+        - benchmark: falseにしてみる. 速ければこっちにする.
+        - jobID: 8857593
+    
+    # Emotion labelのPEPCEへの影響を調査する

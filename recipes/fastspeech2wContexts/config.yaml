@@ -2,7 +2,7 @@
 spk: "LINE_wContextwPEProsody_2"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContext_24_FS_CE_pretrain_JSUT_5"
+tag: "LINE_wContextwPEProsody_14_FS_CE_PEPCE_share-emb-false_pretrain_JSUT_5_bench_false"
 
 sample_rate: 22050
 
@@ -13,7 +13,7 @@ tqdm: tqdm
 # NOTE: benchmarkをtrueにすると、高速化が期待できる分、より多くの
 # GPUリソースを必要とする場合があります。
 # GPUリソースに余裕がある場合は、true にしてください。
-cudnn_benchmark: true
+cudnn_benchmark: false
 cudnn_deterministic: false
 
 ###########################################################
@@ -73,7 +73,7 @@ emb_speakers: "Teacher,MStudent,FStudent"
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wContexts
+acoustic_model: fastspeech2wContextswPEProsody
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
