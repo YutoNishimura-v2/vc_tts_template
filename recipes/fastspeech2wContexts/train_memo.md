@@ -528,3 +528,55 @@
         - pretrain: fastspeech2/LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
         - embeddingをshareしない
         - jobID: 8857991
+
+    # hist_lenのチューニング
+    - 共通のパラメタ
+        - EMO1, stats=None, share_emb-false, pretrain: JSUT
+    - LINE_wContext_27_FS_CE_hist_len_1
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860887
+    - LINE_wContext_28_FS_CE_hist_len_3
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860888
+    - LINE_wContext_29_FS_CE_hist_len_5
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860889
+    - LINE_wContext_30_FS_CE_hist_len_7
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860890
+    - LINE_wContext_31_FS_CE_hist_len_9
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860892
+    - LINE_wContext_32_FS_CE_hist_len_11
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860893
+    - LINE_wContextwPEProsody_17_FS_CE_PEPCE_hist_len_1
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860894
+    - LINE_wContextwPEProsody_18_FS_CE_PEPCE_hist_len_3
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860895
+    - LINE_wContextwPEProsody_19_FS_CE_PEPCE_hist_len_5
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860896
+    - LINE_wContextwPEProsody_20_FS_CE_PEPCE_hist_len_7
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860897
+    - LINE_wContextwPEProsody_21_FS_CE_PEPCE_hist_len_9
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860898
+    - LINE_wContextwPEProsody_22_FS_CE_PEPCE_hist_len_11
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8860899
