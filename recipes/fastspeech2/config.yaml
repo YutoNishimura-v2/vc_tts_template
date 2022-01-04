@@ -2,7 +2,7 @@
 spk: "LINE_3"
 
 # exp tag(for managing experiments)
-tag: "LINE_57_JSUT_NICT_LINE_wo_Teacher_finetuning_FS"
+tag: "LINE_62_FS_EMO1_pretrain_LINE_53"
 
 sample_rate: 22050
 
@@ -13,7 +13,7 @@ tqdm: tqdm
 # NOTE: benchmarkをtrueにすると、高速化が期待できる分、より多くの
 # GPUリソースを必要とする場合があります。
 # GPUリソースに余裕がある場合は、true にしてください。
-cudnn_benchmark: true
+cudnn_benchmark: false
 cudnn_deterministic: false
 
 ###########################################################

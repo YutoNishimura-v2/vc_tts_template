@@ -635,6 +635,18 @@
         - 500epoch
         - pretrain用. GMM. 話者性抜いたもの.
         - jobID: 8849499
+    
+    # 「Emotion labelのPEPCEへの影響を調査する」の対照実験
+    - LINE_61_FS_EMO1_pretrain_JSUT_5
+        - spk: LINE_3
+        - pretrain: JSUT_5
+        - 500epoch
+        - jobID: 8858025
+    - LINE_62_FS_EMO1_pretrain_LINE_53
+        - spk: LINE_3
+        - pretrain: LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
+        - 500epoch
+        - jobID: 8858029
 
 
 ## 主要な実験

@@ -508,4 +508,23 @@
         - benchmark: falseにしてみる. 速ければこっちにする.
         - jobID: 8857593
     
+    ## 以降はbenchmark: falseにする. こちらのほうが速い
     # Emotion labelのPEPCEへの影響を調査する
+    - LINE_wContext_25_FS_CE_EMO1_pretrain_JSUT_5
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - jobID: 8858001
+    - LINE_wContextwPEProsody_15_FS_CE_PEPCE_EMO1_share-emb-false_pretrain_JSUT_5
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - embeddingをshareしない
+        - jobID: 8857986
+    - LINE_wContext_26_FS_CE_pretrain_LINE_53
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
+        - jobID: 8857998
+    - LINE_wContextwPEProsody_16_FS_CE_PEPCE_share-emb-false_pretrain_LINE_53
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/LINE_53_JSUT_NICT_LINE_wo_Teacher_FS
+        - embeddingをshareしない
+        - jobID: 8857991
