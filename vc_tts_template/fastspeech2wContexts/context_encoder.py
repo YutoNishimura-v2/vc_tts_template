@@ -191,6 +191,10 @@ class ConversationalProsodyContextEncoder(nn.Module):
         self.context_linear = nn.Linear(d_cont_enc, d_model)
         self.context_attention = SLA(d_model)
 
+        # ↓new!
+        self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
+        self.prosody_context_attention = SLA(d_model)
+
         self.speaker_embedding = speaker_embedding
         self.emotion_embedding = emotion_embedding
 
@@ -229,10 +233,19 @@ class ConversationalProsodyContextEncoder(nn.Module):
         prosody_enc_past = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, history_lens))
         prosody_enc_past = prosody_enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
 
-        enc_past = enc_past + prosody_enc_past
-
+        # ↓new!
         # Encoding
         context_enc = torch.cat([enc_current, enc_past], dim=1)
         context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
+        prosody_context_enc = self.prosody_context_attention(self.prosody_context_linear(prosody_enc_past))  # [B, d]
 
-        return context_enc
+        return context_enc + prosody_context_enc
+
+        # ↓旧バージョン
+        # enc_past = enc_past + prosody_enc_past
+
+        # # Encoding
+        # context_enc = torch.cat([enc_current, enc_past], dim=1)
+        # context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
+
+        # return context_enc

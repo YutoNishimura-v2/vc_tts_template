@@ -2,7 +2,7 @@
 spk: "LINE_wContextwPEProsody_2"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_22_FS_CE_PEPCE_hist_len_11"
+tag: "LINE_wContextwPEProsody_23_FS_CE_PEPCE_share-emb-false_pretrain_JSUT_5_new_struct"
 
 sample_rate: 22050
 
@@ -52,7 +52,7 @@ speakers:
 
 # for with Contexts
 BERT_weight: "colorfulscoop/sbert-base-ja"
-use_hist_num: 11
+use_hist_num: 10
 # for with Prosody
 # if 0, the latest one is used. if -1, data will not be loaded.
 use_local_prosody_hist_idx: -1

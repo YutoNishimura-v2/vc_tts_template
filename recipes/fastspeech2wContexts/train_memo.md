@@ -507,6 +507,13 @@
         - embeddingをshareしない
         - benchmark: falseにしてみる. 速ければこっちにする.
         - jobID: 8857593
+    - LINE_wContextwPEProsody_23_FS_CE_PEPCE_share-emb-false_pretrain_JSUT_5_new_struct
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/JSUT_5
+        - embeddingをshareしない
+        - benchmark: falseにしてみる. 速ければこっちにする.
+        - prosody encoderにおいて, attentionをcontext encoderのそれと共有するのをやめてみる.
+        - jobID: 8906748
     
     ## 以降はbenchmark: falseにする. こちらのほうが速い
     # Emotion labelのPEPCEへの影響を調査する
