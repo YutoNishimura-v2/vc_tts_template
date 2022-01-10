@@ -236,6 +236,7 @@ class ConversationalProsodyContextEncoder(nn.Module):
 
         # ↓new!
         # Encoding
+        # context_enc = enc_past
         context_enc = torch.cat([enc_current, enc_past], dim=1)
         context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
         prosody_context_enc = self.prosody_context_attention(self.prosody_context_linear(prosody_enc_past))  # [B, d]

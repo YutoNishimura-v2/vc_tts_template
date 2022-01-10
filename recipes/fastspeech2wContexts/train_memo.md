@@ -635,3 +635,13 @@
         - pretrain: None
         - eval_epoch_interval: 600
         - ReLUが最後に入っていたのを修正
+    - LINE_emotionprediction_9_CE_woCurrent
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - ReLUが最後に入っていたのを修正
+    - LINE_emotionprediction_10_CE_PEPCE_woCurrent
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - ReLUが最後に入っていたのを修正
