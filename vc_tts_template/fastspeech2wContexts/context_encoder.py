@@ -266,7 +266,7 @@ class ConversationalProsodyEncoder(nn.Module):
         speaker_embedding,
         emotion_embedding,
     ):
-        super(ConversationalProsodyContextEncoder, self).__init__()
+        super(ConversationalProsodyEncoder, self).__init__()
         d_model = d_encoder_hidden
         d_cont_enc = d_context_hidden
         num_layers = context_layer_num

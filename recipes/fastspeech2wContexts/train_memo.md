@@ -595,4 +595,11 @@
         - eval_epoch_interval: 600
             - 今回はevalは不要だし, むしろevalを除去するのに今までのコードの修正が必要なので面倒
             - 単にepoch数より大きい値にすればevalしなくなるのでそうする
-        - jobID:
+    - LINE_emotionprediction_2_PEPCE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_3_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600

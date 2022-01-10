@@ -2,7 +2,7 @@
 spk: "LINE_wContextwPEProsody_2"
 
 # exp tag(for managing experiments)
-tag: "LINE_emotionprediction_1_CE"
+tag: "LINE_emotionprediction_3_CE_PEPCE"
 
 sample_rate: 22050
 

@@ -176,7 +176,7 @@ def my_app(config: DictConfig) -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # 以下自由
-    if "PEProsody" in config.data.acoustic_model:
+    if ("PEProsody" in config.data.acoustic_model) or ("EmotionPredictor" in config.data.acoustic_model):
         _collate_fn = collate_fn_fastspeech2wPEProsody
         _get_data_loader = fastspeech2wPEProsody_get_data_loaders
     else:

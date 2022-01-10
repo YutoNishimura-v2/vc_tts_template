@@ -26,6 +26,11 @@ class EmotionPredictor(nn.Module):
         text_emb_dim: int,
         peprosody_encoder_gru_dim: int,
         peprosody_encoder_gru_num_layer: int,
+        # variance predictor
+        pitch_embed_kernel_size: int,
+        pitch_embed_dropout: float,
+        energy_embed_kernel_size: int,
+        energy_embed_dropout: float,
         # other
         speakers: Dict,
         emotions: Dict,
@@ -78,6 +83,7 @@ class EmotionPredictor(nn.Module):
                 d_context_hidden=context_encoder_hidden_dim,
                 context_layer_num=context_num_layer,
                 context_dropout=context_encoder_dropout,
+                g_prosody_emb_size=peprosody_encoder_gru_dim,
                 speaker_embedding=self.speaker_emb,
                 emotion_embedding=self.emotion_emb,
             )
@@ -85,11 +91,29 @@ class EmotionPredictor(nn.Module):
             raise RuntimeError("未対応です. CEかPEProsodyのどちらかは利用しましょう.")
 
         if use_peprosody_encoder is True:
+            _pitch_embedding = nn.Sequential(  # type:ignore
+                nn.Conv1d(
+                    in_channels=1,
+                    out_channels=encoder_hidden_dim,
+                    kernel_size=pitch_embed_kernel_size,
+                    padding=(pitch_embed_kernel_size - 1) // 2,
+                ),
+                nn.Dropout(pitch_embed_dropout),
+            )
+            _energy_embedding = nn.Sequential(  # type:ignore
+                nn.Conv1d(
+                    in_channels=1,
+                    out_channels=encoder_hidden_dim,
+                    kernel_size=energy_embed_kernel_size,
+                    padding=(energy_embed_kernel_size - 1) // 2,
+                ),
+                nn.Dropout(energy_embed_dropout),
+            )
             self.peprosody_encoder = PEProsodyEncoder(
                 peprosody_encoder_gru_dim,
                 peprosody_encoder_gru_num_layer,
-                pitch_embedding=None,
-                energy_embedding=None,
+                pitch_embedding=_pitch_embedding,
+                energy_embedding=_energy_embedding,
                 shere_embedding=False,  # 当然Trueは使えない
             )
         else:
