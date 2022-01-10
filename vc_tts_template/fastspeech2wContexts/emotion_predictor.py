@@ -125,7 +125,6 @@ class EmotionPredictor(nn.Module):
             nn.Linear(linear_hidden_dim, linear_hidden_dim),
             nn.ReLU(),
             nn.Linear(linear_hidden_dim, len(emotions)),
-            nn.ReLU()
         )
 
         self.use_context_encoder = use_context_encoder
@@ -229,7 +228,6 @@ class EmotionPredictorLoss(nn.Module):
 
     def forward(self, inputs, predictions):
         emotions = inputs[2]
-
         loss = self.loss_fn(predictions, emotions)
 
         loss_values = {

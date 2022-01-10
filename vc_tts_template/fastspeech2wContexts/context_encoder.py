@@ -91,6 +91,7 @@ class ConversationalContextEncoder(nn.Module):
         enc_past = enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
 
         # Encoding
+        # context_enc = enc_past
         context_enc = torch.cat([enc_current, enc_past], dim=1)
         context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
 

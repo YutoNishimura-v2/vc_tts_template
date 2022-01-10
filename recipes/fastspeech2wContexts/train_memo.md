@@ -613,3 +613,25 @@
             - それに伴い以下も変える
             - `gru_input_size = self.hidden_sise * 2  # type:ignore`
             - `gru_input_size = self.hidden_sise  # type:ignore`
+    - LINE_emotionprediction_5_CE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - currentのtextを抜いたらどういうグラフになるか見てみる.
+            - `context_enc = torch.cat([enc_current, enc_past], dim=1)`
+            - `context_enc = enc_past`
+    - LINE_emotionprediction_6_CE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - ReLUが最後に入っていたのを修正
+    - LINE_emotionprediction_7_PEPCE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - ReLUが最後に入っていたのを修正
+    - LINE_emotionprediction_8_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - ReLUが最後に入っていたのを修正
