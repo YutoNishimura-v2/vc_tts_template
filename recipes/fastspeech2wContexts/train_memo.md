@@ -603,3 +603,13 @@
         - spk: LINE_wContextwPEProsody_2
         - pretrain: None
         - eval_epoch_interval: 600
+    - LINE_emotionprediction_4_PEPCE_small_chage
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - prosody_model.pyの, 以下の部分をしたのに変更する
+            - `h_prosody_embs = torch.concat([h_pitch_embs, h_energy_embs], dim=-1)`
+            - `h_prosody_embs = h_pitch_embs + h_energy_embs`
+            - それに伴い以下も変える
+            - `gru_input_size = self.hidden_sise * 2  # type:ignore`
+            - `gru_input_size = self.hidden_sise  # type:ignore`

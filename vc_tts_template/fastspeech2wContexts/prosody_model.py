@@ -194,7 +194,8 @@ class PEProsodyEncoder(nn.Module):
         if pitch_bins is None:
             # n_binsがNoneなら, 渡されるpitch_embeddingはnn.Sequential
             self.hidden_sise = pitch_embedding[0].out_channels  # type:ignore
-            gru_input_size = self.hidden_sise * 2  # type:ignore
+            gru_input_size = self.hidden_sise  # type:ignore
+            # gru_input_size = self.hidden_sise * 2  # type:ignore
         else:
             gru_input_size = pitch_embedding.embedding_dim * 2  # type:ignore
 
@@ -264,7 +265,8 @@ class PEProsodyEncoder(nn.Module):
             h_energy_embs = self.energy_embedding(
                 h_energies.transpose(1, 2)
             ).transpose(1, 2).view(h_energies.size(0), hist_len, -1, self.hidden_sise)
-        h_prosody_embs = torch.concat([h_pitch_embs, h_energy_embs], dim=-1)
+        h_prosody_embs = h_pitch_embs + h_energy_embs
+        # h_prosody_embs = torch.concat([h_pitch_embs, h_energy_embs], dim=-1)
 
         # GRUによるglobal prosody化
         h_prosody_embs = h_prosody_embs.contiguous().view(
