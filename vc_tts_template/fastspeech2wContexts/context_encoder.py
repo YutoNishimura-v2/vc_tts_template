@@ -249,3 +249,84 @@ class ConversationalProsodyContextEncoder(nn.Module):
         # context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
 
         # return context_enc
+
+
+class ConversationalProsodyEncoder(nn.Module):
+    """ Conversational Prosody Encoder
+    Context Encoderのprosodyのみver
+    """
+
+    def __init__(
+        self,
+        d_encoder_hidden,
+        d_context_hidden,
+        context_layer_num,
+        context_dropout,
+        g_prosody_emb_size,
+        speaker_embedding,
+        emotion_embedding,
+    ):
+        super(ConversationalProsodyContextEncoder, self).__init__()
+        d_model = d_encoder_hidden
+        d_cont_enc = d_context_hidden
+        num_layers = context_layer_num
+        dropout = context_dropout
+
+        self.prosody_emb_linear = nn.Linear(g_prosody_emb_size, d_cont_enc)
+        self.speaker_linear = nn.Linear(d_model, d_cont_enc)
+        if emotion_embedding is not None:
+            self.emotion_linear = nn.Linear(d_model, d_cont_enc)
+
+        self.prosody_enc_linear = nn.Sequential(
+            nn.Linear(
+                2*d_cont_enc if emotion_embedding is None else 3*d_cont_enc,
+                d_cont_enc
+            ),
+            nn.ReLU()
+        )
+        self.prosody_gru = GRUwSort(
+            input_size=d_cont_enc,
+            hidden_size=d_cont_enc,
+            num_layers=num_layers,
+            batch_first=True,
+            bidirectional=True,
+            sort=True,
+            dropout=dropout,
+            allow_zero_length=True,
+        )
+        self.prosody_gru_linear = nn.Sequential(
+            nn.Linear(2*d_cont_enc, d_cont_enc),
+            nn.ReLU()
+        )
+        self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
+        self.prosody_context_attention = SLA(d_model)
+
+        self.speaker_embedding = speaker_embedding
+        self.emotion_embedding = emotion_embedding
+
+    def forward(
+        self, history_speaker, history_emotion, history_lens, h_g_prosody_embs
+    ):
+        max_history_len = torch.max(history_lens)
+        history_masks = make_pad_mask(history_lens, max_history_len)
+        # Embedding
+        history_prosody_emb = self.prosody_emb_linear(h_g_prosody_embs)
+        history_speaker = self.speaker_linear(self.speaker_embedding(history_speaker))
+
+        history_prosody_enc = torch.cat([history_prosody_emb, history_speaker], dim=-1)
+
+        if self.emotion_embedding is not None:
+            history_emotion = self.emotion_linear(self.emotion_embedding(history_emotion))
+            history_prosody_enc = torch.cat([history_prosody_enc, history_emotion], dim=-1)
+
+        history_prosody_enc = self.prosody_enc_linear(history_prosody_enc)
+
+        # GRU
+        prosody_enc_past = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, history_lens))
+        prosody_enc_past = prosody_enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
+
+        # ↓new!
+        # Encoding
+        prosody_context_enc = self.prosody_context_attention(self.prosody_context_linear(prosody_enc_past))  # [B, d]
+
+        return prosody_context_enc

@@ -587,3 +587,12 @@
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/JSUT_5
         - jobID: 8860899
+
+    # Context Encoderがどれだけ動いているのか実験
+    - LINE_emotionprediction_1_CE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+            - 今回はevalは不要だし, むしろevalを除去するのに今までのコードの修正が必要なので面倒
+            - 単にepoch数より大きい値にすればevalしなくなるのでそうする
+        - jobID:
