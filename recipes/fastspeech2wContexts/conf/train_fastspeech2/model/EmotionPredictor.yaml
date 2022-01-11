@@ -19,7 +19,7 @@ netG:
   linear_hidden_dim: 512
   use_context_encoder: True
   use_prosody_encoder: False
-  use_peprosody_encoder: True
+  use_peprosody_encoder: False
 
   # 以下, 不要な変数. 実装を簡単にするため無駄だけどおいている.
   pitch_feature_level:

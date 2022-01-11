@@ -7,7 +7,7 @@
             - これがないと, 先頭のhistoryが0になって全部0でエラーとかが起きる.
             - あとは今になって思えばこの情報はかなり重要そう
     - LINE_wContext_2
-        - out_LINE_woITAKO_before_ITAKOから作ったもの.
+        - out_LINE_woITAKO_before_emotionから作ったもの.
     - LINE_wContextwProsody
         - out_LINE_woITAKOから作ったもの.
     - LINE_wContextwProsody_2: dialogue_infoが間違っていた！要修正.
@@ -25,6 +25,10 @@
         - prosody embとして, pitchとenergyを利用するもの. wavとtextgrid(or lab)を指定することで利用する.
         - 今までのprosody embとしてpitch, energyを格納する.
         - pitch, energyをちゃんと標準化して利用.
+    - LINE_wContextwPEProsody_3
+        - LINE_wContextwPEProsody_2のemotion1つ前version.
+        - 今まではStudentsはemotionを書き換えていなかった.
+        - これもそれに従う(どうせ使わないので)
 
 - exp
     - LINE_wContext_1
@@ -645,3 +649,25 @@
         - pretrain: None
         - eval_epoch_interval: 600
         - ReLUが最後に入っていたのを修正
+    
+    # 以下, emotionを1つ前のものを予測する
+    - LINE_emotionprediction_11_CE
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_12_PEPCE
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_13_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_14_CE_woCurrent
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_15_CE_PEPCE_woCurrent
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
