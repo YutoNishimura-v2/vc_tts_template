@@ -734,6 +734,21 @@
         - pretrain: None
         - eval_epoch_interval: 600
         - GRUを修正したので比較用にやり直し
+    - LINE_emotionprediction_31_CE
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したので比較用にやり直し
+    - LINE_emotionprediction_32_PEPCE
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したので比較用にやり直し
+    - LINE_emotionprediction_33_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したので比較用にやり直し
     
     # 修正したので, EMO1について動くのか確認
     - LINE_emotionprediction_25_CE
@@ -747,6 +762,21 @@
         - eval_epoch_interval: 600
         - GRUを修正したのでやり直し
     - LINE_emotionprediction_27_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したのでやり直し
+    - LINE_emotionprediction_28_CE_hist_len_1
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したのでやり直し
+    - LINE_emotionprediction_29_PEPCE_hist_len_1
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したのでやり直し
+    - LINE_emotionprediction_30_CE_PEPCE_hist_len_1
         - spk: LINE_wContextwPEProsody_2
         - pretrain: None
         - eval_epoch_interval: 600
