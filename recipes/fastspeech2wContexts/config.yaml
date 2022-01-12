@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_3"
+spk: "LINE_wContextwPEProsody_2"
 
 # exp tag(for managing experiments)
-tag: "LINE_emotionprediction_14_CE_woCurrent"
+tag: "LINE_emotionprediction_25_CE"
 
 sample_rate: 22050
 
@@ -21,9 +21,9 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-wav_root: "../../../dataset/out_LINE_woITAKO_before_emotion/LINE/wav/22050"
-lab_root: "../../../dataset/out_LINE_woITAKO_before_emotion/fullcontext"
-dialogue_info: "../../../dataset/out_LINE_woITAKO_before_emotion/dialogue_info.txt"
+wav_root: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050"
+lab_root: "../../../dataset/out_LINE_woITAKO/fullcontext"
+dialogue_info: "../../../dataset/out_LINE_woITAKO/dialogue_info.txt"
 
 n_jobs: 8
 
@@ -64,8 +64,8 @@ model_config_paths:
 pretrained_checkpoints:
 ## そうではなく, pitch, energyを利用したい場合は以下を埋める
 ## labかtextgridは片方を埋めればよい
-input_wav_paths: "../../../dataset/out_LINE_woITAKO_before_emotion/LINE/wav/22050,../../../dataset/out_LINE_MStudent/LINE_MStudent/wav/22050,../../../dataset/out_LINE_FStudent/LINE_FStudent/wav/22050"
-input_lab_paths: "../../../dataset/out_LINE_woITAKO_before_emotion/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
+input_wav_paths: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050,../../../dataset/out_LINE_MStudent/LINE_MStudent/wav/22050,../../../dataset/out_LINE_FStudent/LINE_FStudent/wav/22050"
+input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
 input_textgrid_paths:
 emb_speakers: "Teacher,MStudent,FStudent"
 

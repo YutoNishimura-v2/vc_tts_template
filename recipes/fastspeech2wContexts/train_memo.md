@@ -671,3 +671,75 @@
         - spk: LINE_wContextwPEProsody_3
         - pretrain: None
         - eval_epoch_interval: 600
+    - LINE_emotionprediction_16_PEPCE_histlen_1
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - pitch, energyの正解が入っているのに予測できないのはやばい.
+        - なので, ほんとにそれだけを与えてみたらどうなるのかをみる.
+    - LINE_emotionprediction_16_PEPCE_histlen_1_dropout_0
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - embにする際にdropoutが強すぎる気がするので, 0.0にしてみて実験
+        - びっくりするほど変化なし. やめる.
+    - LINE_emotionprediction_17_PEPCE_histlen_1_woGRU
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - PEPCEの中のGRUを亡き者にして、
+            - `history_prosody_enc = self.prosody_enc_linear(history_prosody_enc).squeeze(1)`
+            - ここをそのまま出力することにした.
+            - なので, 構造としてはほとんどlinearのみ
+    - LINE_emotionprediction_18_PEPCE_histlen_1_woGRU_small_params
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - すべてのパラメタを半分にしてみた. 果たして.
+    - LINE_emotionprediction_19_PEPCE_histlen_1_woGRU_small_params_woConv1d
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - Conv1dもなくしてみて, pitch, energyの2-dimのテンソルを直接GRUに流し込むようにした.
+    - LINE_emotionprediction_20_PEPCE_histlen_1_woGRU_small_params_wConv1d_revised
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - Conv1dのviewのやり方を変えてみた
+    - LINE_emotionprediction_21_PEPCE_histlen_1_woGRU_small_params_wConv1d_revised_wSLA
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUでなくSLAでglobal prosody embを作ってみた
+    - LINE_emotionprediction_22_CE_histlen_1
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したので比較用にやり直し
+    - LINE_emotionprediction_23_PEPCE_histlen_1
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したので比較用にやり直し
+    - LINE_emotionprediction_24_CE_PEPCE_histlen_1
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したので比較用にやり直し
+    
+    # 修正したので, EMO1について動くのか確認
+    - LINE_emotionprediction_25_CE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したのでやり直し
+    - LINE_emotionprediction_26_PEPCE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したのでやり直し
+    - LINE_emotionprediction_27_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - GRUを修正したのでやり直し
