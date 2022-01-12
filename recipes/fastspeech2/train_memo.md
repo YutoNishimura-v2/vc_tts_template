@@ -661,6 +661,22 @@
         - pretrain: JSUT_6
         - 500epoch
         - jobID: 
+    
+    # GMMのためのデータ量増強, やり直し2. GRUdebug後
+    - LINE_64_JSUT_NICT_LINE_wo_Teacher_FS
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. 公平性のため, FSもこれで訓練.
+        - multi-speaker対応, binなし.
+        - jobID: 8950959
+    - LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM. 話者性抜いたもの.
+        - speaker ind = True
+        - jobID: 8950963
 ## 主要な実験
 
 ## 知見
