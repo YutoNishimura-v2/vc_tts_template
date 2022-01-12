@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from torch import Tensor
+from torch.autograd import Variable
 
 
 class Transpose(nn.Module):
@@ -139,7 +140,7 @@ class GRUwSort(nn.Module):
     """
     def __init__(self, input_size, hidden_size, num_layers,
                  batch_first, bidirectional, sort, dropout=0.0,
-                 allow_zero_length=False) -> None:
+                 allow_zero_length=False, need_last=False) -> None:
         super().__init__()
         self.gru = nn.GRU(
             input_size=input_size, hidden_size=hidden_size, num_layers=num_layers,
@@ -149,6 +150,7 @@ class GRUwSort(nn.Module):
         self.batch_first = batch_first
         self.zero_num = 0
         self.allow_zero_length = allow_zero_length
+        self.need_last = need_last
 
         self.output_dim = hidden_size * 2 if bidirectional is True else hidden_size
 
@@ -170,19 +172,15 @@ class GRUwSort(nn.Module):
         if self.allow_zero_length is True:
             x, lens = self.remove_zeros(x, lens)
 
-        if len(lens) > 0:
-            x = pack_padded_sequence(x, lens, batch_first=self.batch_first)
-            out = self.gru(x)[0]
-            out, _ = pad_packed_sequence(out, batch_first=self.batch_first)
-        else:
-            if self.allow_zero_length is True:
-                # lensがall zeroだった場合.
-                out = torch.zeros(0, x.size(1), self.output_dim).to(x.device)
-            else:
-                raise RuntimeError(f"lens: {lens}. データがおかしい可能性があるので確認しましょう.")
+        x = pack_padded_sequence(x, lens, batch_first=self.batch_first)
+        out, _ = self.gru(x)
+        out, _ = pad_packed_sequence(out, batch_first=self.batch_first)
 
         if self.allow_zero_length is True:
             out = self.restore_zeros(out)
+
+        if self.need_last is True:
+            out = self.get_last_timestep(out, lens)
 
         if self.sort is True:
             out = out[inv_sort_idx]
@@ -190,17 +188,29 @@ class GRUwSort(nn.Module):
         return out
 
     def remove_zeros(self, x, lens):
-        # len = 0のものを取り除く.
+        # 最新実装ではもはやremoveしていないことに注意
         self.zero_num = np.sum(lens == 0)
         if self.zero_num == 0:
             return x, lens
-        x = x[:-self.zero_num]
-        lens = lens[:-self.zero_num]
+        # 1にしておけば, 最後のget_last_timestepでも実装が容易になる
+        lens[-self.zero_num:] = 1
+
+        if x.size(1) == 0:
+            raise ValueError("未対応です. xのtimeは少なくとも1以上にしてください.")
 
         return x, lens
 
     def restore_zeros(self, x):
-        padding = torch.zeros((self.zero_num, x.size(1), x.size(2))).to(x.device)
-        x = torch.cat([x, padding], dim=0)
-
+        if self.zero_num > 0:
+            x[-self.zero_num:] = 0.0
         return x
+
+    def get_last_timestep(self, out, lens):
+        idx = (torch.LongTensor(lens) - 1).view(-1, 1).expand(
+            len(lens), out.size(2))
+        time_dimension = 1 if self.batch_first else 0
+        idx = idx.unsqueeze(time_dimension).to(out.device)
+        out = out.gather(
+            time_dimension, Variable(idx)
+        ).squeeze(time_dimension)
+        return out

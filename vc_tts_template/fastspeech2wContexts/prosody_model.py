@@ -194,15 +194,14 @@ class PEProsodyEncoder(nn.Module):
         if pitch_bins is None:
             # n_binsがNoneなら, 渡されるpitch_embeddingはnn.Sequential
             self.hidden_sise = pitch_embedding[0].out_channels  # type:ignore
-            # gru_input_size = self.hidden_sise  # type:ignore
             gru_input_size = self.hidden_sise * 2  # type:ignore
         else:
             gru_input_size = pitch_embedding.embedding_dim * 2  # type:ignore
-
+        # 最初の発話の場合, hist_len=0になるため, allow_zeroが必要
         self.global_bi_gru = GRUwSort(
             input_size=gru_input_size, hidden_size=peprosody_encoder_gru_dim // 2,
             num_layers=peprosody_encoder_gru_num_layer, batch_first=True, bidirectional=True,
-            sort=True, allow_zero_length=True
+            sort=True, allow_zero_length=True, need_last=True
         )
 
         self.pitch_bins = pitch_bins
@@ -256,16 +255,15 @@ class PEProsodyEncoder(nn.Module):
                 torch.bucketize(h_energies, self.energy_bins)
             )
         else:
-            h_pitches = h_pitches.view(h_pitches.size(0), -1).unsqueeze(-1)
-            h_energies = h_energies.view(h_energies.size(0), -1).unsqueeze(-1)
+            h_pitches = h_pitches.view(-1, h_pitches.size(-1)).unsqueeze(-1)
+            h_energies = h_energies.view(-1, h_energies.size(-1)).unsqueeze(-1)
 
             h_pitch_embs = self.pitch_embedding(
                 h_pitches.transpose(1, 2)
-            ).transpose(1, 2).view(h_pitches.size(0), hist_len, -1, self.hidden_sise)
+            ).transpose(1, 2).view(-1, hist_len, h_pitches.size(1), self.hidden_sise)
             h_energy_embs = self.energy_embedding(
                 h_energies.transpose(1, 2)
-            ).transpose(1, 2).view(h_energies.size(0), hist_len, -1, self.hidden_sise)
-        # h_prosody_embs = h_pitch_embs + h_energy_embs
+            ).transpose(1, 2).view(-1, hist_len, h_energies.size(1), self.hidden_sise)
         h_prosody_embs = torch.concat([h_pitch_embs, h_energy_embs], dim=-1)
 
         # GRUによるglobal prosody化
@@ -274,8 +272,7 @@ class PEProsodyEncoder(nn.Module):
         )
         h_prosody_embs_lens = h_prosody_embs_lens.contiguous().view(-1)
 
-        h_g_prosody_embs = self.global_bi_gru(h_prosody_embs, h_prosody_embs_lens)[:, -1, :]
-
+        h_g_prosody_embs = self.global_bi_gru(h_prosody_embs, h_prosody_embs_lens)
         h_g_prosody_embs = h_g_prosody_embs.contiguous().view(-1, hist_len, h_g_prosody_embs.size(-1))
         return h_g_prosody_embs
 

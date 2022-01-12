@@ -245,7 +245,7 @@ def moving_average_(model, model_test, beta=0.9999):
 plot_cnt = 1
 
 
-def plot_grad_flow(named_parameters, fig_name="", save_cnt=1):
+def plot_grad_flow(named_parameters, fig_name="", save_cnt=1, scale="linear"):
     # insert after loss.backward()
     global plot_cnt
     ave_grads = []
@@ -253,7 +253,11 @@ def plot_grad_flow(named_parameters, fig_name="", save_cnt=1):
     for n, p in named_parameters:
         if(p.requires_grad) and ("bias" not in n):
             layers.append(n)
-            ave_grads.append(p.grad.abs().mean().cpu().numpy())
+            avg_grad = p.grad.abs().mean().cpu().numpy()
+            if scale == "log":
+                ave_grads.append(np.log10(avg_grad+1e-6))
+            else:
+                ave_grads.append(avg_grad)
 
     if plot_cnt == 1:
         plt.figure(figsize=(50, 10))

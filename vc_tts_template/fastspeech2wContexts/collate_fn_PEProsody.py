@@ -39,7 +39,7 @@ def get_peprosody_embs(
 
     for _ in range(use_hist_num - len(hist_embs)):
         # current len > hist len の時, paddingすると大分無駄があるので切る.
-        hist_embs.append(np.zeros_like(current_emb)[:2, :])
+        hist_embs.append(np.zeros_like(current_emb)[:1, :])
         history_speakers.append("PAD")
         history_emotions.append("PAD")
 

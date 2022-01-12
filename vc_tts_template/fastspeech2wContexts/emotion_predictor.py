@@ -1,5 +1,6 @@
 from typing import Dict
 
+import torch
 import torch.nn as nn
 
 from vc_tts_template.fastspeech2wContexts.context_encoder import (
@@ -229,10 +230,13 @@ class EmotionPredictorLoss(nn.Module):
     def forward(self, inputs, predictions):
         emotions = inputs[2]
         loss = self.loss_fn(predictions, emotions)
+        correct_num = torch.sum(torch.argmax(predictions, dim=-1) == emotions)
+        acc = correct_num.item() / len(emotions)
 
         loss_values = {
+            "accuracy": acc,
             "class_loss": loss.item(),
-            "total_loss": loss.item()
+            "total_loss": loss.item(),
         }
 
         return loss, loss_values
