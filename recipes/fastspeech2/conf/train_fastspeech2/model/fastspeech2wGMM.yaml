@@ -54,8 +54,8 @@ netG:
   prosody_spk_independence: False
   local_prosody: True
   global_prosody: False
-  # stats:
-  stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
+  stats:
+  # stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
   speakers:
   # speakers: {"JSUT": 0, "NICT": 1, "Teacher": 2, "FStudent": 3, "MStudent": 4}
   emotions:

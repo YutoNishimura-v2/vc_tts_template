@@ -648,7 +648,19 @@
         - 500epoch
         - jobID: 8858029
 
-
+    # GRUの修正に伴ったFS+GMMの再実行
+    - JSUT_6
+        - spk: jsut
+        - pretrain: None
+        - 500epoch
+        - FS+GMM修正版, statsなし
+        - vs. JSUT_3. stats=Noneの違いもあるけど.
+        - jobID: 8942891
+    - LINE_63_FS_GMM_pretrain_JSUT_6
+        - spk: LINE_3
+        - pretrain: JSUT_6
+        - 500epoch
+        - jobID: 
 ## 主要な実験
 
 ## 知見
