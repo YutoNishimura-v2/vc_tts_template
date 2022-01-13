@@ -86,6 +86,8 @@ train:
     _target_: vc_tts_template.fastspeech2wContexts.emotion_predictor.EmotionPredictorLoss
     pitch_feature_level:
     energy_feature_level:
+    emotion_label_dict: {"Normal": 1, "Happy": 2, "Sad": 3, "Angry": 4}
+    sum_emotions: ["Sad", "Angry"]
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.

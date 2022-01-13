@@ -246,12 +246,12 @@ class EmotionPredictorLoss(nn.Module):
         tgts = emotions.cpu().numpy()
 
         # init
-        for tgt in tgts:
+        for emo in self.emotion2id.keys():
             loss_values[
-                "total-num_" + self.id2emotion[tgt]
+                "total-num_" + emo
             ] = 0
             loss_values[
-                "total-collect-num_" + self.id2emotion[tgt]
+                "total-collect-num_" + emo
             ] = 0
         if len(self.sum_emotions) > 0:
             loss_values[

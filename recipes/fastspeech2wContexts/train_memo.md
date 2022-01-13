@@ -781,3 +781,32 @@
         - pretrain: None
         - eval_epoch_interval: 600
         - GRUを修正したのでやり直し
+
+    # EmotionPredictionで新しいPEPCEの構造を探る
+    - LINE_emotionprediction_34_CE_wAttention_saito
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - currentとhist_lenでattentionを取ってみる.
+        - 齋藤先生案. currentとpastでattentionを取ってそれを結果とする.
+    - LINE_emotionprediction_35_CE_wAttention_nishimura
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - currentとhist_lenでattentionを取ってみる.
+        - 西邑案. 上の結果に, currentをcatしてlinear通して出力という, 元論文に近いやり方.
+
+    - LINE_emotionprediction_36_CE_PEPCE_wAttention_nishimura
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - currentとhist_lenでattentionを取ってみる.
+        - 西邑案. 上の結果に, currentをcatしてlinear通して出力という, 元論文に近いやり方.
+        - PEPCEでも, queryをcurrentにすることでよりcurrentにとって有用な情報をPEPCEから取り出す構造へ.
+    - LINE_emotionprediction_37_CE_PEPCE_wAttention_saito
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - currentとhist_lenでattentionを取ってみる.
+        - 上のやつの先生ver.
+        

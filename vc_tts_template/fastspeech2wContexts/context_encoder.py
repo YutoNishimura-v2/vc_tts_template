@@ -22,6 +22,7 @@ class ConversationalContextEncoder(nn.Module):
         text_emb_size,
         speaker_embedding,
         emotion_embedding,
+        current_attention=True,
     ):
         super(ConversationalContextEncoder, self).__init__()
         d_model = d_encoder_hidden
@@ -57,11 +58,19 @@ class ConversationalContextEncoder(nn.Module):
             nn.ReLU()
         )
 
-        self.context_linear = nn.Linear(d_cont_enc, d_model)
-        self.context_attention = SLA(d_model)
+        if current_attention is True:
+            # 基本Trueのほうが性能がいいです.
+            self.context_value_linear = nn.Linear(d_cont_enc, d_model)
+            self.context_query_linear = nn.Linear(d_cont_enc, d_model)
+            self.context_attention = SLA_wQuery(d_model)
+            self.context_linear = nn.Linear(d_cont_enc + d_model, d_model)
+        else:
+            self.context_linear = nn.Linear(d_cont_enc, d_model)
+            self.context_attention = SLA(d_model)
 
         self.speaker_embedding = speaker_embedding
         self.emotion_embedding = emotion_embedding
+        self.current_attention = current_attention
 
     def forward(
         self, text_emb, speaker, emotion, history_text_emb, history_speaker, history_emotion, history_lens
@@ -92,8 +101,16 @@ class ConversationalContextEncoder(nn.Module):
 
         # Encoding
         # context_enc = enc_past
-        context_enc = torch.cat([enc_current, enc_past], dim=1)
-        context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
+        if self.current_attention is True:
+            context_enc = self.context_attention(
+                self.context_query_linear(enc_current), self.context_value_linear(enc_past),
+            )  # [B, d]
+            context_enc = self.context_linear(
+                torch.cat([enc_current.squeeze(1), context_enc], dim=-1)
+            )
+        else:
+            context_enc = torch.cat([enc_current, enc_past], dim=1)
+            context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
 
         return context_enc
 
@@ -107,9 +124,13 @@ class SLA(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, encoding, mask=None):
+        # encoding: (B, time, d_enc)
+        # mask: (B, time)
         with torch.cuda.amp.autocast(enabled=False):
             encoding = encoding.to(torch.float32)
             attn = self.linear(encoding)
+
+        # attn: (B, time, 1)
         if mask is not None:
             attn = attn.masked_fill(mask.unsqueeze(-1), -np.inf)
             aux_mask = (attn == -np.inf).all(self.softmax.dim).unsqueeze(self.softmax.dim)
@@ -117,6 +138,34 @@ class SLA(nn.Module):
         score = self.softmax(attn).transpose(-2, -1)  # [B, 1, T]
         fused_rep = torch.matmul(score, encoding).squeeze(1)  # [B, d]
 
+        return fused_rep
+
+
+class SLA_wQuery(nn.Module):
+    """ Sequence Level Attention
+    Queryを取れるようにして, そのqueryでattentionをとる.
+    """
+
+    def __init__(self, d_enc):
+        super(SLA_wQuery, self).__init__()
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, query, encoding, mask=None):
+        # query: (B, 1, d_enc)
+        # encoding: (B, time, d_enc)
+        # mask: (B, time)
+        with torch.cuda.amp.autocast(enabled=False):
+            encoding = encoding.to(torch.float32)
+            query = query.to(torch.float32)
+            attn = torch.bmm(encoding, query.transpose(1, 2))
+
+        # attn: (B, time, 1)
+        if mask is not None:
+            attn = attn.masked_fill(mask.unsqueeze(-1), -np.inf)
+            aux_mask = (attn == -np.inf).all(self.softmax.dim).unsqueeze(self.softmax.dim)
+            attn = attn.masked_fill(aux_mask, 0)  # Remove all -inf along softmax.dim
+        score = self.softmax(attn).transpose(-2, -1)
+        fused_rep = torch.matmul(score, encoding).squeeze(1)  # [B, d]
         return fused_rep
 
 
@@ -133,6 +182,7 @@ class ConversationalProsodyContextEncoder(nn.Module):
         g_prosody_emb_size,
         speaker_embedding,
         emotion_embedding,
+        current_attention=True,
     ):
         super(ConversationalProsodyContextEncoder, self).__init__()
         d_model = d_encoder_hidden
@@ -189,15 +239,25 @@ class ConversationalProsodyContextEncoder(nn.Module):
             nn.ReLU()
         )
 
-        self.context_linear = nn.Linear(d_cont_enc, d_model)
-        self.context_attention = SLA(d_model)
+        if current_attention is True:
+            self.context_query_linear = nn.Linear(d_cont_enc, d_model)
+            self.context_value_linear = nn.Linear(d_cont_enc, d_model)
+            self.context_linear = nn.Linear(d_cont_enc + d_model, d_model)
+            self.context_attention = SLA_wQuery(d_model)
 
-        # ↓new!
-        self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
-        self.prosody_context_attention = SLA(d_model)
+            self.prosody_context_query_linear = nn.Linear(d_cont_enc, d_model)
+            self.prosody_context_value_linear = nn.Linear(d_cont_enc, d_model)
+            self.prosody_context_attention = SLA_wQuery(d_model)
+        else:
+            self.context_linear = nn.Linear(d_cont_enc, d_model)
+            self.context_attention = SLA(d_model)
+
+            self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
+            self.prosody_context_attention = SLA(d_model)
 
         self.speaker_embedding = speaker_embedding
         self.emotion_embedding = emotion_embedding
+        self.current_attention = current_attention
 
     def forward(
         self, text_emb, speaker, emotion,
@@ -234,23 +294,26 @@ class ConversationalProsodyContextEncoder(nn.Module):
         prosody_enc_past = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, history_lens))
         prosody_enc_past = prosody_enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
 
-        # ↓new!
-        # Encoding
-        # context_enc = enc_past
-        context_enc = torch.cat([enc_current, enc_past], dim=1)
-        context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
-        prosody_context_enc = self.prosody_context_attention(self.prosody_context_linear(prosody_enc_past))  # [B, d]
+        if self.current_attention is True:
+            context_enc = self.context_attention(
+                self.context_query_linear(enc_current), self.context_value_linear(enc_past)
+            )  # [B, d]
+            prosody_context_enc = self.prosody_context_attention(
+                self.prosody_context_query_linear(enc_current), self.prosody_context_value_linear(prosody_enc_past)
+            )  # [B, d]
+            context_enc = self.context_linear(
+                torch.cat([enc_current.squeeze(1), context_enc], dim=-1)
+            )
+        else:
+            context_enc = torch.cat([enc_current, enc_past], dim=1)
+            context_enc = self.context_attention(
+                self.context_linear(context_enc)
+            )  # [B, d]
+            prosody_context_enc = self.prosody_context_attention(
+                self.prosody_context_linear(prosody_enc_past)
+            )  # [B, d]
 
         return context_enc + prosody_context_enc
-
-        # ↓旧バージョン
-        # enc_past = enc_past + prosody_enc_past
-
-        # # Encoding
-        # context_enc = torch.cat([enc_current, enc_past], dim=1)
-        # context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
-
-        # return context_enc
 
 
 class ConversationalProsodyEncoder(nn.Module):
