@@ -855,6 +855,55 @@
         - spk: LINE_wContextwPEProsody_5
         - pretrain: None
         - eval_epoch_interval: 600
-    - LINE_emotionprediction_45_CE_PEPCE_mel_kernel_15_drop_0
-    - LINE_emotionprediction_46_CE_PEPCE_mel_kernel_15_drop_2
-    - LINE_emotionprediction_47_CE_PEPCE_mel_kernel_15_drop_5
+    - LINE_emotionprediction_45_CE_PEPCE_mel_woAttention
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_46_CE_PEPCE_mel_kernel_9_drop_0
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_47_CE_PEPCE_mel_kernel_9_drop_2
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_48_CE_PEPCE_mel_kernel_9_drop_5
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_49_CE_PEPCE_mel_kernel_15_drop_0
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_50_CE_PEPCE_mel_kernel_15_drop_2
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_51_CE_PEPCE_mel_kernel_15_drop_5
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_52_CE_PEPCE_mel_kernel_31_drop_0
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_53_CE_PEPCE_mel_kernel_31_drop_2
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_54_CE_PEPCE_mel_kernel_31_drop_5
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_55_CE_PEPCE_mel_kernel_63_drop_0
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_56_CE_PEPCE_mel_kernel_63_drop_2
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+    - LINE_emotionprediction_57_CE_PEPCE_mel_kernel_63_drop_5
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
