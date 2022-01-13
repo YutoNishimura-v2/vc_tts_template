@@ -222,10 +222,16 @@ class EmotionPredictor(nn.Module):
 class EmotionPredictorLoss(nn.Module):
     """ EmotionPredictor Loss """
 
-    def __init__(self, pitch_feature_level, energy_feature_level):
+    def __init__(
+        self, pitch_feature_level, energy_feature_level,
+        emotion_label_dict, sum_emotions
+    ):
         super().__init__()
 
         self.loss_fn = nn.CrossEntropyLoss()
+        self.emotion2id = emotion_label_dict
+        self.id2emotion = {v: k for k, v in self.emotion2id.items()}
+        self.sum_emotions = sum_emotions
 
     def forward(self, inputs, predictions):
         emotions = inputs[2]
@@ -233,10 +239,42 @@ class EmotionPredictorLoss(nn.Module):
         correct_num = torch.sum(torch.argmax(predictions, dim=-1) == emotions)
         acc = correct_num.item() / len(emotions)
 
-        loss_values = {
+        loss_values = {}
+
+        # emotionの登場回数を見る
+        preds = torch.argmax(predictions, dim=-1).cpu().numpy()
+        tgts = emotions.cpu().numpy()
+
+        # init
+        for tgt in tgts:
+            loss_values[
+                "total-num_" + self.id2emotion[tgt]
+            ] = 0
+            loss_values[
+                "total-collect-num_" + self.id2emotion[tgt]
+            ] = 0
+        if len(self.sum_emotions) > 0:
+            loss_values[
+                "total-num_" + "+".join(self.sum_emotions)
+            ] = 0
+            loss_values[
+                "total-collect-num_" + "+".join(self.sum_emotions)
+            ] = 0
+
+        for pre, tgt in zip(preds, tgts):
+            loss_values["total-num_" + self.id2emotion[tgt]] += 1
+            if self.id2emotion[tgt] in self.sum_emotions:
+                loss_values["total-num_" + "+".join(self.sum_emotions)] += 1
+
+            if pre == tgt:
+                loss_values["total-collect-num_" + self.id2emotion[tgt]] += 1
+                if self.id2emotion[tgt] in self.sum_emotions:
+                    loss_values["total-collect-num_" + "+".join(self.sum_emotions)] += 1
+
+        loss_values.update({
             "accuracy": acc,
             "class_loss": loss.item(),
             "total_loss": loss.item(),
-        }
+        })
 
         return loss, loss_values

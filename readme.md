@@ -302,6 +302,10 @@ synthesis.pyがデータをロードしたり, モデルを用意したりする
         - ↑修正. 最後のkeyを, best_model保存の基準にした.
             - 順序は, python3.6以降保持されるようになったらしい.
     - これを作成するだけであとはインスタンス化も自動.
+    - (202201013追記):
+        - クラス分類問題に対応
+        - その際には, 特殊なlossの持たせ方が必要.
+        - `vc_tts_template/fastspeech2wContexts/emotion_predictor.py` これを参考に.
 - optimizer
     - originalの場合, pytorchと同じメソッド名で動くもでさえあればok.
         - ただし, lr_schedulerは, set_optimizerというmethodで

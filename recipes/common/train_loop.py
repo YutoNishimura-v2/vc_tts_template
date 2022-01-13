@@ -127,8 +127,15 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
 
             # Epoch ごとのロスを出力
             for key, val in running_losses.items():
-                ave_loss = val / (len(data_loaders[phase]) * group_size)
-                writers[phase].add_scalar(f"loss/{key}", ave_loss, epoch)
+                if "total-num_" in key:
+                    class_name = key.replace("total-num_", "")
+                    acc = running_losses["total-collect-num_" + class_name] / running_losses[key]
+                    writers[phase].add_scalar(f"loss/acc_per_class/{class_name}", acc, epoch)
+                elif "total-collect-num_" in key:
+                    continue
+                else:
+                    ave_loss = val / (len(data_loaders[phase]) * group_size)
+                    writers[phase].add_scalar(f"loss/{key}", ave_loss, epoch)
 
             ave_loss = running_losses[list(running_losses.keys())[-1]] / (len(data_loaders[phase]) * group_size)
             if not train and ave_loss < best_loss:
