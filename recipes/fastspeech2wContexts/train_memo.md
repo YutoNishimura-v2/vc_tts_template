@@ -33,7 +33,8 @@
         - out_LINE_woITAKOから作る. 
         - prosody embとして, melを利用するもの. wavとtextgrid(or lab)を指定することで利用する.
         - 今までのprosody embとしてmelを格納する.
-
+    - LINE_wContextwPEProsody_5
+        - LINE_wContextwPEProsody_4のbefore emo ver.
 - exp
     - LINE_wContext_1
         - spk: LINE_wContext
@@ -821,3 +822,36 @@
         - eval_epoch_interval: 600
         - vs. LINE_emotionprediction_36_CE_PEPCE_wAttention_nishimura
         - melを使ったPEProsodyの初挑戦
+    - LINE_emotionprediction_39_CE_PEPCE_new_struct
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - vs. LINE_emotionprediction_36_CE_PEPCE_wAttention_nishimura
+        - pitch embeddingのように, melにもconv1dをかけてみた
+    - LINE_emotionprediction_40_CE_PEPCE_new_struct_withCEpretrain
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_emotionprediction_35_CE_wAttention_nishimura
+        - eval_epoch_interval: 600
+        - CEでpretrainしてからなら？
+    - LINE_emotionprediction_41_CE_PEPCE_new_struct_withCEpretrain_2
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_emotionprediction_35_CE_wAttention_nishimura
+        - eval_epoch_interval: 600
+        - CEでpretrainしてからなら？
+        - lrをresetしなかったver.
+
+    # EMO2に切り替える
+    - LINE_emotionprediction_42_CE
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - acc出したやつはないので再実行
+    - LINE_emotionprediction_43_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - acc出したやつはないので再実行
+    - LINE_emotionprediction_44_CE_PEPCE_mel
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
