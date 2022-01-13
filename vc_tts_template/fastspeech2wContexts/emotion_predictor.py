@@ -40,6 +40,9 @@ class EmotionPredictor(nn.Module):
         use_prosody_encoder: bool,
         use_peprosody_encoder: bool,
         use_melprosody_encoder: bool,
+        mel_emb_dim: int,
+        mel_emb_kernel: int,
+        mel_emb_dropout: float,
         # garbege
         pitch_feature_level: int,
         energy_feature_level: int,
@@ -125,6 +128,10 @@ class EmotionPredictor(nn.Module):
                 pitch_embedding=None,
                 energy_embedding=None,
                 shere_embedding=False,  # 当然Trueは使えない
+                n_mel_channel=n_mel_channel,
+                mel_emb_dim=mel_emb_dim,
+                mel_emb_kernel=mel_emb_kernel,
+                mel_emb_dropout=mel_emb_dropout,
             )
         else:
             self.peprosody_encoder = None  # type:ignore

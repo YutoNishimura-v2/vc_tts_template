@@ -189,6 +189,9 @@ class PEProsodyEncoder(nn.Module):
         energy_bins: Optional[nn.Parameter] = None,
         shere_embedding: bool = True,
         n_mel_channel: int = 80,
+        mel_emb_dim: int = 256,
+        mel_emb_kernel: int = 31,
+        mel_emb_dropout: float = 0.5,
     ):
         super().__init__()
 
@@ -236,8 +239,17 @@ class PEProsodyEncoder(nn.Module):
             self.use_mel = False
         else:
             # melを用いる
-            gru_input_size = peprosody_encoder_gru_dim
-            self.mel_linear = nn.Linear(n_mel_channel, peprosody_encoder_gru_dim)
+            self.hidden_sise = mel_emb_dim
+            gru_input_size = mel_emb_dim
+            self.mel_embedding = nn.Sequential(  # type:ignore
+                nn.Conv1d(
+                    in_channels=n_mel_channel,
+                    out_channels=mel_emb_dim,  # type:ignore
+                    kernel_size=mel_emb_kernel,  # type:ignore
+                    padding=(mel_emb_kernel - 1) // 2,  # type:ignore
+                ),
+                nn.Dropout(mel_emb_dropout),  # type:ignore
+            )
             self.use_mel = True
 
         # 最初の発話の場合, hist_len=0になるため, allow_zeroが必要
@@ -278,7 +290,10 @@ class PEProsodyEncoder(nn.Module):
             h_prosody_embs = torch.concat([h_pitch_embs, h_energy_embs], dim=-1)
 
         else:
-            h_prosody_embs = self.mel_linear(h_prosody_embs)
+            h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
+            h_prosody_embs = self.mel_embedding(
+                h_prosody_embs.transpose(1, 2)
+            ).transpose(1, 2).view(-1, hist_len, h_prosody_embs.size(1), self.hidden_sise)
 
         # GRUによるglobal prosody化
         h_prosody_embs = h_prosody_embs.contiguous().view(

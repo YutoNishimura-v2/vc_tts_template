@@ -605,7 +605,12 @@ def setup(
                 "skipping loading optimizer and lr_scheduler's states!"
             )
         else:
-            optimizer.load_state_dict(checkpoint["optimizer_state"])
+            try:
+                optimizer.load_state_dict(checkpoint["optimizer_state"])
+            except ValueError:
+                logger.info(
+                    "skipping loading optimizer's states!"
+                )
             lr_scheduler.load_state_dict(checkpoint["lr_scheduler_state"])
 
     # loss
