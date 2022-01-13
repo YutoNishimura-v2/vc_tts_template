@@ -670,5 +670,10 @@ rsync -ah --no-i-r --info=progress2 \
     abci-a:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_1_sr22050_LINE_wContextwPEProsody_3_FS_GMM_CE_PEPCE_P2/ \
     /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_1_sr22050_LINE_wContextwPEProsody_3_FS_GMM_CE_PEPCE_P2/
 
+rsync -ah --no-i-r --info=progress2 \
+    abci-a:/home/acd13708uu/gcb50354/yuto_nishimura/vc_tts_template/recipes/fastspeech2/tensorboard/ \
+    /home/ynishimura/workspace/python/vc_tts_template/recipes/fastspeech2/tensorboard/
+
+
 # 重み消去
 find . -name "epoch*.pth" | xargs rm

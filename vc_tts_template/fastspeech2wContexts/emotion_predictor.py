@@ -39,6 +39,7 @@ class EmotionPredictor(nn.Module):
         use_context_encoder: bool,
         use_prosody_encoder: bool,
         use_peprosody_encoder: bool,
+        use_melprosody_encoder: bool,
         # garbege
         pitch_feature_level: int,
         energy_feature_level: int,
@@ -57,7 +58,7 @@ class EmotionPredictor(nn.Module):
         if use_prosody_encoder is True:
             # 外部で用意したglobal prosody embeddingを使う方式
             raise RuntimeError("未対応です")
-        if (use_context_encoder is True) and (use_peprosody_encoder is True):
+        if (use_context_encoder is True) and ((use_peprosody_encoder or use_melprosody_encoder) is True):
             self.context_encoder = ConversationalProsodyContextEncoder(
                 d_encoder_hidden=encoder_hidden_dim,
                 d_context_hidden=context_encoder_hidden_dim,
@@ -68,7 +69,7 @@ class EmotionPredictor(nn.Module):
                 speaker_embedding=self.speaker_emb,
                 emotion_embedding=self.emotion_emb,
             )
-        elif (use_context_encoder is True) and (use_peprosody_encoder is False):
+        elif (use_context_encoder is True) and ((use_peprosody_encoder or use_melprosody_encoder) is False):
             self.context_encoder = ConversationalContextEncoder(  # type:ignore
                 d_encoder_hidden=encoder_hidden_dim,
                 d_context_hidden=context_encoder_hidden_dim,
@@ -78,7 +79,7 @@ class EmotionPredictor(nn.Module):
                 speaker_embedding=self.speaker_emb,
                 emotion_embedding=self.emotion_emb,
             )
-        elif (use_context_encoder is False) and (use_peprosody_encoder is True):
+        elif (use_context_encoder is False) and ((use_peprosody_encoder or use_melprosody_encoder) is True):
             self.context_encoder = ConversationalProsodyEncoder(  # type:ignore
                 d_encoder_hidden=encoder_hidden_dim,
                 d_context_hidden=context_encoder_hidden_dim,
@@ -117,6 +118,14 @@ class EmotionPredictor(nn.Module):
                 energy_embedding=_energy_embedding,
                 shere_embedding=False,  # 当然Trueは使えない
             )
+        elif use_melprosody_encoder is True:
+            self.peprosody_encoder = PEProsodyEncoder(
+                peprosody_encoder_gru_dim,
+                peprosody_encoder_gru_num_layer,
+                pitch_embedding=None,
+                energy_embedding=None,
+                shere_embedding=False,  # 当然Trueは使えない
+            )
         else:
             self.peprosody_encoder = None  # type:ignore
 
@@ -130,6 +139,7 @@ class EmotionPredictor(nn.Module):
 
         self.use_context_encoder = use_context_encoder
         self.use_peprosody_encoder = use_peprosody_encoder
+        self.use_melprosody_encoder = use_melprosody_encoder
 
     def contexts_forward(
         self,
@@ -143,13 +153,14 @@ class EmotionPredictor(nn.Module):
         h_prosody_embs,
         h_prosody_embs_lens,
     ):
-        if self.use_peprosody_encoder is True:
+        if (self.use_peprosody_encoder or self.use_melprosody_encoder) is True:
             h_prosody_emb = self.peprosody_encoder(
                 h_prosody_embs,
                 h_prosody_embs_lens,
             )
 
-        if (self.use_context_encoder is True) and (self.use_peprosody_encoder is True):
+        if (self.use_context_encoder is True) and \
+                ((self.use_peprosody_encoder or self.use_melprosody_encoder) is True):
             context_enc = self.context_encoder(
                 c_txt_embs,
                 speakers,
@@ -160,7 +171,8 @@ class EmotionPredictor(nn.Module):
                 h_txt_emb_lens,
                 h_prosody_emb,
             )
-        elif (self.use_context_encoder is True) and (self.use_peprosody_encoder is False):
+        elif (self.use_context_encoder is True) and \
+                ((self.use_peprosody_encoder or self.use_melprosody_encoder) is False):
             context_enc = self.context_encoder(
                 c_txt_embs,
                 speakers,
@@ -170,7 +182,8 @@ class EmotionPredictor(nn.Module):
                 h_emotions,
                 h_txt_emb_lens,
             )
-        elif (self.use_context_encoder is False) and (self.use_peprosody_encoder is True):
+        elif (self.use_context_encoder is False) and \
+                ((self.use_peprosody_encoder or self.use_melprosody_encoder) is True):
             context_enc = self.context_encoder(
                 h_speakers,
                 h_emotions,

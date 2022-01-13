@@ -53,6 +53,7 @@ def get_parser():
     parser.add_argument("--log_base", type=str)
     parser.add_argument("--pitch_phoneme_averaging", type=int)
     parser.add_argument("--energy_phoneme_averaging", type=int)
+    parser.add_argument("--mel_mode", type=int)
     parser.add_argument("--n_jobs", type=int)
     return parser
 
@@ -178,7 +179,8 @@ def get_prosody_embeddings_wWav(
     input_wav_paths, input_lab_paths, input_textgrid_paths, output_dir,
     sample_rate, filter_length, hop_length, win_length,
     n_mel_channels, mel_fmin, mel_fmax, clip, log_base,
-    pitch_phoneme_averaging, energy_phoneme_averaging, n_jobs
+    pitch_phoneme_averaging, energy_phoneme_averaging,
+    mel_mode, n_jobs
 ):
     if (input_lab_paths is not None) and (input_textgrid_paths is not None):
         raise ValueError("labを利用したいのか, textgridを利用したいのか, どちらか一方のみを埋めてください")
@@ -222,13 +224,20 @@ def get_prosody_embeddings_wWav(
                 for wav_file, lab_file in zip(wav_files, lab_files)
             ]
             for future in tqdm(futures):
-                _, _, pitch, energy, _, utt_id = future.result()
-                prosody = np.stack([pitch, energy], -1)
-                np.save(
-                    output_dir_prosody / f"{utt_id}-feats.npy",
-                    prosody.astype(np.float32),
-                    allow_pickle=False,
-                )
+                _, mel, pitch, energy, _, utt_id = future.result()
+                if mel_mode is True:
+                    np.save(
+                        output_dir_prosody / f"{utt_id}-feats.npy",
+                        mel.astype(np.float32),
+                        allow_pickle=False,
+                    )
+                else:
+                    prosody = np.stack([pitch, energy], -1)
+                    np.save(
+                        output_dir_prosody / f"{utt_id}-feats.npy",
+                        prosody.astype(np.float32),
+                        allow_pickle=False,
+                    )
                 utt_ids.append(utt_id+'\n')
     with open(output_dir / "prosody_emb.list", "w") as f:
         f.writelines(utt_ids)
@@ -261,5 +270,5 @@ if __name__ == "__main__":
             args.sample_rate, args.filter_length, args.hop_length, args.win_length,
             args.n_mel_channels, args.mel_fmin, args.mel_fmax, args.clip, args.log_base,
             args.pitch_phoneme_averaging, args.energy_phoneme_averaging,
-            args.n_jobs,
+            args.mel_mode > 0, args.n_jobs,
         )

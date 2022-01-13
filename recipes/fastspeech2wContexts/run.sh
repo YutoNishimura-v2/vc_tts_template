@@ -59,7 +59,7 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
         --clip $clip --log_base $log_base \
         --pitch_phoneme_averaging $pitch_phoneme_averaging \
         --energy_phoneme_averaging $energy_phoneme_averaging \
-        --n_jobs $n_jobs
+        --mel_mode $mel_mode --n_jobs $n_jobs
 
     for s in ${datasets[@]}; do
         xrun python preprocess.py data/$s.list $wav_root $lab_root \

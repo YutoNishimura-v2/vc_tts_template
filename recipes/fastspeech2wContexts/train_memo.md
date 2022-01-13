@@ -29,6 +29,10 @@
         - LINE_wContextwPEProsody_2のemotion1つ前version.
         - 今まではStudentsはemotionを書き換えていなかった.
         - これもそれに従う(どうせ使わないので)
+    - LINE_wContextwPEProsody_4
+        - out_LINE_woITAKOから作る. 
+        - prosody embとして, melを利用するもの. wavとtextgrid(or lab)を指定することで利用する.
+        - 今までのprosody embとしてmelを格納する.
 
 - exp
     - LINE_wContext_1
@@ -809,4 +813,11 @@
         - eval_epoch_interval: 600
         - currentとhist_lenでattentionを取ってみる.
         - 上のやつの先生ver.
-        
+    
+    # Melを利用したPEProsodyを試す
+    - LINE_emotionprediction_38_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - vs. LINE_emotionprediction_36_CE_PEPCE_wAttention_nishimura
+        - melを使ったPEProsodyの初挑戦

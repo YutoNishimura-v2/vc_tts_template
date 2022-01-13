@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_2"
+spk: "LINE_wContextwPEProsody_4"
 
 # exp tag(for managing experiments)
-tag: "LINE_emotionprediction_25_CE"
+tag: "LINE_emotionprediction_38_CE_PEPCE"
 
 sample_rate: 22050
 
@@ -62,12 +62,14 @@ input_duration_paths:
 output_mel_file_paths:
 model_config_paths:
 pretrained_checkpoints:
-## そうではなく, pitch, energyを利用したい場合は以下を埋める
+## そうではなく, pitch, energy or mel を利用したい場合は以下を埋める
+## pitch, energy: mel_mode=0, mel: mel_mode=1
 ## labかtextgridは片方を埋めればよい
 input_wav_paths: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050,../../../dataset/out_LINE_MStudent/LINE_MStudent/wav/22050,../../../dataset/out_LINE_FStudent/LINE_FStudent/wav/22050"
 input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
 input_textgrid_paths:
 emb_speakers: "Teacher,MStudent,FStudent"
+mel_mode: 1
 
 ###########################################################
 #                TRAINING SETTING                         #
