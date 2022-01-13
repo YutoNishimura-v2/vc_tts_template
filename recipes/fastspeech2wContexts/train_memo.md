@@ -855,3 +855,6 @@
         - spk: LINE_wContextwPEProsody_5
         - pretrain: None
         - eval_epoch_interval: 600
+    - LINE_emotionprediction_45_CE_PEPCE_mel_kernel_15_drop_0
+    - LINE_emotionprediction_46_CE_PEPCE_mel_kernel_15_drop_2
+    - LINE_emotionprediction_47_CE_PEPCE_mel_kernel_15_drop_5
