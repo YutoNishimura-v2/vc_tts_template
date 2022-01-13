@@ -43,6 +43,7 @@ class EmotionPredictor(nn.Module):
         mel_emb_dim: int,
         mel_emb_kernel: int,
         mel_emb_dropout: float,
+        current_attention: bool,
         # garbege
         pitch_feature_level: int,
         energy_feature_level: int,
@@ -71,6 +72,7 @@ class EmotionPredictor(nn.Module):
                 g_prosody_emb_size=peprosody_encoder_gru_dim,
                 speaker_embedding=self.speaker_emb,
                 emotion_embedding=self.emotion_emb,
+                current_attention=current_attention,
             )
         elif (use_context_encoder is True) and ((use_peprosody_encoder or use_melprosody_encoder) is False):
             self.context_encoder = ConversationalContextEncoder(  # type:ignore

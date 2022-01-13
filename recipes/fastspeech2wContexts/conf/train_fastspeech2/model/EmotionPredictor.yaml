@@ -22,8 +22,9 @@ netG:
   use_peprosody_encoder: False
   use_melprosody_encoder: True
   mel_emb_dim: 256
-  mel_emb_kernel: 15
-  mel_emb_dropout: 0.0
+  mel_emb_kernel: 63
+  mel_emb_dropout: 0.5
+  current_attention: True
 
   # 以下, 不要な変数. 実装を簡単にするため無駄だけどおいている.
   pitch_feature_level:

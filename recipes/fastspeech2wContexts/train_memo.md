@@ -859,51 +859,32 @@
         - spk: LINE_wContextwPEProsody_5
         - pretrain: None
         - eval_epoch_interval: 600
+        - jobID: 8962347
     - LINE_emotionprediction_46_CE_PEPCE_mel_kernel_9_drop_0
         - spk: LINE_wContextwPEProsody_5
         - pretrain: None
         - eval_epoch_interval: 600
+        - 以下同じ.
+        - jobID: 8962353
     - LINE_emotionprediction_47_CE_PEPCE_mel_kernel_9_drop_2
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962358
     - LINE_emotionprediction_48_CE_PEPCE_mel_kernel_9_drop_5
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962363
     - LINE_emotionprediction_49_CE_PEPCE_mel_kernel_15_drop_0
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962366
     - LINE_emotionprediction_50_CE_PEPCE_mel_kernel_15_drop_2
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962368
     - LINE_emotionprediction_51_CE_PEPCE_mel_kernel_15_drop_5
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962571
     - LINE_emotionprediction_52_CE_PEPCE_mel_kernel_31_drop_0
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962578
     - LINE_emotionprediction_53_CE_PEPCE_mel_kernel_31_drop_2
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962582
     - LINE_emotionprediction_54_CE_PEPCE_mel_kernel_31_drop_5
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962588
     - LINE_emotionprediction_55_CE_PEPCE_mel_kernel_63_drop_0
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962591
     - LINE_emotionprediction_56_CE_PEPCE_mel_kernel_63_drop_2
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962594
     - LINE_emotionprediction_57_CE_PEPCE_mel_kernel_63_drop_5
-        - spk: LINE_wContextwPEProsody_5
-        - pretrain: None
-        - eval_epoch_interval: 600
+        - jobID: 8962596
