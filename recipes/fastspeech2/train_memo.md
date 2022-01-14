@@ -675,6 +675,7 @@
         - pretrain: None
         - 500epoch
         - pretrain用. GMM. 話者性抜いたもの.
+        - vs. LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
         - speaker ind = True
         - jobID: 8950963
 ## 主要な実験
