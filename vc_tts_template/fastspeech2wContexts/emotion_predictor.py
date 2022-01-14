@@ -27,6 +27,7 @@ class EmotionPredictor(nn.Module):
         text_emb_dim: int,
         peprosody_encoder_gru_dim: int,
         peprosody_encoder_gru_num_layer: int,
+        gru_bidirectional: bool,
         # variance predictor
         pitch_embed_kernel_size: int,
         pitch_embed_dropout: float,
@@ -73,6 +74,7 @@ class EmotionPredictor(nn.Module):
                 speaker_embedding=self.speaker_emb,
                 emotion_embedding=self.emotion_emb,
                 current_attention=current_attention,
+                gru_bidirectional=gru_bidirectional,
             )
         elif (use_context_encoder is True) and ((use_peprosody_encoder or use_melprosody_encoder) is False):
             self.context_encoder = ConversationalContextEncoder(  # type:ignore
@@ -83,6 +85,8 @@ class EmotionPredictor(nn.Module):
                 text_emb_size=text_emb_dim,
                 speaker_embedding=self.speaker_emb,
                 emotion_embedding=self.emotion_emb,
+                current_attention=current_attention,
+                gru_bidirectional=gru_bidirectional,
             )
         elif (use_context_encoder is False) and ((use_peprosody_encoder or use_melprosody_encoder) is True):
             self.context_encoder = ConversationalProsodyEncoder(  # type:ignore

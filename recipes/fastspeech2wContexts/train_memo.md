@@ -888,3 +888,20 @@
         - jobID: 8962594
     - LINE_emotionprediction_57_CE_PEPCE_mel_kernel_63_drop_5
         - jobID: 8962596
+    - LINE_emotionprediction_58_CE_bidirectional_false
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - acc出したやつはないので再実行
+        - jobID: 8963370
+    - LINE_emotionprediction_59_CE_PEPCE_bidirectional_false
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - acc出したやつはないので再実行
+        - jobID: 8963374
+    - LINE_emotionprediction_60_CE_PEPCE_mel_bidirectional_false
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - jobID: 8963381

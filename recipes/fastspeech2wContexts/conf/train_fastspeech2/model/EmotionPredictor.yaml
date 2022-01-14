@@ -8,6 +8,7 @@ netG:
   text_emb_dim: 768
   peprosody_encoder_gru_dim: 256
   peprosody_encoder_gru_num_layer: 2
+  gru_bidirectional: False
   # variance predictor
   pitch_embed_kernel_size: 9
   pitch_embed_dropout: 0.5
@@ -22,7 +23,7 @@ netG:
   use_peprosody_encoder: False
   use_melprosody_encoder: True
   mel_emb_dim: 256
-  mel_emb_kernel: 63
+  mel_emb_kernel: 31
   mel_emb_dropout: 0.5
   current_attention: True
 

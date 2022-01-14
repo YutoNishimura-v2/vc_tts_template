@@ -23,6 +23,7 @@ class ConversationalContextEncoder(nn.Module):
         speaker_embedding,
         emotion_embedding,
         current_attention=True,
+        gru_bidirectional=True,
     ):
         super(ConversationalContextEncoder, self).__init__()
         d_model = d_encoder_hidden
@@ -45,10 +46,10 @@ class ConversationalContextEncoder(nn.Module):
         )
         self.gru = GRUwSort(
             input_size=d_cont_enc,
-            hidden_size=d_cont_enc,
+            hidden_size=d_cont_enc if gru_bidirectional is True else d_cont_enc * 2,
             num_layers=num_layers,
             batch_first=True,
-            bidirectional=True,
+            bidirectional=gru_bidirectional,
             sort=True,
             dropout=dropout,
             allow_zero_length=True,
@@ -183,6 +184,7 @@ class ConversationalProsodyContextEncoder(nn.Module):
         speaker_embedding,
         emotion_embedding,
         current_attention=True,
+        gru_bidirectional=True,
     ):
         super(ConversationalProsodyContextEncoder, self).__init__()
         d_model = d_encoder_hidden
@@ -212,10 +214,10 @@ class ConversationalProsodyContextEncoder(nn.Module):
         )
         self.gru = GRUwSort(
             input_size=d_cont_enc,
-            hidden_size=d_cont_enc,
+            hidden_size=d_cont_enc if gru_bidirectional is True else d_cont_enc * 2,
             num_layers=num_layers,
             batch_first=True,
-            bidirectional=True,
+            bidirectional=gru_bidirectional,
             sort=True,
             dropout=dropout,
             allow_zero_length=True,
@@ -226,10 +228,10 @@ class ConversationalProsodyContextEncoder(nn.Module):
         )
         self.prosody_gru = GRUwSort(
             input_size=d_cont_enc,
-            hidden_size=d_cont_enc,
+            hidden_size=d_cont_enc if gru_bidirectional is True else d_cont_enc * 2,
             num_layers=num_layers,
             batch_first=True,
-            bidirectional=True,
+            bidirectional=gru_bidirectional,
             sort=True,
             dropout=dropout,
             allow_zero_length=True,
