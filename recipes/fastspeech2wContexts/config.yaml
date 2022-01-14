@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_5"
+spk: "LINE_wContextwPEProsody_3"
 
 # exp tag(for managing experiments)
-tag: "LINE_emotionprediction_60_CE_PEPCE_mel_bidirectional_false"
+tag: "LINE_emotionprediction_61_CE_bidirectional_false_reverse"
 
 sample_rate: 22050
 
@@ -68,7 +68,7 @@ input_wav_paths: "../../../dataset/out_LINE_woITAKO_before_emotion/LINE/wav/2205
 input_lab_paths: "../../../dataset/out_LINE_woITAKO_before_emotion/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
 input_textgrid_paths:
 emb_speakers: "Teacher,MStudent,FStudent"
-mel_mode: 1
+mel_mode: 0
 
 ###########################################################
 #                TRAINING SETTING                         #

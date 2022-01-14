@@ -892,16 +892,30 @@
         - spk: LINE_wContextwPEProsody_3
         - pretrain: None
         - eval_epoch_interval: 600
-        - acc出したやつはないので再実行
         - jobID: 8963370
     - LINE_emotionprediction_59_CE_PEPCE_bidirectional_false
         - spk: LINE_wContextwPEProsody_3
         - pretrain: None
         - eval_epoch_interval: 600
-        - acc出したやつはないので再実行
         - jobID: 8963374
     - LINE_emotionprediction_60_CE_PEPCE_mel_bidirectional_false
         - spk: LINE_wContextwPEProsody_5
         - pretrain: None
         - eval_epoch_interval: 600
         - jobID: 8963381
+    - LINE_emotionprediction_61_CE_bidirectional_false_reverse
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - cokllate_fnにて, 逆順にembが入るようにした.
+        - jobID: 8963443
+    - LINE_emotionprediction_62_CE_PEPCE_bidirectional_false_reverse
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - jobID: 8963439
+    - LINE_emotionprediction_62_CE_PEPCE_mel_bidirectional_false_reverse
+        - spk: LINE_wContextwPEProsody_5
+        - pretrain: None
+        - eval_epoch_interval: 600
+        - jobID: 8963434
