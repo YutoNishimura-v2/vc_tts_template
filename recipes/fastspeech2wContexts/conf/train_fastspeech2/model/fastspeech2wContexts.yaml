@@ -15,6 +15,7 @@ netG:
   context_num_layer: 4
   context_encoder_dropout: 0.2
   text_emb_dim: 768
+  current_attention: True
   # variance predictor
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3
@@ -39,6 +40,8 @@ netG:
   stats:
   # stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
   speakers: {"PAD": 0, "Teacher": 1, "MStudent": 2, "FStudent": 3}
-  # emotions:
-  emotions: {"PAD": 0, "Normal": 1, "Happy": 2, "Sad": 3, "Angry": 4}
+  emotions:
+  # emotions: {"PAD": 0, "Normal": 1, "Happy": 2, "Sad": 3, "Angry": 4}
   accent_info:
+  ## ↓無関係
+  mel_embedding_mode:

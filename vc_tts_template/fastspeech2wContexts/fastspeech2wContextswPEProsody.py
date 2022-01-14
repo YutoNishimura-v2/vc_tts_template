@@ -30,6 +30,11 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         peprosody_encoder_gru_dim: int,
         peprosody_encoder_gru_num_layer: int,
         shere_embedding: bool,
+        current_attention: bool,
+        mel_embedding_mode: int,
+        mel_emb_dim: int,
+        mel_emb_kernel: int,
+        mel_emb_dropout: float,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -114,6 +119,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
             g_prosody_emb_size=peprosody_encoder_gru_dim,
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
+            current_attention=current_attention
         )
         if stats is not None:
             self.peprosody_encoder = PEProsodyEncoder(
@@ -126,13 +132,26 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
                 shere_embedding=shere_embedding
             )
         else:
-            self.peprosody_encoder = PEProsodyEncoder(
-                peprosody_encoder_gru_dim,
-                peprosody_encoder_gru_num_layer,
-                pitch_embedding=self.variance_adaptor.pitch_embedding,
-                energy_embedding=self.variance_adaptor.energy_embedding,
-                shere_embedding=shere_embedding
-            )
+            if mel_embedding_mode == 0:
+                self.peprosody_encoder = PEProsodyEncoder(
+                    peprosody_encoder_gru_dim,
+                    peprosody_encoder_gru_num_layer,
+                    pitch_embedding=self.variance_adaptor.pitch_embedding,
+                    energy_embedding=self.variance_adaptor.energy_embedding,
+                    shere_embedding=shere_embedding
+                )
+            else:
+                self.peprosody_encoder = PEProsodyEncoder(
+                    peprosody_encoder_gru_dim,
+                    peprosody_encoder_gru_num_layer,
+                    pitch_embedding=None,
+                    energy_embedding=None,
+                    shere_embedding=shere_embedding,
+                    n_mel_channel=n_mel_channel,
+                    mel_emb_dim=mel_emb_dim,
+                    mel_emb_kernel=mel_emb_kernel,
+                    mel_emb_dropout=mel_emb_dropout,
+                )
 
     def contexts_forward(
         self,

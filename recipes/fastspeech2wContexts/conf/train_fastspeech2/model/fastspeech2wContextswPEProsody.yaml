@@ -18,6 +18,11 @@ netG:
   peprosody_encoder_gru_dim: 256
   peprosody_encoder_gru_num_layer: 2
   shere_embedding: False
+  current_attention: True
+  mel_embedding_mode:
+  mel_emb_dim: 256
+  mel_emb_kernel: 31
+  mel_emb_dropout: 0.5
   # variance predictor
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3

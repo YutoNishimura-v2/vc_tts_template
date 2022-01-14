@@ -58,7 +58,7 @@ train:
   max_train_steps: -1
   nepochs:
   checkpoint_epoch_interval: 100
-  eval_epoch_interval: 600
+  eval_epoch_interval: 50
 
   vocoder_name:
   vocoder_config:
@@ -83,14 +83,15 @@ train:
       max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 
   
   criterion:
-    _target_: vc_tts_template.fastspeech2wContexts.emotion_predictor.EmotionPredictorLoss
+    _target_: vc_tts_template.fastspeech2.loss.FastSpeech2Loss
+    # _target_: vc_tts_template.fastspeech2wGMM.loss.FastSpeech2Loss
     pitch_feature_level:
     energy_feature_level:
-    emotion_label_dict: {"Normal": 1, "Happy": 2, "Sad": 3, "Angry": 4}
-    sum_emotions: ["Sad", "Angry"]
+    # beta: 0.02
+    # g_beta: 0.02
 
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
     # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
-    checkpoint:
-    optimizer_reset:
+    checkpoint: ../fastspeech2/exp/jsut_sr22050_JSUT_5/fastspeech2/epoch0500.pth
+    optimizer_reset: True

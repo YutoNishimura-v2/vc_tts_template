@@ -919,3 +919,17 @@
         - pretrain: None
         - eval_epoch_interval: 600
         - jobID: 8963434
+
+    # 一瞬TTSに戻る
+    - LINE_wContextwPEProsody_25_FS_CE_PEPCE_share-emb-false_pretrain_JSUT_5_new_struct3
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - eval_epoch_interval: 600
+        - attention機能を付けたのと, melにしたのと2つ追加して再度チャレンジ
+        - jobID: 8963576
+    LINE_wContextwPEProsody_26_FS_CE_pretrain_JSUT_5_new_struct
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - eval_epoch_interval: 600
+        - attention機能を付けたのでCEももう一度
+        - jobID: 8963600

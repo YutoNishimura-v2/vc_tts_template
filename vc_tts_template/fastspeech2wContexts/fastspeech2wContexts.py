@@ -26,6 +26,7 @@ class FastSpeech2wContexts(FastSpeech2):
         context_num_layer: int,
         context_encoder_dropout: float,
         text_emb_dim: int,
+        current_attention: bool,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -51,6 +52,8 @@ class FastSpeech2wContexts(FastSpeech2):
         speakers: Dict,
         emotions: Optional[Dict] = None,
         accent_info: int = 0,
+        ## ↓無関係
+        mel_embedding_mode: bool = False
     ):
         super().__init__(
             max_seq_len,
@@ -109,6 +112,7 @@ class FastSpeech2wContexts(FastSpeech2):
             text_emb_size=text_emb_dim,
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
+            current_attention=current_attention,
         )
 
     def contexts_forward(
