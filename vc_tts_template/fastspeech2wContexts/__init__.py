@@ -5,10 +5,13 @@ from .fastspeech2wGMMwContextswProsody import Fastspeech2wGMMwContextswProsody
 from .fastspeech2wContextswPEProsody import FastSpeech2wContextswPEProsody
 from .fastspeech2wGMMwContextswPEProsody import Fastspeech2wGMMwContextswPEProsody
 from .emotion_predictor import EmotionPredictor
+from .fastspeech2wPEProsody import FastSpeech2wPEProsody
+from .fastspeech2wGMMwPEProsody import Fastspeech2wGMMwPEProsody
 
 __all__ = [
     "FastSpeech2wGMMwContexts", "FastSpeech2wContexts",
     "Fastspeech2wContextswProsody", "Fastspeech2wGMMwContextswProsody",
     "FastSpeech2wContextswPEProsody", "Fastspeech2wGMMwContextswPEProsody",
-    "EmotionPredictor"
+    "EmotionPredictor",
+    "FastSpeech2wPEProsody", "FastSpeech2wGMMwPEProsody"
 ]
