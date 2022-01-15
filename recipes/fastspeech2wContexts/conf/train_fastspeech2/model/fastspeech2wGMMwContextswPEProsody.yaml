@@ -18,6 +18,11 @@ netG:
   peprosody_encoder_gru_dim: 256
   peprosody_encoder_gru_num_layer: 2
   shere_embedding: False
+  current_attention: True
+  mel_embedding_mode:
+  mel_emb_dim: 256
+  mel_emb_kernel: 31
+  mel_emb_dropout: 0.5
   # prosody extractor
   prosody_emb_dim: 64
   extra_conv_kernel_size: 3

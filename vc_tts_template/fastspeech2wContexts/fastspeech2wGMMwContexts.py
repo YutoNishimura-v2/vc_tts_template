@@ -74,6 +74,8 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
         speakers: Dict,
         emotions: Optional[Dict] = None,
         accent_info: int = 0,
+        ## ↓無関係
+        mel_embedding_mode: bool = False
     ):
         super().__init__(
             max_seq_len,

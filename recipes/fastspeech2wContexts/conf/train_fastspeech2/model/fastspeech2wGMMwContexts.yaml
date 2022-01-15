@@ -65,3 +65,5 @@ netG:
   emotions:
   # emotions: {"PAD": 0, "Normal": 1, "Happy": 2, "Sad": 3, "Angry": 4}
   accent_info:
+  ## ↓無関係
+  mel_embedding_mode:

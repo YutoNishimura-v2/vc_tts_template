@@ -678,6 +678,16 @@
         - vs. LINE_55_JSUT_NICT_LINE_wo_Teacher_FS_GMM_spk_ind
         - speaker ind = True
         - jobID: 8950963
+    - LINE_66_JSUT_NICT_LINE_wo_Teacher_finetuning_FS
+        - spk: LINE_3
+        - pretrain: LINE_64_JSUT_NICT_LINE_wo_Teacher_FS
+        - 500epoch
+        - jobID: 8967409
+    - LINE_67_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM
+        - spk: LINE_3
+        - pretrain: LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
+        - 500epoch
+        - jobID: 8967496
 ## 主要な実験
 
 ## 知見

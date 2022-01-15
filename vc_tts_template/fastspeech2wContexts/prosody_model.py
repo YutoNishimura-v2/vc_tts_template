@@ -312,70 +312,96 @@ class PEProsodyLocalEncoder(nn.Module):
     """
     def __init__(
         self,
-        pitch_embedding: nn.Embedding,
-        energy_embedding: nn.Embedding,
+        pitch_embedding: Optional[nn.Embedding],
+        energy_embedding: Optional[nn.Embedding],
         pitch_bins: Optional[nn.Parameter] = None,
         energy_bins: Optional[nn.Parameter] = None,
         shere_embedding: bool = True,
+        n_mel_channel: int = 80,
+        mel_emb_dim: int = 256,
+        mel_emb_kernel: int = 31,
+        mel_emb_dropout: float = 0.5,
     ):
         super().__init__()
 
-        self.pitch_bins = pitch_bins
-        self.energy_bins = energy_bins
-        if shere_embedding is True:
-            self.pitch_embedding = pitch_embedding
-            self.energy_embedding = energy_embedding
-        else:
-            if pitch_bins is None:
-                self.pitch_embedding = nn.Sequential(  # type:ignore
-                    nn.Conv1d(
-                        in_channels=1,
-                        out_channels=pitch_embedding[0].out_channels,  # type:ignore
-                        kernel_size=pitch_embedding[0].kernel_size[0],  # type:ignore
-                        padding=(pitch_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
-                    ),
-                    nn.Dropout(pitch_embedding[1].p),  # type:ignore
-                )
-                self.energy_embedding = nn.Sequential(  # type:ignore
-                    nn.Conv1d(
-                        in_channels=1,
-                        out_channels=energy_embedding[0].out_channels,  # type:ignore
-                        kernel_size=energy_embedding[0].kernel_size[0],  # type:ignore
-                        padding=(energy_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
-                    ),
-                    nn.Dropout(energy_embedding[1].p),  # type:ignore
-                )
+        if pitch_embedding is not None:
+            self.pitch_bins = pitch_bins
+            self.energy_bins = energy_bins
+            if shere_embedding is True:
+                self.pitch_embedding = pitch_embedding
+                self.energy_embedding = energy_embedding
             else:
-                self.pitch_embedding = nn.Embedding(
-                    pitch_embedding.num_embeddings, pitch_embedding.embedding_dim  # type:ignore
-                )
-                self.energy_embedding = nn.Embedding(
-                    energy_embedding.num_embeddings, energy_embedding.embedding_dim  # type:ignore
-                )
+                if pitch_bins is None:
+                    self.pitch_embedding = nn.Sequential(  # type:ignore
+                        nn.Conv1d(
+                            in_channels=1,
+                            out_channels=pitch_embedding[0].out_channels,  # type:ignore
+                            kernel_size=pitch_embedding[0].kernel_size[0],  # type:ignore
+                            padding=(pitch_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
+                        ),
+                        nn.Dropout(pitch_embedding[1].p),  # type:ignore
+                    )
+                    self.energy_embedding = nn.Sequential(  # type:ignore
+                        nn.Conv1d(
+                            in_channels=1,
+                            out_channels=energy_embedding[0].out_channels,  # type:ignore
+                            kernel_size=energy_embedding[0].kernel_size[0],  # type:ignore
+                            padding=(energy_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
+                        ),
+                        nn.Dropout(energy_embedding[1].p),  # type:ignore
+                    )
+                else:
+                    self.pitch_embedding = nn.Embedding(
+                        pitch_embedding.num_embeddings, pitch_embedding.embedding_dim  # type:ignore
+                    )
+                    self.energy_embedding = nn.Embedding(
+                        energy_embedding.num_embeddings, energy_embedding.embedding_dim  # type:ignore
+                    )
+            self.use_mel = False
+        else:
+            # melを用いる
+            self.hidden_sise = mel_emb_dim
+            gru_input_size = mel_emb_dim
+            self.mel_embedding = nn.Sequential(  # type:ignore
+                nn.Conv1d(
+                    in_channels=n_mel_channel,
+                    out_channels=mel_emb_dim,  # type:ignore
+                    kernel_size=mel_emb_kernel,  # type:ignore
+                    padding=(mel_emb_kernel - 1) // 2,  # type:ignore
+                ),
+                nn.Dropout(mel_emb_dropout),  # type:ignore
+            )
+            self.use_mel = True  
 
     def forward(self, h_local_prosody_emb):
-        # h_local_prosody_emb: (B, time, 2)
+        # h_local_prosody_emb: (B, time, 2 or 80)
         # h_local_prosody_emb_lens: (B)
 
-        # pitch, energyのembedding化
-        h_local_pitch = h_local_prosody_emb[:, :, 0]
-        h_local_energy = h_local_prosody_emb[:, :, 1]
+        if self.use_mel is False:
+            # pitch, energyのembedding化
+            h_local_pitch = h_local_prosody_emb[:, :, 0]
+            h_local_energy = h_local_prosody_emb[:, :, 1]
 
-        if self.pitch_bins is not None:
-            h_local_pitch_emb = self.pitch_embedding(
-                torch.bucketize(h_local_pitch, self.pitch_bins)
-            )
-            h_local_energy_emb = self.energy_embedding(
-                torch.bucketize(h_local_energy, self.energy_bins)
-            )
+            if self.pitch_bins is not None:
+                h_local_pitch_emb = self.pitch_embedding(
+                    torch.bucketize(h_local_pitch, self.pitch_bins)
+                )
+                h_local_energy_emb = self.energy_embedding(
+                    torch.bucketize(h_local_energy, self.energy_bins)
+                )
+            else:
+                h_local_pitch_emb = self.pitch_embedding(
+                    h_local_pitch.unsqueeze(-1).transpose(1, 2)
+                ).transpose(1, 2)
+                h_local_energy_emb = self.energy_embedding(
+                    h_local_energy.unsqueeze(-1).transpose(1, 2)
+                ).transpose(1, 2)
+
+            h_local_prosody_emb = torch.concat([h_local_pitch_emb, h_local_energy_emb], dim=-1)
         else:
-            h_local_pitch_emb = self.pitch_embedding(
-                h_local_pitch.unsqueeze(-1).transpose(1, 2)
+            # h_local_prosody_emb: (B, time, mel_emb_dim)
+            h_local_prosody_emb = self.mel_embedding(
+                h_prosody_embs.transpose(1, 2)
             ).transpose(1, 2)
-            h_local_energy_emb = self.energy_embedding(
-                h_local_energy.unsqueeze(-1).transpose(1, 2)
-            ).transpose(1, 2)
-
-        h_local_prosody_emb = torch.concat([h_local_pitch_emb, h_local_energy_emb], dim=-1)
 
         return h_local_prosody_emb
