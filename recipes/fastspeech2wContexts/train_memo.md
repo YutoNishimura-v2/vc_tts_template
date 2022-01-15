@@ -985,3 +985,18 @@
     - LINE_emotionprediction_80_CE_EMO2_hist_len_8
     - LINE_emotionprediction_81_CE_EMO2_hist_len_9
     - LINE_emotionprediction_82_CE_EMO2_hist_len_10
+
+    # hist_len3=3がよさそうなので、それでやる
+    - LINE_wContextwPEProsody_33_FS_CE_hist_len_3
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8969265
+    - LINE_wContextwPEProsody_34_FS_PEPCE_hist_len_3
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8969262
+    - LINE_wContextwPEProsody_35_FS_CE_PEPCE_hist_len_3
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8969251
+
