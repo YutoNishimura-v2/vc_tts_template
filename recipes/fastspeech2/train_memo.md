@@ -687,7 +687,7 @@
         - spk: LINE_3
         - pretrain: LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
         - 500epoch
-        - jobID: 8967496
+        - jobID: 8969152
 ## 主要な実験
 
 ## 知見

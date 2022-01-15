@@ -56,7 +56,7 @@ netG:
   n_mel_channel:
   # other
   encoder_fix: False
-  prosody_spk_independence: False
+  prosody_spk_independence: True
   local_prosody: True
   global_prosody: False
   stats:

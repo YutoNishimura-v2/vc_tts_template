@@ -926,26 +926,35 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - attention機能を付けたのと, melにしたのと2つ追加して再度チャレンジ
         - jobID: 8963576
-    LINE_wContextwPEProsody_26_FS_CE_pretrain_JSUT_5_new_struct
+    - LINE_wContextwPEProsody_26_FS_CE_pretrain_JSUT_5_new_struct
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - attention機能を付けたのでCEももう一度
         - jobID: 8963600
+    - LINE_wContextwPEProsody_31_FS_PEPCE_pretrain_JSUT_5_new_struct
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - FS+PEPCEを試す
+        - jobID: 8969154
     
     # GRUdebug, attention付き, MelでPEPCE
     - LINE_wContextwPEProsody_27_FS_GMM_CE
         - spk: LINE_wContextwPEProsody_2
         - pretrain: fastspeech2/LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
-        - jobID: 
+        - jobID: 8969161
     - LINE_wContextwPEProsody_28_FS_GMM_CE_PEPCE
         - spk: LINE_wContextwPEProsody_4
         - pretrain: fastspeech2/LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
-        - jobID: 
+        - jobID: 8969158
     - LINE_wContextwPEProsody_29_FS_GMM_CE_PEPCE_P1
         - spk: LINE_wContextwPEProsody_4
         - pretrain: fastspeech2/LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
-        - jobID: 
+        - jobID: 8969157
     - LINE_wContextwPEProsody_30_FS_GMM_CE_PEPCE_P2
         - spk: LINE_wContextwPEProsody_4
         - pretrain: fastspeech2/LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
-        - jobID: 
+        - jobID: 8969156
+    - LINE_wContextwPEProsody_32_FS_GMM_PEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
+        - jobID: 8969160

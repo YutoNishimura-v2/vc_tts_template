@@ -24,6 +24,7 @@ testsets=($eval_set)
 
 stage=0
 stop_stage=0
+overwrite=0
 local_dir=""
 
 . $COMMON_ROOT/parse_options.sh || exit 1;
@@ -47,6 +48,12 @@ cp ./config.yaml $expdir
 
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
     echo "stage 1: Feature generation for fastspeech2"
+
+    if [ -e $dump_org_dir ] && [ ${overwrite} -le 0 ]; then
+        echo "dump files are already exists. you cant run this preprocess."
+        echo "if you want to overwrite, add --overwrite 1."
+        exit 1
+    fi
 
     xrun python emb_preprocess.py $dialogue_info \
         $dumpdir/${spk}_sr${sample_rate} --BERT_weight $BERT_weight \
@@ -127,6 +134,11 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
 fi
 
 if [ ${stage} -le 3 ] && [ ${stop_stage} -ge 3 ]; then
+    if [ -e $expdir/${vocoder_model} ] && [ ${overwrite} -le 0 ]; then
+        echo "exp files are already exists. you cant run this exp."
+        echo "if you want to overwrite, add --overwrite 1."
+        exit 1
+    fi
     # save config
     cp -r conf/train_hifigan $expdir/conf
     xrun python train_hifigan.py model=$vocoder_model tqdm=$tqdm \
@@ -150,6 +162,13 @@ fi
 
 if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
     echo "stage 4: Training fastspeech2"
+
+    if [ -e $expdir/${acoustic_model} ] && [ ${overwrite} -le 0 ]; then
+        echo "exp files are already exists. you cant run this exp."
+        echo "if you want to overwrite, add --overwrite 1."
+        exit 1
+    fi
+
     # save config
     cp -r conf/train_fastspeech2 $expdir/conf
     if [ ! -z ${local_dir} ]; then
@@ -233,6 +252,13 @@ fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     echo "stage 5: Synthesis waveforms by hifigan"
+
+    if [ -e $expdir/synthesis_${acoustic_model}_${vocoder_model} ] && [ ${overwrite} -le 0 ]; then
+        echo "synthesis files are already exists. you cant run this synthesis."
+        echo "if you want to overwrite, add --overwrite 1."
+        exit 1
+    fi
+
     # save config
     cp -r conf/synthesis $expdir/conf
     if [ ! -z ${local_dir} ]; then
