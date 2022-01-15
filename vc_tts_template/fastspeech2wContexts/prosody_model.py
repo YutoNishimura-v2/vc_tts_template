@@ -361,7 +361,6 @@ class PEProsodyLocalEncoder(nn.Module):
         else:
             # melを用いる
             self.hidden_sise = mel_emb_dim
-            gru_input_size = mel_emb_dim
             self.mel_embedding = nn.Sequential(  # type:ignore
                 nn.Conv1d(
                     in_channels=n_mel_channel,
@@ -371,7 +370,7 @@ class PEProsodyLocalEncoder(nn.Module):
                 ),
                 nn.Dropout(mel_emb_dropout),  # type:ignore
             )
-            self.use_mel = True  
+            self.use_mel = True
 
     def forward(self, h_local_prosody_emb):
         # h_local_prosody_emb: (B, time, 2 or 80)
@@ -401,7 +400,7 @@ class PEProsodyLocalEncoder(nn.Module):
         else:
             # h_local_prosody_emb: (B, time, mel_emb_dim)
             h_local_prosody_emb = self.mel_embedding(
-                h_prosody_embs.transpose(1, 2)
+                h_local_prosody_emb.transpose(1, 2)
             ).transpose(1, 2)
 
         return h_local_prosody_emb

@@ -188,7 +188,7 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
             global_d_gru=global_d_gru,
             global_num_gaussians=global_num_gaussians,
             global_softmax_temperature=global_softmax_temperature,
-            h_prosody_emb_size=encoder_hidden_dim*2,
+            h_prosody_emb_size=encoder_hidden_dim*2 if mel_embedding_mode == 0 else mel_emb_dim,
             prosody_attention=prosody_attention,
             attention_hidden_dim=attention_hidden_dim,
             attention_conv_channels=attention_conv_channels,
@@ -235,7 +235,7 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
                     peprosody_encoder_gru_num_layer,
                     pitch_embedding=None,
                     energy_embedding=None,
-                    shere_embedding=shere_embedding
+                    shere_embedding=shere_embedding,
                     n_mel_channel=n_mel_channel,
                     mel_emb_dim=mel_emb_dim,
                     mel_emb_kernel=mel_emb_kernel,
@@ -245,7 +245,7 @@ class Fastspeech2wGMMwContextswPEProsody(FastSpeech2wGMM):
                     self.peprosody_local_encoder = PEProsodyLocalEncoder(
                         pitch_embedding=None,
                         energy_embedding=None,
-                        shere_embedding=shere_embedding
+                        shere_embedding=shere_embedding,
                         n_mel_channel=n_mel_channel,
                         mel_emb_dim=mel_emb_dim,
                         mel_emb_kernel=mel_emb_kernel,
