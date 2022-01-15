@@ -32,3 +32,4 @@ netG:
   energy_feature_level:
   n_mel_channel:
   accent_info:
+  mel_embedding_mode:

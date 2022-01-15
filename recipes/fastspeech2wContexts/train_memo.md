@@ -958,3 +958,30 @@
         - spk: LINE_wContextwPEProsody_4
         - pretrain: fastspeech2/LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
         - jobID: 8969160
+
+    # EmotionPredictionに戻って, hist_len調査
+    - LINE_emotionprediction_63_CE_hist_len_1
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: None
+    - LINE_emotionprediction_64_CE_hist_len_2
+    - LINE_emotionprediction_65_CE_hist_len_3
+    - LINE_emotionprediction_66_CE_hist_len_4
+    - LINE_emotionprediction_67_CE_hist_len_5
+    - LINE_emotionprediction_68_CE_hist_len_6
+    - LINE_emotionprediction_69_CE_hist_len_7
+    - LINE_emotionprediction_70_CE_hist_len_8
+    - LINE_emotionprediction_71_CE_hist_len_9
+    - LINE_emotionprediction_72_CE_hist_len_10
+
+    - LINE_emotionprediction_73_CE_EMO2_hist_len_1
+        - spk: LINE_wContextwPEProsody_3
+        - pretrain: None
+    - LINE_emotionprediction_74_CE_EMO2_hist_len_2
+    - LINE_emotionprediction_75_CE_EMO2_hist_len_3
+    - LINE_emotionprediction_76_CE_EMO2_hist_len_4
+    - LINE_emotionprediction_77_CE_EMO2_hist_len_5
+    - LINE_emotionprediction_78_CE_EMO2_hist_len_6
+    - LINE_emotionprediction_79_CE_EMO2_hist_len_7
+    - LINE_emotionprediction_80_CE_EMO2_hist_len_8
+    - LINE_emotionprediction_81_CE_EMO2_hist_len_9
+    - LINE_emotionprediction_82_CE_EMO2_hist_len_10

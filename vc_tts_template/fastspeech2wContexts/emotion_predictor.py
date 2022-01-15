@@ -50,6 +50,7 @@ class EmotionPredictor(nn.Module):
         energy_feature_level: int,
         n_mel_channel: int,
         accent_info: int,
+        mel_embedding_mode: int,
     ):
         super().__init__()
         n_speaker = len(speakers)

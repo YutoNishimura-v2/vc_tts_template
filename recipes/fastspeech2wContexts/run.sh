@@ -246,7 +246,7 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         model.netG.pitch_feature_level=$pitch_phoneme_averaging \
         model.netG.energy_feature_level=$energy_phoneme_averaging \
         model.netG.n_mel_channel=$n_mel_channels \
-        model.netG.accent_info=$accent_info
+        model.netG.accent_info=$accent_info \
         model.netG.mel_embedding_mode=$mel_mode
 fi
 
