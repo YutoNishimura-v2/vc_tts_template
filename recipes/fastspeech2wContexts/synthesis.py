@@ -105,7 +105,7 @@ def my_app(config: DictConfig) -> None:
             prosody_embeddings.append([h_prosody_emb, h_g_prosody_embs, h_prosody_speakers, h_prosody_emotions])
         elif "wPEProsody" in acoustic_model_name:
             (
-                hist_prosody_embs, hist_prosody_embs_lens, _, _, _,
+                hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len, _, _,
                 hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
             ) = get_peprosody_embs(
                 utt_id, prosody_emb_paths,
@@ -113,7 +113,7 @@ def my_app(config: DictConfig) -> None:
                 use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
             )
             prosody_embeddings.append([
-                hist_prosody_embs, hist_prosody_embs_lens,
+                hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len,
                 hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
             ])
         else:

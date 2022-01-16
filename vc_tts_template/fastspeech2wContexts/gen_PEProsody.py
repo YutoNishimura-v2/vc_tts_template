@@ -14,7 +14,7 @@ def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
     ) = context_embedding
 
     (
-        hist_prosody_embs, hist_prosody_embs_lens,
+        hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len,
         hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
     ) = prosody_embedding
 
@@ -63,6 +63,9 @@ def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
     hist_prosody_embs_lens = torch.tensor(
         hist_prosody_embs_lens, dtype=torch.long
     ).unsqueeze(0).to(device)
+    hist_prosody_embs_len = torch.tensor(
+        hist_prosody_embs_len, dtype=torch.long
+    ).unsqueeze(0).to(device)
     hist_local_prosody_emb_lens = torch.tensor(
         hist_local_prosody_emb_lens, dtype=torch.long
     ).to(device) if hist_local_prosody_emb is not None else None
@@ -90,6 +93,7 @@ def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
         h_emotions=h_emotions,
         h_prosody_embs=hist_prosody_embs,
         h_prosody_embs_lens=hist_prosody_embs_lens,
+        h_prosody_embs_len=hist_prosody_embs_len,
         h_local_prosody_emb=hist_local_prosody_emb,
         h_local_prosody_emb_lens=hist_local_prosody_emb_lens,
         h_local_prosody_speakers=hist_local_prosody_speaker,

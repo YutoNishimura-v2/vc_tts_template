@@ -264,10 +264,10 @@ class ConversationalProsodyContextEncoder(nn.Module):
     def forward(
         self, text_emb, speaker, emotion,
         history_text_emb, history_speaker, history_emotion, history_lens,
-        h_g_prosody_embs
+        h_g_prosody_embs, h_g_prosody_embs_lens,
     ):
-        max_history_len = torch.max(history_lens)
-        history_masks = make_pad_mask(history_lens, max_history_len)
+        history_masks = make_pad_mask(history_lens, torch.max(history_lens))
+        history_prosody_masks = make_pad_mask(h_g_prosody_embs_lens, torch.max(h_g_prosody_embs_lens))
         # Embedding
         history_text_emb = torch.cat([history_text_emb, text_emb.unsqueeze(1)], dim=1)
         history_text_emb = self.text_emb_linear(history_text_emb)
@@ -293,8 +293,8 @@ class ConversationalProsodyContextEncoder(nn.Module):
         # GRU
         enc_past = self.gru_linear(self.gru(enc_past, history_lens))
         enc_past = enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
-        prosody_enc_past = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, history_lens))
-        prosody_enc_past = prosody_enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
+        prosody_enc_past = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, h_g_prosody_embs_lens))
+        prosody_enc_past = prosody_enc_past.masked_fill(history_prosody_masks.unsqueeze(-1), 0)
 
         if self.current_attention is True:
             context_enc = self.context_attention(

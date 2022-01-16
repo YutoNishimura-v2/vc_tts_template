@@ -52,7 +52,7 @@ class FastSpeech2wContexts(FastSpeech2):
         speakers: Dict,
         emotions: Optional[Dict] = None,
         accent_info: int = 0,
-        ## ↓無関係
+        # ↓無関係
         mel_embedding_mode: bool = False
     ):
         super().__init__(

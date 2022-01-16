@@ -94,7 +94,7 @@ def to_device(data, phase, device):
             energies,
             durations,
         )
-    elif len(data) == 23:
+    elif len(data) == 24:
         (
             ids,
             speakers,
@@ -115,6 +115,7 @@ def to_device(data, phase, device):
             h_emotions,
             h_prosody_embs,
             h_prosody_embs_lens,
+            h_prosody_embs_len,
             h_local_prosody_emb,
             h_local_prosody_emb_lens,
             h_local_prosody_speakers,
@@ -137,6 +138,7 @@ def to_device(data, phase, device):
 
         h_prosody_embs = torch.from_numpy(h_prosody_embs).float().to(device, non_blocking=True)
         h_prosody_embs_lens = torch.from_numpy(h_prosody_embs_lens).long().to(device, non_blocking=True)
+        h_prosody_embs_len = torch.from_numpy(h_prosody_embs_len).long().to(device, non_blocking=True)
 
         if h_local_prosody_emb is not None:
             h_local_prosody_emb = torch.from_numpy(h_local_prosody_emb).float().to(device, non_blocking=True)
@@ -158,6 +160,7 @@ def to_device(data, phase, device):
             h_emotions,
             h_prosody_embs,
             h_prosody_embs_lens,
+            h_prosody_embs_len,
             h_local_prosody_emb,
             h_local_prosody_emb_lens,
             h_local_prosody_speakers,

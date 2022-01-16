@@ -153,11 +153,11 @@ class FastSpeech2wPEProsody(FastSpeech2):
         self,
         output,
         max_src_len,
-        h_txt_emb_lens,
         h_speakers,
         h_emotions,
         h_prosody_embs,
         h_prosody_embs_lens,
+        h_prosody_embs_len,
     ):
         h_prosody_emb = self.peprosody_encoder(
             h_prosody_embs,
@@ -167,7 +167,7 @@ class FastSpeech2wPEProsody(FastSpeech2):
         context_enc = self.context_encoder(
             h_speakers,
             h_emotions,
-            h_txt_emb_lens,
+            h_prosody_embs_len,
             h_prosody_emb,
         )
         output = output + context_enc.unsqueeze(1).expand(
@@ -190,6 +190,7 @@ class FastSpeech2wPEProsody(FastSpeech2):
         h_emotions,
         h_prosody_embs,
         h_prosody_embs_lens,
+        h_prosody_embs_len,
         h_local_prosody_emb=None,
         h_local_prosody_emb_lens=None,
         h_local_prosody_speakers=None,
@@ -211,8 +212,8 @@ class FastSpeech2wPEProsody(FastSpeech2):
             texts, src_masks, max_src_len, speakers, emotions
         )
         output = self.contexts_forward(
-            output, max_src_len, h_txt_emb_lens, h_speakers, h_emotions,
-            h_prosody_embs, h_prosody_embs_lens,
+            output, max_src_len, h_speakers, h_emotions,
+            h_prosody_embs, h_prosody_embs_lens, h_prosody_embs_len,
         )
         (
             output,
