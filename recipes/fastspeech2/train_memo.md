@@ -688,6 +688,92 @@
         - pretrain: LINE_65_JSUT_NICT_LINE_wo_Teacher_FS_GMM
         - 500epoch
         - jobID: 8969152
+    
+    # GMM debug後でもう一回混合数チューニング
+    - LINE_68_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_1
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID: 8971446
+    - LINE_69_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_3
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID: 8971452
+    - LINE_70_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_5
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID: 8971458
+    - LINE_71_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_7
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID: 8971462
+    - LINE_72_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_9
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID: 8971467
+    - LINE_73_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_11
+        - spk: JSUT_NICT_LINE_wo_Teacher_2
+        - pretrain: None
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID: 8971477
+    - LINE_74_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_num_gaussians_1
+        - spk: LINE_3
+        - pretrain: LINE_68_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_1
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID: 8971424
+    - LINE_75_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_num_gaussians_3
+        - spk: LINE_3
+        - pretrain: LINE_69_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_3
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID: 8971435
+    - LINE_76_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_num_gaussians_5
+        - spk: LINE_3
+        - pretrain: LINE_70_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_5
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID:
+    - LINE_77_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_num_gaussians_7
+        - spk: LINE_3
+        - pretrain: LINE_71_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_7
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID:
+    - LINE_78_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_num_gaussians_9
+        - spk: LINE_3
+        - pretrain: LINE_72_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_9
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID:
+    - LINE_79_JSUT_NICT_LINE_wo_Teacher_finetuning_FS_GMM_num_gaussians_11
+        - spk: LINE_3
+        - pretrain: LINE_73_JSUT_NICT_LINE_wo_Teacher_FS_GMM_num_gaussians_11
+        - 500epoch
+        - pretrain用. GMM. 
+        - speaker ind = True
+        - jobID:
 ## 主要な実験
 
 ## 知見

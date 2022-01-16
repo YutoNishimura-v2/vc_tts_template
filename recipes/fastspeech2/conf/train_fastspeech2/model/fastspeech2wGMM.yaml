@@ -24,7 +24,7 @@ netG:
   pp_conv_n_layers: 2
   pp_conv_dropout: 0.2
   pp_zoneout: 0.1
-  num_gaussians: 3
+  num_gaussians: 11
   softmax_temperature: 1.0
   global_gru_n_layers: 2
   global_d_gru: 512
@@ -56,7 +56,7 @@ netG:
   global_prosody: False
   stats:
   # stats: {"pitch_min": -0.7024055490777836, "pitch_max": 0.5050794978252391, "energy_min": -0.8127368539571762, "energy_max": 0.5676259696483612}
-  speakers:
-  # speakers: {"JSUT": 0, "NICT": 1, "Teacher": 2, "FStudent": 3, "MStudent": 4}
+  # speakers:
+  speakers: {"JSUT": 0, "NICT": 1, "Teacher": 2, "FStudent": 3, "MStudent": 4}
   emotions:
   accent_info:
