@@ -1000,3 +1000,28 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - jobID: 8969251
 
+    # hist_len=10, 3のPEPCE, debugしたので再実行
+    - LINE_wContextwPEProsody_36_FS_CE
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8971793
+    - LINE_wContextwPEProsody_37_FS_PEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8971780
+    - LINE_wContextwPEProsody_38_FS_CE_PEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8971792
+    - LINE_wContextwPEProsody_39_FS_CE_hist_len_3
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8971800
+    - LINE_wContextwPEProsody_40_FS_PEPCE_hist_len_3
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8971782
+    - LINE_wContextwPEProsody_41_FS_CE_PEPCE_hist_len_3
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8971787
