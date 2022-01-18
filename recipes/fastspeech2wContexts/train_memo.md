@@ -1047,4 +1047,4 @@
         - spk: LINE_wContextwPEProsody_4
         - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
         - LINE_wContextwPEProsody_42_FS_PEPCE_w_Currentはfixして, prosody embを獲得しに行く話.
-        - jobID: 
+        - jobID: 8982865
