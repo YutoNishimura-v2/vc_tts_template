@@ -6,39 +6,69 @@ from functools import partial
 import torch.nn.functional as F
 
 
-def adaptive_load_state_dict(model, state_dict, logger=None):
+def adaptive_load_state_dict(
+    model, state_dict, logger=None, load_modules=None
+):
     model_state_dict = model.state_dict()
-    for k in state_dict.keys():
-        if k in model_state_dict.keys():
-            if state_dict[k].shape != model_state_dict[k].shape:
+
+    if load_modules is None:
+        # 通常読み込み
+        for k in state_dict.keys():
+            if k in model_state_dict.keys():
+                if state_dict[k].shape != model_state_dict[k].shape:
+                    if logger is not None:
+                        logger.info(
+                            f"""Skip loading pretrained parameter!! because the shape unmatched: {k},\n
+                            required shape: {model_state_dict[k].shape},\n
+                            loaded shape: {state_dict[k].shape}"""
+                        )
+                    else:
+                        print(f"Skip loading parameter because the shape unmatched: {k}, "
+                              f"required shape: {model_state_dict[k].shape}, "
+                              f"loaded shape: {state_dict[k].shape}")
+                else:
+                    # 正常読み込み.
+                    model_state_dict[k] = state_dict[k]
+            else:
                 if logger is not None:
                     logger.info(
-                        f"""Skip loading parameter: {k},\n
-                        required shape: {model_state_dict[k].shape},\n
-                        loaded shape: {state_dict[k].shape}"""
+                        f"Skip loading pretrained parameter!! because there is no {k} in your finetuning model"
                     )
                 else:
-                    print(f"Skip loading parameter: {k}, "
-                          f"required shape: {model_state_dict[k].shape}, "
-                          f"loaded shape: {state_dict[k].shape}")
-            else:
-                # 正常読み込み.
-                model_state_dict[k] = state_dict[k]
-        else:
-            if logger is not None:
-                logger.info(
-                    f"Dropping parameter {k}, because there is no {k} in your model"
-                )
-            else:
-                print(f"Dropping parameter {k}, because there is no {k} in your model")
-    for k in model_state_dict.keys():
-        if k not in state_dict.keys():
-            if logger is not None:
-                logger.info(
-                    f"Leaving parameter {k}, because there is no {k} in your state_dict"
-                )
-            else:
-                print(f"Leaving parameter {k}, because there is no {k} in your state_dict")
+                    print(f"Skip loading pretrained parameter!! because there is no {k} in your finetuning model")
+        for k in model_state_dict.keys():
+            if k not in state_dict.keys():
+                if logger is not None:
+                    logger.info(
+                        f"Finetuning model parameter {k} left unattended, because there is no {k} in pretrained model"
+                    )
+                else:
+                    print(
+                        f"Finetuning model parameter {k} left unattended, because there is no {k} in pretrained model")
+    else:
+        # load_modulesに記載されたもののみ読み込む
+        for load_module_name in load_modules:
+            loaded = 0
+            for k in state_dict.keys():
+                if load_module_name in k:
+                    if k not in model_state_dict.keys():
+                        raise ValueError(f"There is no {k} in your finetuning model!!")
+                    if state_dict[k].shape != model_state_dict[k].shape:
+                        raise ValueError(f"""The {k}'s shape unmatched:,\n
+                                required shape: {model_state_dict[k].shape},\n
+                                loaded shape: {state_dict[k].shape}"""
+                                         )
+                    model_state_dict[k] = state_dict[k]
+                    if logger is not None:
+                        logger.info(
+                            f"Load successful!! key: {k}"
+                        )
+                    else:
+                        print(f"Load successful!! key: {k}")
+                    loaded = 1
+            if loaded == 0:
+                raise ValueError(f"There is no {load_module_name} in your pretrained model!!")
+
     model.load_state_dict(model_state_dict)
 
 

@@ -39,6 +39,7 @@ class check_grad_flow():
             - optunaだとしても致命的なエラーの可能性は十分あるため, warningでlog報告.
                 発見次第確認した方が良さそう.
     """
+
     def __init__(self, logger, only_inf_grad=True) -> None:
         self.model_params: Dict[str, np.ndarray] = {}
         self.logger = logger
@@ -485,7 +486,11 @@ def _several_model_loader(config, device, logger, checkpoint):
             )
         )
         if checkpoint is not None:
-            adaptive_load_state_dict(model, checkpoint["state_dict"][model_name], logger)
+            adaptive_load_state_dict(
+                model, checkpoint["state_dict"][model_name], logger,
+                None if "load_modules" not in config.train.pretrained.keys()  # type:ignore
+                else config.train.pretrained.load_modules  # type:ignore
+            )
         if config.data_parallel:
             model = nn.DataParallel(model)
         model_dict[model_name] = model
@@ -552,7 +557,11 @@ def setup(
             )
         )
         if checkpoint is not None:
-            adaptive_load_state_dict(model, checkpoint["state_dict"], logger)
+            adaptive_load_state_dict(
+                model, checkpoint["state_dict"], logger,
+                None if "load_modules" not in config.train.pretrained.keys()  # type:ignore
+                else config.train.pretrained.load_modules  # type:ignore
+            )
 
         # 複数 GPU 対応
         if config.data_parallel:  # type: ignore
