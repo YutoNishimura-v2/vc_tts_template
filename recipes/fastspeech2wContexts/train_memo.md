@@ -35,6 +35,12 @@
         - 今までのprosody embとしてmelを格納する.
     - LINE_wContextwPEProsody_5
         - LINE_wContextwPEProsody_4のbefore emo ver.
+
+    - JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1
+        - fastspeech2/JSUT_NICT_LINE_wo_Teacher_2と同様の全部乗せデータを利用
+            - data/train.listは, すでにmelが一定以上に長いものをtextgridから除去したものになっている
+            - 一方で, wavからは除去できていなかったので、取り除いた.
+        - prosody embとしてmelを利用
 - exp
     - LINE_wContext_1
         - spk: LINE_wContext
@@ -1032,3 +1038,8 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - Current prosody embで条件づける.
         - jobID: 8981264
+    - JSUT_NICT_LINE_1_FS_PEPCE_w_Current
+        - spk: JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1
+        - pretrain: None
+        - Current prosody embで条件づける.
+        - jobID:  
