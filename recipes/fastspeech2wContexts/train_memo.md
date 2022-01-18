@@ -1025,3 +1025,10 @@
         - spk: LINE_wContextwPEProsody_4
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - jobID: 8971787
+    
+    # 新しい取り組み, current prosody embでpretrainをする.
+    - LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - Current prosody embで条件づける.
+        - jobID: 

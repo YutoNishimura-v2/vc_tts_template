@@ -3,11 +3,10 @@ from typing import Dict, Optional
 import torch.nn as nn
 
 from vc_tts_template.fastspeech2.fastspeech2 import FastSpeech2
-from vc_tts_template.fastspeech2wContexts.context_encoder import ConversationalProsodyContextEncoder
 from vc_tts_template.fastspeech2wContexts.prosody_model import PEProsodyEncoder
 
 
-class FastSpeech2wContextswPEProsody(FastSpeech2):
+class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
     """ FastSpeech2wContexts """
 
     def __init__(
@@ -23,14 +22,9 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         conv_kernel_size_2: int,
         encoder_dropout: float,
         # context encoder
-        context_encoder_hidden_dim: int,
-        context_num_layer: int,
-        context_encoder_dropout: float,
-        text_emb_dim: int,
         peprosody_encoder_gru_dim: int,
         peprosody_encoder_gru_num_layer: int,
         shere_embedding: bool,
-        current_attention: bool,
         mel_embedding_mode: int,
         mel_emb_dim: int,
         mel_emb_kernel: int,
@@ -110,16 +104,8 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
                 padding_idx=0,
             )
 
-        self.context_encoder = ConversationalProsodyContextEncoder(
-            d_encoder_hidden=encoder_hidden_dim,
-            d_context_hidden=context_encoder_hidden_dim,
-            context_layer_num=context_num_layer,
-            context_dropout=context_encoder_dropout,
-            text_emb_size=text_emb_dim,
-            g_prosody_emb_size=peprosody_encoder_gru_dim,
-            speaker_embedding=self.speaker_emb,
-            emotion_embedding=self.emotion_emb,
-            current_attention=current_attention
+        self.context_encoder = nn.Linear(  # type: ignore
+            peprosody_encoder_gru_dim, encoder_hidden_dim
         )
         if stats is not None:
             self.peprosody_encoder = PEProsodyEncoder(
@@ -157,33 +143,16 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         self,
         output,
         max_src_len,
-        c_txt_embs,
-        speakers,
-        emotions,
-        h_txt_embs,
-        h_txt_emb_lens,
-        h_speakers,
-        h_emotions,
-        h_prosody_embs,
-        h_prosody_embs_lens,
-        h_prosody_embs_len,
+        c_prosody_embs,
+        c_prosody_embs_lens,
     ):
         h_prosody_emb = self.peprosody_encoder(
-            h_prosody_embs,
-            h_prosody_embs_lens,
+            c_prosody_embs.unsqueeze(1),
+            c_prosody_embs_lens.unsqueeze(1),
         )
 
-        context_enc = self.context_encoder(
-            c_txt_embs,
-            speakers,
-            emotions,
-            h_txt_embs,
-            h_speakers,
-            h_emotions,
-            h_txt_emb_lens,
-            h_prosody_emb,
-            h_prosody_embs_len,
-        )
+        context_enc = self.context_encoder(h_prosody_emb).squeeze(1)
+
         output = output + context_enc.unsqueeze(1).expand(
             -1, max_src_len, -1
         )
@@ -228,9 +197,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
             texts, src_masks, max_src_len, speakers, emotions
         )
         output = self.contexts_forward(
-            output, max_src_len, c_txt_embs, speakers, emotions,
-            h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
-            h_prosody_embs, h_prosody_embs_lens, h_prosody_embs_len,
+            output, max_src_len, c_prosody_embs, c_prosody_embs_lens,
         )
         (
             output,

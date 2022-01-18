@@ -26,7 +26,6 @@ class FastSpeech2wGMMwContexts(FastSpeech2wGMM):
         context_num_layer: int,
         context_encoder_dropout: float,
         text_emb_dim: int,
-        use_hist_num: int,
         # prosody extractor
         prosody_emb_dim: int,
         extra_conv_kernel_size: int,

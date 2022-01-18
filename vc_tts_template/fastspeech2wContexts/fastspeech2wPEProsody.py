@@ -33,7 +33,6 @@ class FastSpeech2wPEProsody(FastSpeech2):
         mel_emb_dim: int,
         mel_emb_kernel: int,
         mel_emb_dropout: float,
-        use_hist_num: int,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -109,20 +108,15 @@ class FastSpeech2wPEProsody(FastSpeech2):
                 padding_idx=0,
             )
 
-        if use_hist_num > -1:
-            self.context_encoder = ConversationalProsodyEncoder(
-                d_encoder_hidden=encoder_hidden_dim,
-                d_context_hidden=context_encoder_hidden_dim,
-                context_layer_num=context_num_layer,
-                context_dropout=context_encoder_dropout,
-                g_prosody_emb_size=peprosody_encoder_gru_dim,
-                speaker_embedding=self.speaker_emb,
-                emotion_embedding=self.emotion_emb,
-            )
-        else:
-            self.context_encoder = nn.Linear(  # type: ignore
-                peprosody_encoder_gru_dim, encoder_hidden_dim
-            )
+        self.context_encoder = ConversationalProsodyEncoder(
+            d_encoder_hidden=encoder_hidden_dim,
+            d_context_hidden=context_encoder_hidden_dim,
+            context_layer_num=context_num_layer,
+            context_dropout=context_encoder_dropout,
+            g_prosody_emb_size=peprosody_encoder_gru_dim,
+            speaker_embedding=self.speaker_emb,
+            emotion_embedding=self.emotion_emb,
+        )
         if stats is not None:
             self.peprosody_encoder = PEProsodyEncoder(
                 peprosody_encoder_gru_dim,
@@ -154,7 +148,6 @@ class FastSpeech2wPEProsody(FastSpeech2):
                     mel_emb_kernel=mel_emb_kernel,
                     mel_emb_dropout=mel_emb_dropout,
                 )
-        self.use_hist_num = use_hist_num
 
     def contexts_forward(
         self,
@@ -171,15 +164,12 @@ class FastSpeech2wPEProsody(FastSpeech2):
             h_prosody_embs_lens,
         )
 
-        if self.use_hist_num > -1:
-            context_enc = self.context_encoder(
-                h_speakers,
-                h_emotions,
-                h_prosody_embs_len,
-                h_prosody_emb,
-            )
-        else:
-            context_enc = self.context_encoder(h_prosody_emb).squeeze(1)
+        context_enc = self.context_encoder(
+            h_speakers,
+            h_emotions,
+            h_prosody_embs_len,
+            h_prosody_emb,
+        )
 
         output = output + context_enc.unsqueeze(1).expand(
             -1, max_src_len, -1
@@ -199,6 +189,8 @@ class FastSpeech2wPEProsody(FastSpeech2):
         h_txt_emb_lens,
         h_speakers,
         h_emotions,
+        c_prosody_embs,
+        c_prosody_embs_lens,
         h_prosody_embs,
         h_prosody_embs_lens,
         h_prosody_embs_len,

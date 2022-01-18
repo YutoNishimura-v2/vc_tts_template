@@ -41,12 +41,6 @@ def get_embs(
 
     current_emb = np.load(get_path_from_uttid(utt_id, emb_paths))
 
-    if use_hist_num < 1:
-        return (
-            np.array(current_emb), np.array([np.zeros((1, 1))]), 1,
-            np.array(["PAD"]), np.array(["PAD"])
-        )
-
     range_ = range(int(current_in_d_id)-1, max(start_index-1, int(current_in_d_id)-1-use_hist_num), -1)
     hist_embs = []
     hist_emb_len = 0

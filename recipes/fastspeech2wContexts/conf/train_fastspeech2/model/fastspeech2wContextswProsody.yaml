@@ -16,7 +16,6 @@ netG:
   context_encoder_dropout: 0.2
   text_emb_dim: 768
   g_prosody_emb_size: 64
-  use_hist_num:
   # variance predictor
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3
