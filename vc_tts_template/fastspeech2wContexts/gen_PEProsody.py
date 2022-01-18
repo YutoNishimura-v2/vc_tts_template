@@ -61,7 +61,7 @@ def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
     h_emotions = torch.tensor(h_emotions, dtype=torch.long).unsqueeze(0).to(device)
     current_prosody_emb = torch.tensor(current_prosody_emb).unsqueeze(0).to(device)
     current_prosody_emb_len = torch.tensor(
-        np.array[current_prosody_emb.shape[0]], dtype=torch.long
+        np.array([current_prosody_emb.size(1)]), dtype=torch.long
     ).to(device)
     hist_prosody_embs = torch.tensor(hist_prosody_embs).unsqueeze(0).to(device)
     hist_prosody_embs_lens = torch.tensor(
