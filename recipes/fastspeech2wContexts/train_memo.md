@@ -1031,4 +1031,4 @@
         - spk: LINE_wContextwPEProsody_4
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - Current prosody embで条件づける.
-        - jobID: 
+        - jobID: 8981264
