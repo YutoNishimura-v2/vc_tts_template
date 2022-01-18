@@ -1,8 +1,8 @@
 # General settings.
-spk: "JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1"
+spk: "LINE_wContextwPEProsody_4"
 
 # exp tag(for managing experiments)
-tag: "JSUT_NICT_LINE_1_FS_PEPCE_w_Current"
+tag: "LINE_wContextwPEProsody_43_FS_AfterwoPEPCE"
 
 sample_rate: 22050
 
@@ -21,9 +21,9 @@ cudnn_deterministic: false
 ###########################################################
 
 # PLEASE CHANGE THE PATH BASED ON YOUR ENVIRONMENT
-wav_root: "../../../dataset/out_JSUT_NICT_LINE_wo_Teacher/JSUT_NICT_LINE_wo_Teacher/wav/22050"
-lab_root: "../../../dataset/out_JSUT_NICT_LINE_wo_Teacher/textgrid"
-dialogue_info: "../../../dataset/out_JSUT_NICT_LINE_wo_Teacher/dialogue_info.txt"
+wav_root: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050"
+lab_root: "../../../dataset/out_LINE_woITAKO/fullcontext"
+dialogue_info: "../../../dataset/out_LINE_woITAKO/dialogue_info.txt"
 
 n_jobs: 8
 
@@ -45,14 +45,14 @@ clip: 0.00001
 log_base: "natural"
 pitch_phoneme_averaging: 1
 energy_phoneme_averaging: 1
-accent_info: 0
+accent_info: 1
 # if you want to use multi-speaker, fill below.
 # example: "JSUT,NICT"
-speakers: "JSUT,NICT,Teacher,FStudent,MStudent"
+speakers:
 
 # for with Contexts
 BERT_weight: "colorfulscoop/sbert-base-ja"
-use_hist_num: 1
+use_hist_num: 10
 # for with Prosody
 # if 0, the latest one is used. if -1, data will not be loaded.
 use_local_prosody_hist_idx: -1
@@ -65,17 +65,17 @@ pretrained_checkpoints:
 ## そうではなく, pitch, energy or mel を利用したい場合は以下を埋める
 ## pitch, energy: mel_mode=0, mel: mel_mode=1
 ## labかtextgridは片方を埋めればよい
-input_wav_paths: "../../../dataset/out_JSUT_NICT_LINE_wo_Teacher/JSUT_NICT_LINE_wo_Teacher/wav/22050"
-input_lab_paths: 
-input_textgrid_paths: "../../../dataset/out_JSUT_NICT_LINE_wo_Teacher/textgrid"
-emb_speakers: "JSUT,NICT,Teacher,FStudent,MStudent"
+input_wav_paths: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050,../../../dataset/out_LINE_MStudent/LINE_MStudent/wav/22050,../../../dataset/out_LINE_FStudent/LINE_FStudent/wav/22050"
+input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
+input_textgrid_paths:
+emb_speakers: "Teacher,MStudent,FStudent"
 mel_mode: 1
 
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wPEProsodywoPEPCE
+acoustic_model: fastspeech2wContextswPEProsodyAfterwoPEPCE
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.

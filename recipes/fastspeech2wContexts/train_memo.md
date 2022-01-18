@@ -1043,3 +1043,8 @@
         - pretrain: None
         - Current prosody embで条件づける.
         - jobID: 8981944
+    - LINE_wContextwPEProsody_43_FS_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - LINE_wContextwPEProsody_42_FS_PEPCE_w_Currentはfixして, prosody embを獲得しに行く話.
+        - jobID: 
