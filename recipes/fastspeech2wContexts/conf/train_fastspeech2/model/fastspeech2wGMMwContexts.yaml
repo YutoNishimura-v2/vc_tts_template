@@ -15,6 +15,7 @@ netG:
   context_num_layer: 4
   context_encoder_dropout: 0.2
   text_emb_dim: 768
+  use_hist_num:
   # prosody extractor
   prosody_emb_dim: 64
   extra_conv_kernel_size: 3

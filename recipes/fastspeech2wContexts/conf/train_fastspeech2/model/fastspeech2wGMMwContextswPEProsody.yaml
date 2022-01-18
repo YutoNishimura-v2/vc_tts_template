@@ -23,6 +23,7 @@ netG:
   mel_emb_dim: 256
   mel_emb_kernel: 31
   mel_emb_dropout: 0.5
+  use_hist_num:
   # prosody extractor
   prosody_emb_dim: 64
   extra_conv_kernel_size: 3

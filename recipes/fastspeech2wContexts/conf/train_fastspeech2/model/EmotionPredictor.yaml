@@ -33,3 +33,4 @@ netG:
   n_mel_channel:
   accent_info:
   mel_embedding_mode:
+  use_hist_num:

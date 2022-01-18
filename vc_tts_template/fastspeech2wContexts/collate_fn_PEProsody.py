@@ -25,6 +25,15 @@ def get_peprosody_embs(
 
     current_emb = np.load(get_path_from_uttid(utt_id, emb_paths))
 
+    if use_hist_num == -1:
+        hist_embs_lens = [current_emb.shape[0]]
+        hist_emb_len = 1
+        return (
+            np.array([current_emb]), np.array(hist_embs_lens), hist_emb_len,
+            np.array([utt_id.split('_')[0]]), np.array(utt_id.split('_')[-1]),
+            None, None, None
+        )
+
     range_ = range(int(current_in_d_id)-1, max(start_index-1, int(current_in_d_id)-1-use_hist_num), -1)
     hist_embs = []
     hist_emb_len = 0

@@ -35,6 +35,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         mel_emb_dim: int,
         mel_emb_kernel: int,
         mel_emb_dropout: float,
+        use_hist_num: int,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
