@@ -1042,4 +1042,4 @@
         - spk: JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1
         - pretrain: None
         - Current prosody embで条件づける.
-        - jobID:  
+        - jobID: 8981944

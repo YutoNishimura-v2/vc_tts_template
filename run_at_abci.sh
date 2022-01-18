@@ -8,6 +8,7 @@
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/fastspeech2VC/JSUT_NICT_LINE_4_sr22050_JSUT_NICT_LINE_4_202111162213.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_3_sr22050_LINE_emotionprediction_58_202201141005.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_42_202201181214.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1_sr22050_JSUT_NICT_LINE_1_202201181515.log run_at_abci.sh
 # 例: 8250289
 # 例: qrsh -g $ABCI_GROUP -l rt_AG.small=1 -l h_rt=10:00:00
 
@@ -23,7 +24,7 @@ cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/reci
 export PYTHONPATH="/groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template:$PYTHONPATH"  # node A
 
 # ./run.sh --stage 3 --stop-stage 3 --local_dir ${SGE_LOCALDIR}/
-./run.sh --stage 4 --stop-stage 4 --local_dir ${SGE_LOCALDIR}/
-# ./run.sh --stage 4 --stop-stage 4 --local_dir ${SGE_LOCALDIR}/ --overwrite 1
+# ./run.sh --stage 4 --stop-stage 4 --local_dir ${SGE_LOCALDIR}/
+./run.sh --stage 4 --stop-stage 4 --local_dir ${SGE_LOCALDIR}/ --overwrite 1
 # ./run.sh --stage 5 --stop-stage 5 --local_dir ${SGE_LOCALDIR}/
 deactivate
