@@ -101,15 +101,15 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         )
         # override to add padding_idx
         n_speaker = len(speakers)
-        self.speaker_emb = nn.Embedding(
+        self.clone_speaker_emb = nn.Embedding(
             n_speaker,
             encoder_hidden_dim,
             padding_idx=0,
         )
-        self.emotion_emb = None
+        self.clone_emotion_emb = None
         if emotions is not None:
             n_emotion = len(emotions)
-            self.emotion_emb = nn.Embedding(
+            self.clone_emotion_emb = nn.Embedding(
                 n_emotion,
                 encoder_hidden_dim,
                 padding_idx=0,
@@ -122,8 +122,8 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
             context_dropout=context_encoder_dropout,
             text_emb_size=text_emb_dim,
             g_prosody_emb_size=peprosody_encoder_gru_dim,
-            speaker_embedding=self.speaker_emb,
-            emotion_embedding=self.emotion_emb,
+            speaker_embedding=self.clone_speaker_emb,
+            emotion_embedding=self.clone_emotion_emb,
             current_attention=current_attention
         )
         # fixしない方
@@ -199,10 +199,12 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         if FS_fix is True:
             for module in [
                 self.encoder, self.variance_adaptor, self.decoder,
-                self.decoder_linear, self.mel_linear, self.postnet
+                self.decoder_linear, self.mel_linear, self.postnet,
+                self.speaker_emb, self.emotion_emb,
             ]:
-                for _, p in module.named_parameters():
-                    p.requires_grad = False
+                if module is not None:
+                    for _, p in module.named_parameters():
+                        p.requires_grad = False
         if PE_fix is True:
             for module in [
                 self.context_encoder, self.peprosody_encoder
