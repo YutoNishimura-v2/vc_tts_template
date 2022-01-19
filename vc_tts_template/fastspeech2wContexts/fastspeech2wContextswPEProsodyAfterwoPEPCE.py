@@ -3,8 +3,9 @@ from typing import Dict, Optional
 import torch
 import torch.nn as nn
 from vc_tts_template.fastspeech2.fastspeech2 import FastSpeech2
-from vc_tts_template.fastspeech2wContexts.context_encoder import \
-    ConversationalProsodyContextEncoder
+from vc_tts_template.fastspeech2wContexts.context_encoder import (
+        ConversationalProsodyContextEncoder, ConversationalContextEncoder, ConversationalProsodyEncoder
+)
 from vc_tts_template.fastspeech2wContexts.prosody_model import PEProsodyEncoder
 
 
@@ -38,6 +39,10 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         mel_emb_dim: int,
         mel_emb_kernel: int,
         mel_emb_dropout: float,
+        use_context_encoder: bool,
+        use_prosody_encoder: bool,
+        use_peprosody_encoder: bool,
+        use_melprosody_encoder: bool,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -115,19 +120,47 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 padding_idx=0,
             )
 
-        self.clone_context_encoder = ConversationalProsodyContextEncoder(
-            d_encoder_hidden=encoder_hidden_dim,
-            d_context_hidden=context_encoder_hidden_dim,
-            context_layer_num=context_num_layer,
-            context_dropout=context_encoder_dropout,
-            text_emb_size=text_emb_dim,
-            g_prosody_emb_size=peprosody_encoder_gru_dim,
-            speaker_embedding=self.clone_speaker_emb,
-            emotion_embedding=self.clone_emotion_emb,
-            current_attention=current_attention
-        )
+        if use_prosody_encoder is True:
+            # 外部で用意したglobal prosody embeddingを使う方式
+            raise RuntimeError("未対応です")
+        if (use_context_encoder is True) and ((use_peprosody_encoder or use_melprosody_encoder) is True):
+            self.clone_context_encoder = ConversationalProsodyContextEncoder(
+                d_encoder_hidden=encoder_hidden_dim,
+                d_context_hidden=context_encoder_hidden_dim,
+                context_layer_num=context_num_layer,
+                context_dropout=context_encoder_dropout,
+                text_emb_size=text_emb_dim,
+                g_prosody_emb_size=peprosody_encoder_gru_dim,
+                speaker_embedding=self.clone_speaker_emb,
+                emotion_embedding=self.clone_emotion_emb,
+                current_attention=current_attention,
+            )
+        elif (use_context_encoder is True) and ((use_peprosody_encoder or use_melprosody_encoder) is False):
+            self.clone_context_encoder = ConversationalContextEncoder(  # type:ignore
+                d_encoder_hidden=encoder_hidden_dim,
+                d_context_hidden=context_encoder_hidden_dim,
+                context_layer_num=context_num_layer,
+                context_dropout=context_encoder_dropout,
+                text_emb_size=text_emb_dim,
+                speaker_embedding=self.clone_speaker_emb,
+                emotion_embedding=self.clone_emotion_emb,
+                current_attention=current_attention,
+            )
+        elif (use_context_encoder is False) and ((use_peprosody_encoder or use_melprosody_encoder) is True):
+            self.clone_context_encoder = ConversationalProsodyEncoder(  # type:ignore
+                d_encoder_hidden=encoder_hidden_dim,
+                d_context_hidden=context_encoder_hidden_dim,
+                context_layer_num=context_num_layer,
+                context_dropout=context_encoder_dropout,
+                g_prosody_emb_size=peprosody_encoder_gru_dim,
+                speaker_embedding=self.clone_speaker_emb,
+                emotion_embedding=self.clone_emotion_emb,
+            )
+        else:
+            raise RuntimeError("未対応です. CEかPEProsodyのどちらかは利用しましょう.")
+
         # fixしない方
-        if stats is not None:
+        if (stats is not None) and (use_prosody_encoder is True):
             self.clone_peprosody_encoder = PEProsodyEncoder(
                 peprosody_encoder_gru_dim,
                 peprosody_encoder_gru_num_layer,
@@ -138,7 +171,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 shere_embedding=shere_embedding
             )
         else:
-            if mel_embedding_mode == 0:
+            if use_peprosody_encoder is True:
                 self.clone_peprosody_encoder = PEProsodyEncoder(
                     peprosody_encoder_gru_dim,
                     peprosody_encoder_gru_num_layer,
@@ -146,7 +179,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     energy_embedding=self.variance_adaptor.energy_embedding,
                     shere_embedding=shere_embedding
                 )
-            else:
+            elif use_melprosody_encoder is True:
                 self.clone_peprosody_encoder = PEProsodyEncoder(
                     peprosody_encoder_gru_dim,
                     peprosody_encoder_gru_num_layer,
@@ -158,6 +191,8 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     mel_emb_kernel=mel_emb_kernel,
                     mel_emb_dropout=mel_emb_dropout,
                 )
+            else:
+                self.clone_peprosody_encoder = None  # type:ignore
 
         # fixする方
         self.context_encoder = nn.Linear(  # type: ignore
@@ -194,6 +229,10 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     mel_emb_kernel=mel_emb_kernel,
                     mel_emb_dropout=mel_emb_dropout,
                 )
+
+        self.use_context_encoder = use_context_encoder
+        self.use_peprosody_encoder = use_peprosody_encoder
+        self.use_melprosody_encoder = use_melprosody_encoder
 
         # fixする
         if FS_fix is True:
@@ -239,21 +278,45 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         else:
             target = None
 
-        h_prosody_emb = self.clone_peprosody_encoder(
-            h_prosody_embs,
-            h_prosody_embs_lens,
-        )
-        prediction = self.clone_context_encoder(
-            c_txt_embs,
-            speakers,
-            emotions,
-            h_txt_embs,
-            h_speakers,
-            h_emotions,
-            h_txt_emb_lens,
-            h_prosody_emb,
-            h_prosody_embs_len,
-        )
+        if (self.use_peprosody_encoder or self.use_melprosody_encoder) is True:
+            h_prosody_emb = self.clone_peprosody_encoder(
+                h_prosody_embs,
+                h_prosody_embs_lens,
+            )
+
+        if (self.use_context_encoder is True) and \
+                ((self.use_peprosody_encoder or self.use_melprosody_encoder) is True):
+            prediction = self.clone_context_encoder(
+                c_txt_embs,
+                speakers,
+                emotions,
+                h_txt_embs,
+                h_speakers,
+                h_emotions,
+                h_txt_emb_lens,
+                h_prosody_emb,
+                h_prosody_embs_len,
+            )
+        elif (self.use_context_encoder is True) and \
+                ((self.use_peprosody_encoder or self.use_melprosody_encoder) is False):
+            prediction = self.clone_context_encoder(
+                c_txt_embs,
+                speakers,
+                emotions,
+                h_txt_embs,
+                h_speakers,
+                h_emotions,
+                h_txt_emb_lens,
+            )
+        elif (self.use_context_encoder is False) and \
+                ((self.use_peprosody_encoder or self.use_melprosody_encoder) is True):
+            prediction = self.clone_context_encoder(
+                h_speakers,
+                h_emotions,
+                h_prosody_embs_len,
+                h_prosody_emb,
+            )
+
         if is_inference is False:
             output = output + target.unsqueeze(1).expand(
                 -1, max_src_len, -1
