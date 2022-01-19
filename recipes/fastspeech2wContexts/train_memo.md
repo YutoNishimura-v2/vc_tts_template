@@ -1048,3 +1048,51 @@
         - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
         - LINE_wContextwPEProsody_42_FS_PEPCE_w_Currentはfixして, prosody embを獲得しに行く話.
         - jobID: 8982865
+    - LINE_wContextwPEProsody_44_FS_CE_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - speaker embまでもfixしたver. ちゃんとみんな調べる. CEとか.
+        - jobID: 8999596
+    - LINE_wContextwPEProsody_45_FS_PEPCE_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - speaker embまでもfixしたver. ちゃんとみんな調べる. CEとか.
+        - jobID: 8999618
+    - LINE_wContextwPEProsody_46_FS_CE_PEPCE_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - speaker embまでもfixしたver. ちゃんとみんな調べる. CEとか.
+        - jobID: 8999643
+    - LINE_wContextwPEProsody_47_FS_CE_woAttention_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - speaker embまでもfixしたver. ちゃんとみんな調べる. CEとか.
+        - current_attention: False
+        - jobID: 8999704
+    - LINE_wContextwPEProsody_48_FS_PEPCE_woAttention_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - speaker embまでもfixしたver. ちゃんとみんな調べる. CEとか.
+        - current_attention: False
+        - jobID: 8999690
+    - LINE_wContextwPEProsody_49_FS_CE_PEPCE_woAttention_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - speaker embまでもfixしたver. ちゃんとみんな調べる. CEとか.
+        - current_attention: False
+        - jobID: 8999671
+    
+    # without attentionのも実験しておく. PEPCE debug後
+    - LINE_wContextwPEProsody_50_FS_CE_woAttention
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8999730
+    - LINE_wContextwPEProsody_51_FS_PEPCE_woAttention
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - attentionはないので,LINE_wContextwPEProsody_37_FS_PEPCE とまったく同じ
+        - jobID: 8999747
+    - LINE_wContextwPEProsody_52_FS_CE_PEPCE_woAttention
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 8999764

@@ -15,7 +15,7 @@ netG:
   context_num_layer: 4
   context_encoder_dropout: 0.2
   text_emb_dim: 768
-  current_attention: True
+  current_attention: False
   # variance predictor
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3

@@ -18,7 +18,7 @@ netG:
   peprosody_encoder_gru_dim: 256
   peprosody_encoder_gru_num_layer: 2
   shere_embedding: False
-  current_attention: True
+  current_attention: False
   mel_embedding_mode:
   mel_emb_dim: 256
   mel_emb_kernel: 31
