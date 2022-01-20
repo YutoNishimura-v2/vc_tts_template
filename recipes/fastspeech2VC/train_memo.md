@@ -544,25 +544,6 @@
         - pretrain: JSUT_NICT_LINE_3
         - job ID: 8272808
 
-    # 以下coefont
-    - yuto2allial
-      - spk: yuto2allial
-      - pretrain: JSUT_NICT_LINE_2
-      - 実行時間: min/50epoch
-      - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 200, reduction_factor: 3, pitch_AR: False
-      - N2C_45と同じ設定で動くかやってみる.
-    - yuto2hongo
-      - spk: yuto2hongo
-      - pretrain: JSUT_NICT_LINE_2
-      - 実行時間: min/50epoch
-      - batch_size:32, group_size:16, warm_up_rate: 1000, min_silence_len: 200, reduction_factor: 3, pitch_AR: False
-      - N2C_45と同じ設定で動くかやってみる.
-    - JSUT_NICT_LINE_4
-        - spk: JSUT_NICT_LINE_4
-        - pretrain: fastspeech2/JSUT_NICT_LINE_2_sr22050_JSUT_NICT_LINE_2
-        - epoch: 200
-        - pretrain用. reduction_factor=1が使いたい.
-
 ## 主要な実験
 - N2C_4: 初pitchAR化.
 - N2C_23: batch_size: 32におけるpitchARの訓練. pre-train用.
