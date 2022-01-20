@@ -29,6 +29,7 @@ class FastSpeech2wPEProsody(FastSpeech2):
         peprosody_encoder_gru_dim: int,
         peprosody_encoder_gru_num_layer: int,
         shere_embedding: bool,
+        past_global_gru: bool,
         mel_embedding_mode: int,
         mel_emb_dim: int,
         mel_emb_kernel: int,
@@ -116,6 +117,7 @@ class FastSpeech2wPEProsody(FastSpeech2):
             g_prosody_emb_size=peprosody_encoder_gru_dim,
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
+            past_global_gru=past_global_gru,
         )
         if stats is not None:
             self.peprosody_encoder = PEProsodyEncoder(

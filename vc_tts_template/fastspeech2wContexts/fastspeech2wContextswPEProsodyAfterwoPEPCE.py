@@ -35,6 +35,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         peprosody_encoder_gru_num_layer: int,
         shere_embedding: bool,
         current_attention: bool,
+        past_global_gru: bool,
         mel_embedding_mode: int,
         mel_emb_dim: int,
         mel_emb_kernel: int,
@@ -134,6 +135,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 speaker_embedding=self.clone_speaker_emb,
                 emotion_embedding=self.clone_emotion_emb,
                 current_attention=current_attention,
+                past_global_gru=past_global_gru,
             )
         elif (use_context_encoder is True) and ((use_peprosody_encoder or use_melprosody_encoder) is False):
             self.clone_context_encoder = ConversationalContextEncoder(  # type:ignore
@@ -145,6 +147,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 speaker_embedding=self.clone_speaker_emb,
                 emotion_embedding=self.clone_emotion_emb,
                 current_attention=current_attention,
+                past_global_gru=past_global_gru,
             )
         elif (use_context_encoder is False) and ((use_peprosody_encoder or use_melprosody_encoder) is True):
             self.clone_context_encoder = ConversationalProsodyEncoder(  # type:ignore
@@ -155,6 +158,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 g_prosody_emb_size=peprosody_encoder_gru_dim,
                 speaker_embedding=self.clone_speaker_emb,
                 emotion_embedding=self.clone_emotion_emb,
+                past_global_gru=past_global_gru,
             )
         else:
             raise RuntimeError("未対応です. CEかPEProsodyのどちらかは利用しましょう.")

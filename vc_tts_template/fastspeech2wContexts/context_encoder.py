@@ -23,6 +23,7 @@ class ConversationalContextEncoder(nn.Module):
         speaker_embedding,
         emotion_embedding,
         current_attention=True,
+        past_global_gru=False,
         gru_bidirectional=True,
     ):
         super(ConversationalContextEncoder, self).__init__()
@@ -53,21 +54,27 @@ class ConversationalContextEncoder(nn.Module):
             sort=True,
             dropout=dropout,
             allow_zero_length=True,
+            need_last=True if past_global_gru is True else False,
         )
         self.gru_linear = nn.Sequential(
             nn.Linear(2*d_cont_enc, d_cont_enc),
             nn.ReLU()
         )
 
-        if current_attention is True:
+        if (current_attention is True) and (past_global_gru is False):
             # 基本Trueのほうが性能がいいです.
             self.context_value_linear = nn.Linear(d_cont_enc, d_model)
             self.context_query_linear = nn.Linear(d_cont_enc, d_model)
             self.context_attention = SLA_wQuery(d_model)
             self.context_linear = nn.Linear(d_cont_enc + d_model, d_model)
-        else:
+        elif (current_attention is False) and (past_global_gru is True):
+            self.context_linear = nn.Linear(d_cont_enc * 2, d_model)
+            self.context_attention = None
+        elif (current_attention is False) and (past_global_gru is False):
             self.context_linear = nn.Linear(d_cont_enc, d_model)
             self.context_attention = SLA(d_model)
+        else:
+            raise RuntimeError("未対応です")
 
         self.speaker_embedding = speaker_embedding
         self.emotion_embedding = emotion_embedding
@@ -98,7 +105,8 @@ class ConversationalContextEncoder(nn.Module):
 
         # GRU
         enc_past = self.gru_linear(self.gru(enc_past, history_lens))
-        enc_past = enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
+        if self.context_attention is not None:
+            enc_past = enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
 
         # Encoding
         # context_enc = enc_past
@@ -110,8 +118,12 @@ class ConversationalContextEncoder(nn.Module):
                 torch.cat([enc_current.squeeze(1), context_enc], dim=-1)
             )
         else:
-            context_enc = torch.cat([enc_current, enc_past], dim=1)
-            context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
+            if self.context_attention is None:
+                context_enc = torch.cat([enc_current.squeeze(1), enc_past], dim=-1)
+                context_enc = self.context_linear(context_enc)
+            else:
+                context_enc = torch.cat([enc_current, enc_past], dim=1)
+                context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
 
         return context_enc
 
@@ -184,6 +196,7 @@ class ConversationalProsodyContextEncoder(nn.Module):
         speaker_embedding,
         emotion_embedding,
         current_attention=True,
+        past_global_gru=False,
         gru_bidirectional=True,
     ):
         super(ConversationalProsodyContextEncoder, self).__init__()
@@ -221,6 +234,7 @@ class ConversationalProsodyContextEncoder(nn.Module):
             sort=True,
             dropout=dropout,
             allow_zero_length=True,
+            need_last=True if past_global_gru is True else False,
         )
         self.gru_linear = nn.Sequential(
             nn.Linear(2*d_cont_enc, d_cont_enc),
@@ -235,13 +249,14 @@ class ConversationalProsodyContextEncoder(nn.Module):
             sort=True,
             dropout=dropout,
             allow_zero_length=True,
+            need_last=True if past_global_gru is True else False,
         )
         self.prosody_gru_linear = nn.Sequential(
             nn.Linear(2*d_cont_enc, d_cont_enc),
             nn.ReLU()
         )
 
-        if current_attention is True:
+        if (current_attention is True) and (past_global_gru is False):
             self.context_query_linear = nn.Linear(d_cont_enc, d_model)
             self.context_value_linear = nn.Linear(d_cont_enc, d_model)
             self.context_linear = nn.Linear(d_cont_enc + d_model, d_model)
@@ -250,12 +265,18 @@ class ConversationalProsodyContextEncoder(nn.Module):
             self.prosody_context_query_linear = nn.Linear(d_cont_enc, d_model)
             self.prosody_context_value_linear = nn.Linear(d_cont_enc, d_model)
             self.prosody_context_attention = SLA_wQuery(d_model)
-        else:
+        elif (current_attention is False) and (past_global_gru is True):
+            self.context_linear = nn.Linear(d_cont_enc * 2, d_model)
+            self.context_attention = None
+            self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
+            self.prosody_context_attention = None
+        elif (current_attention is False) and (past_global_gru is False):
             self.context_linear = nn.Linear(d_cont_enc, d_model)
             self.context_attention = SLA(d_model)
-
             self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
             self.prosody_context_attention = SLA(d_model)
+        else:
+            raise RuntimeError("未対応です")
 
         self.speaker_embedding = speaker_embedding
         self.emotion_embedding = emotion_embedding
@@ -292,9 +313,10 @@ class ConversationalProsodyContextEncoder(nn.Module):
 
         # GRU
         enc_past = self.gru_linear(self.gru(enc_past, history_lens))
-        enc_past = enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
         prosody_enc_past = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, h_g_prosody_embs_lens))
-        prosody_enc_past = prosody_enc_past.masked_fill(history_prosody_masks.unsqueeze(-1), 0)
+        if self.context_attention is not None:
+            enc_past = enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
+            prosody_enc_past = prosody_enc_past.masked_fill(history_prosody_masks.unsqueeze(-1), 0)
 
         if self.current_attention is True:
             context_enc = self.context_attention(
@@ -307,13 +329,18 @@ class ConversationalProsodyContextEncoder(nn.Module):
                 torch.cat([enc_current.squeeze(1), context_enc], dim=-1)
             )
         else:
-            context_enc = torch.cat([enc_current, enc_past], dim=1)
-            context_enc = self.context_attention(
-                self.context_linear(context_enc)
-            )  # [B, d]
-            prosody_context_enc = self.prosody_context_attention(
-                self.prosody_context_linear(prosody_enc_past)
-            )  # [B, d]
+            if self.context_attention is None:
+                context_enc = torch.cat([enc_current.squeeze(1), enc_past], dim=-1)
+                context_enc = self.context_linear(context_enc)
+                prosody_context_enc = self.prosody_context_linear(prosody_enc_past)
+            else:
+                context_enc = torch.cat([enc_current, enc_past], dim=1)
+                context_enc = self.context_attention(
+                    self.context_linear(context_enc)
+                )  # [B, d]
+                prosody_context_enc = self.prosody_context_attention(
+                    self.prosody_context_linear(prosody_enc_past)
+                )  # [B, d]
 
         return context_enc + prosody_context_enc
 
@@ -332,6 +359,7 @@ class ConversationalProsodyEncoder(nn.Module):
         g_prosody_emb_size,
         speaker_embedding,
         emotion_embedding,
+        past_global_gru=False,
     ):
         super(ConversationalProsodyEncoder, self).__init__()
         d_model = d_encoder_hidden
@@ -360,13 +388,18 @@ class ConversationalProsodyEncoder(nn.Module):
             sort=True,
             dropout=dropout,
             allow_zero_length=True,
+            need_last=True if past_global_gru is True else False,
         )
         self.prosody_gru_linear = nn.Sequential(
             nn.Linear(2*d_cont_enc, d_cont_enc),
             nn.ReLU()
         )
-        self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
-        self.prosody_context_attention = SLA(d_model)
+        if past_global_gru is True:
+            self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
+            self.prosody_context_attention = None
+        else:
+            self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
+            self.prosody_context_attention = SLA(d_model)
 
         self.speaker_embedding = speaker_embedding
         self.emotion_embedding = emotion_embedding
@@ -390,10 +423,14 @@ class ConversationalProsodyEncoder(nn.Module):
 
         # GRU
         prosody_enc_past = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, history_lens))
-        prosody_enc_past = prosody_enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
+        if self.prosody_context_attention is not None:
+            prosody_enc_past = prosody_enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
 
         # ↓new!
         # Encoding
-        prosody_context_enc = self.prosody_context_attention(self.prosody_context_linear(prosody_enc_past))  # [B, d]
+        if self.prosody_context_attention is None:
+            prosody_context_enc = self.prosody_context_linear(prosody_enc_past)
+        else:
+            prosody_context_enc = self.prosody_context_attention(self.prosody_context_linear(prosody_enc_past))
 
         return prosody_context_enc

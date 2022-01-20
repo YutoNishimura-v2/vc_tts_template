@@ -27,6 +27,7 @@ class FastSpeech2wContexts(FastSpeech2):
         context_encoder_dropout: float,
         text_emb_dim: int,
         current_attention: bool,
+        past_global_gru: bool,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -113,6 +114,7 @@ class FastSpeech2wContexts(FastSpeech2):
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
             current_attention=current_attention,
+            past_global_gru=past_global_gru,
         )
 
     def contexts_forward(
