@@ -2,7 +2,7 @@
 spk: "LINE_wContextwPEProsody_4"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_65_FS_CE_PEPCE_woAttn_wPretrainedPE"
+tag: "LINE_wContextwPEProsody_66_FS_PEPCE_PEfixed_AfterwoPEPCE"
 
 sample_rate: 22050
 
@@ -75,7 +75,7 @@ mel_mode: 1
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wContextswPEProsody
+acoustic_model: fastspeech2wContextswPEProsodyAfterwoPEPCE
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.

@@ -71,6 +71,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         accent_info: int = 0,
         FS_fix: bool = True,
         PE_fix: bool = True,
+        clone_PE_fix: bool = False,
     ):
         super().__init__(
             max_seq_len,
@@ -254,6 +255,8 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
             ]:
                 for _, p in module.named_parameters():
                     p.requires_grad = False
+        if clone_PE_fix is True:
+            self.clone_peprosody_encoder = self.peprosody_encoder
 
     def contexts_forward(
         self,

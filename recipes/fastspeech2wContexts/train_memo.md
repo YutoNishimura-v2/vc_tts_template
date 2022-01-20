@@ -1162,3 +1162,13 @@
         - pretrain: JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1_sr22050_JSUT_NICT_LINE_1_FS_PEPCE_w_Current/latest_wJSUT_5.pth
         - current_attention: False, past_global_gru: False
         - jobID: 9006891
+
+    # PE固定してみる
+    - LINE_wContextwPEProsody_66_FS_PEPCE_PEfixed_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - jobID: 
+    - LINE_wContextwPEProsody_67_FS_CE_PEPCE_PEfixed_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - jobID: 

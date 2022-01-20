@@ -24,7 +24,7 @@ netG:
   mel_emb_dim: 256
   mel_emb_kernel: 31
   mel_emb_dropout: 0.5
-  use_context_encoder: True
+  use_context_encoder: False
   use_prosody_encoder: False
   use_peprosody_encoder: False
   use_melprosody_encoder: True
@@ -57,3 +57,4 @@ netG:
   accent_info:
   FS_fix: True
   PE_fix: True
+  clone_PE_fix: True
