@@ -1135,3 +1135,15 @@
         - current_attention: False, past_global_gru: True
         - データセットに違いはないはずだけど、少し不安なのでやっておいてみる
         - jobID: 9006796
+
+    # 大量データでtrainしたPEを使ってみる
+    - LINE_wContextwPEProsody_61_FS_PEPCE_wPretrainedPE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1_sr22050_JSUT_NICT_LINE_1_FS_PEPCE_w_Current/latest_wJSUT_5.pth
+        - current_attention: True, past_global_gru: False
+        - jobID: 
+    - LINE_wContextwPEProsody_62_FS_CE_PEPCE_wPretrainedPE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1_sr22050_JSUT_NICT_LINE_1_FS_PEPCE_w_Current/latest_wJSUT_5.pth
+        - current_attention: True, past_global_gru: False
+        - jobID: 
