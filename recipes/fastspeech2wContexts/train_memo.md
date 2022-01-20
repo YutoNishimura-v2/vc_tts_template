@@ -1129,3 +1129,9 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - current_attention: False, past_global_gru: True
         - jobID: 9006756
+    - (LINE_wContextwPEProsody_59_FS_CE_wGRU)
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - current_attention: False, past_global_gru: True
+        - データセットに違いはないはずだけど、少し不安なのでやっておいてみる
+        - jobID: 9006796

@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_2"
+spk: "LINE_wContextwPEProsody_4"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_56_FS_CE_wGRU"
+tag: "LINE_wContextwPEProsody_59_FS_CE_wGRU"
 
 sample_rate: 22050
 
