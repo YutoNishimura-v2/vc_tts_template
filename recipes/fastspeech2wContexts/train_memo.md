@@ -1096,3 +1096,36 @@
         - spk: LINE_wContextwPEProsody_4
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - jobID: 8999764
+    
+    # wGRUとして、元論文同様の方式を実験
+    - LINE_wContextwPEProsody_53_FS_CE_wGRU_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - current_attention: False, past_global_gru: True
+        - jobID: 9006722
+    - LINE_wContextwPEProsody_54_FS_PEPCE_wGRU_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - current_attention: False, past_global_gru: True
+        - jobID: 9006736
+    - LINE_wContextwPEProsody_55_FS_CE_PEPCE_wGRU_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - current_attention: False, past_global_gru: True
+        - jobID: 9006738
+
+    - LINE_wContextwPEProsody_56_FS_CE_wGRU
+        - spk: LINE_wContextwPEProsody_2
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - current_attention: False, past_global_gru: True
+        - jobID: 9006763
+    - LINE_wContextwPEProsody_57_FS_PEPCE_wGRU
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - current_attention: False, past_global_gru: True
+        - jobID: 9006754
+    - LINE_wContextwPEProsody_58_FS_CE_PEPCE_wGRU
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - current_attention: False, past_global_gru: True
+        - jobID: 9006756
