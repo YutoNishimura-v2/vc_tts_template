@@ -1048,6 +1048,7 @@
         - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
         - LINE_wContextwPEProsody_42_FS_PEPCE_w_Currentはfixして, prosody embを獲得しに行く話.
         - jobID: 8982865
+
     - LINE_wContextwPEProsody_44_FS_CE_AfterwoPEPCE
         - spk: LINE_wContextwPEProsody_4
         - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
@@ -1063,6 +1064,7 @@
         - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
         - speaker embまでもfixしたver. ちゃんとみんな調べる. CEとか.
         - jobID: 8999643
+
     - LINE_wContextwPEProsody_47_FS_CE_woAttention_AfterwoPEPCE
         - spk: LINE_wContextwPEProsody_4
         - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
@@ -1172,3 +1174,15 @@
         - spk: LINE_wContextwPEProsody_4
         - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
         - jobID: 9007038
+    - LINE_wContextwPEProsody_68_FS_PEPCE_wGRU_PEfixed_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - jobID: 
+    - LINE_wContextwPEProsody_69_FS_CE_PEPCE_woAttn_PEfixed_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - jobID: 
+    - LINE_wContextwPEProsody_69_FS_CE_PEPCE_wGRU_PEfixed_AfterwoPEPCE
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
+        - jobID: 
