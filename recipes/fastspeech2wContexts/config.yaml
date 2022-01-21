@@ -2,7 +2,7 @@
 spk: "LINE_wContextwPEProsody_4"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_67_FS_CE_PEPCE_PEfixed_AfterwoPEPCE"
+tag: "LINE_wContextwPEProsody_68_FS_PEPCE_wGRU_PEfixed_AfterwoPEPCE"
 
 sample_rate: 22050
 
