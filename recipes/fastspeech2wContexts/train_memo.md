@@ -41,6 +41,10 @@
             - data/train.listは, すでにmelが一定以上に長いものをtextgridから除去したものになっている
             - 一方で, wavからは除去できていなかったので、取り除いた.
         - prosody embとしてmelを利用
+    - LINE_wContextwPEProsody_6
+        - out_LINE_woITAKOから作る. 
+        - utterance-levelを卒業して，pauで分割したtextでBERTを計算したり，pau毎のdurationを計算して蓄えたもの．
+
 - exp
     - LINE_wContext_1
         - spk: LINE_wContext
@@ -1186,3 +1190,9 @@
         - spk: LINE_wContextwPEProsody_4
         - pretrain: LINE_wContextwPEProsody_42_FS_PEPCE_w_Current
         - jobID: 9007859
+
+    # segment-level
+    - LINE_wContextwPEProsody_71_FS_PEPCE_w_Current
+        - spk: LINE_wContextwPEProsody_6
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 

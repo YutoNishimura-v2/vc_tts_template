@@ -3,6 +3,7 @@ from typing import Optional, Union
 
 import torch
 import torch.nn as nn
+import numpy as np
 
 sys.path.append("../..")
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyPredictor
@@ -299,7 +300,10 @@ class PEProsodyEncoder(nn.Module):
         h_prosody_embs = h_prosody_embs.contiguous().view(
             -1, h_prosody_embs.size(2), h_prosody_embs.size(3),
         )
-        h_prosody_embs_lens = h_prosody_embs_lens.contiguous().view(-1)
+        if type(h_prosody_embs_lens) == torch.Tensor:
+            h_prosody_embs_lens = h_prosody_embs_lens.contiguous().view(-1)
+        elif type(h_prosody_embs_lens) == np.ndarray:
+            h_prosody_embs_lens = h_prosody_embs_lens.reshape(-1)
 
         h_g_prosody_embs = self.global_bi_gru(h_prosody_embs, h_prosody_embs_lens)
         h_g_prosody_embs = h_g_prosody_embs.contiguous().view(-1, hist_len, h_g_prosody_embs.size(-1))

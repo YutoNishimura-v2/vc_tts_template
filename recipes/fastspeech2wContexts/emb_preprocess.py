@@ -1,19 +1,20 @@
 import argparse
 import sys
 from concurrent.futures import ProcessPoolExecutor
-
-from sentence_transformers import SentenceTransformer
-from tqdm import tqdm
-import numpy as np
 from pathlib import Path
-import torch
+from typing import List
+
 import hydra
+import numpy as np
+import torch
 from hydra.utils import to_absolute_path
 from omegaconf import OmegaConf
+from sentence_transformers import SentenceTransformer
+from tqdm import tqdm
 
 sys.path.append("../..")
-from vc_tts_template.utils import adaptive_load_state_dict, pad_1d, pad_2d
 from recipes.fastspeech2wContexts.preprocess import process_utterance
+from vc_tts_template.utils import adaptive_load_state_dict, pad_1d, pad_2d
 
 
 def init_for_list(input_):
@@ -54,11 +55,38 @@ def get_parser():
     parser.add_argument("--pitch_phoneme_averaging", type=int)
     parser.add_argument("--energy_phoneme_averaging", type=int)
     parser.add_argument("--mel_mode", type=int)
+    parser.add_argument("--pau_split", type=int)
     parser.add_argument("--n_jobs", type=int)
     return parser
 
 
-def get_text_embeddings(input_txt_file_path, output_dir, BERT_weight, batch_size=16):
+def split_text_by_pau(text: str):
+    pau_cher = ["、", "。", "！", "？", "「", "」"]
+    output = []
+
+    flg = 0
+    tmp = ""
+    for i, c_ in enumerate(text):
+        if c_ in pau_cher:
+            tmp += c_
+            if i == 0:
+                # 先頭のpauは無視される
+                continue
+            flg = 1
+        else:
+            if flg == 1:
+                # 切り替わり
+                output.append(tmp)
+                flg = 0
+                tmp = ""
+            tmp += c_
+    output.append(tmp)
+    return output
+
+
+def get_text_embeddings(
+    input_txt_file_path, output_dir, BERT_weight, pau_split, batch_size=16
+):
     model = SentenceTransformer(BERT_weight)
 
     with open(input_txt_file_path, 'r') as f:
@@ -71,6 +99,7 @@ def get_text_embeddings(input_txt_file_path, output_dir, BERT_weight, batch_size
     for i, (id_, text) in tqdm(enumerate(zip(file_names, texts))):
         batch_id.append(id_)
         batch_text.append(text)
+
         if ((i+1) % batch_size == 0) or (i == len(file_names)-1):
             output = model.encode(batch_text)
             for filename, text_emb in zip(batch_id, output):
@@ -79,10 +108,46 @@ def get_text_embeddings(input_txt_file_path, output_dir, BERT_weight, batch_size
                     text_emb.astype(np.float32),
                     allow_pickle=False,
                 )
+
             batch_id = []
             batch_text = []
         else:
             continue
+
+    if pau_split is True:
+        output_dir = output_dir / "segmented_text_emb"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        batch_id = []
+        batch_text = []
+        for i, (id_, text) in tqdm(enumerate(zip(file_names, texts))):
+            for t_ in split_text_by_pau(text):
+                batch_id.append(id_)
+                batch_text.append(t_)
+
+            if ((i+1) % batch_size == 0) or (i == len(file_names)-1):
+                output = model.encode(batch_text)
+                before_id = batch_id[0]
+                tmp_output = []
+                for filename, text_emb in zip(batch_id, output):
+                    if before_id != filename:
+                        np.save(
+                            output_dir / f"{filename}-feats.npy",
+                            np.array(tmp_output).astype(np.float32),
+                            allow_pickle=False,
+                        )
+                        tmp_output = []
+                    tmp_output.append(text_emb)
+                    before_id = filename
+                np.save(
+                    output_dir / f"{filename}-feats.npy",
+                    np.array(tmp_output).astype(np.float32),
+                    allow_pickle=False,
+                )
+
+                batch_id = []
+                batch_text = []
+            else:
+                continue
 
 
 def get_prosody_embeddings_wGMM(
@@ -175,12 +240,36 @@ def get_prosody_embeddings_wGMM(
                     continue
 
 
+def duration_split_by_pau(text: List[str], duration: np.ndarray):
+    duration_output = []
+    phone_output = []
+
+    if len(text) == (len(duration) * 2):
+        text = text[::2]
+
+    assert len(text) == len(duration)
+
+    cum_d = 0
+    cnt = 0
+    for p, d in zip(text, duration):
+        cum_d += d
+        cnt += 1
+        if p in ["sp", "pau"]:
+            duration_output.append(cum_d)
+            phone_output.append(cnt)
+            cum_d = 0
+            cnt = 0
+    duration_output.append(cum_d)
+    phone_output.append(cnt)
+    return np.array(duration_output), np.array(phone_output)
+
+
 def get_prosody_embeddings_wWav(
     input_wav_paths, input_lab_paths, input_textgrid_paths, output_dir,
     sample_rate, filter_length, hop_length, win_length,
     n_mel_channels, mel_fmin, mel_fmax, clip, log_base,
     pitch_phoneme_averaging, energy_phoneme_averaging,
-    mel_mode, n_jobs
+    mel_mode, pau_split, n_jobs
 ):
     if (input_lab_paths is not None) and (input_textgrid_paths is not None):
         raise ValueError("labを利用したいのか, textgridを利用したいのか, どちらか一方のみを埋めてください")
@@ -192,6 +281,12 @@ def get_prosody_embeddings_wWav(
     output_dir_prosody = output_dir / "prosody_emb"
     output_dir.mkdir(parents=True, exist_ok=True)
     output_dir_prosody.mkdir(parents=True, exist_ok=True)
+
+    if pau_split is True:
+        output_dir_prosody_seg_d = output_dir_prosody / "segment_duration"
+        output_dir_prosody_seg_p = output_dir_prosody / "segment_phonemes"
+        output_dir_prosody_seg_d.mkdir(parents=True, exist_ok=True)
+        output_dir_prosody_seg_p.mkdir(parents=True, exist_ok=True)
 
     utt_ids = []
 
@@ -224,7 +319,7 @@ def get_prosody_embeddings_wWav(
                 for wav_file, lab_file in zip(wav_files, lab_files)
             ]
             for future in tqdm(futures):
-                _, mel, pitch, energy, _, utt_id = future.result()
+                text, mel, pitch, energy, duration, utt_id = future.result()
                 if mel_mode is True:
                     np.save(
                         output_dir_prosody / f"{utt_id}-feats.npy",
@@ -238,6 +333,19 @@ def get_prosody_embeddings_wWav(
                         prosody.astype(np.float32),
                         allow_pickle=False,
                     )
+                if pau_split is True:
+                    seg_duration, seg_phoneme = duration_split_by_pau(text, duration)
+                    np.save(
+                        output_dir_prosody_seg_d / f"{utt_id}-feats.npy",
+                        seg_duration.astype(np.int32),
+                        allow_pickle=False,
+                    )
+                    np.save(
+                        output_dir_prosody_seg_p / f"{utt_id}-feats.npy",
+                        seg_phoneme.astype(np.int32),
+                        allow_pickle=False,
+                    )
+
                 utt_ids.append(utt_id+'\n')
     with open(output_dir / "prosody_emb.list", "w") as f:
         f.writelines(utt_ids)
@@ -252,7 +360,9 @@ if __name__ == "__main__":
     in_dir.mkdir(parents=True, exist_ok=True)
     in_text_emb_dir.mkdir(parents=True, exist_ok=True)
     print("get text embeddings...")
-    get_text_embeddings(args.dialogue_info, in_text_emb_dir, args.BERT_weight)
+    get_text_embeddings(
+        args.dialogue_info, in_text_emb_dir, args.BERT_weight, args.pau_split > 0
+    )
 
     if (args.input_duration_paths is not None) and (args.input_wav_paths is not None):
         raise ValueError("GMMを利用したいのか, wavを利用したいのか, どちらか一方のみを埋めてください")
@@ -270,5 +380,5 @@ if __name__ == "__main__":
             args.sample_rate, args.filter_length, args.hop_length, args.win_length,
             args.n_mel_channels, args.mel_fmin, args.mel_fmax, args.clip, args.log_base,
             args.pitch_phoneme_averaging, args.energy_phoneme_averaging,
-            args.mel_mode > 0, args.n_jobs,
+            args.mel_mode > 0, args.pau_split > 0, args.n_jobs,
         )

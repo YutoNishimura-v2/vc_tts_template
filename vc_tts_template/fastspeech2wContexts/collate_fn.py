@@ -1,4 +1,4 @@
-from typing import List, Dict, Callable
+from typing import List, Dict, Callable, Optional
 from pathlib import Path
 from hydra.utils import to_absolute_path
 
@@ -27,7 +27,8 @@ def make_dialogue_dict(dialogue_info):
 
 def get_embs(
     utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use_hist_num: int,
-    start_index: int = 0, only_latest: bool = False, use_local_prosody_hist_idx: int = 0
+    start_index: int = 0, only_latest: bool = False, use_local_prosody_hist_idx: int = 0,
+    seg_emb_paths: Optional[List] = None,
 ):
     current_d_id, current_in_d_id = utt2id[utt_id]
 
@@ -39,7 +40,10 @@ def get_embs(
                 break
         return answer
 
-    current_emb = np.load(get_path_from_uttid(utt_id, emb_paths))
+    if seg_emb_paths is not None:
+        current_emb = np.load(get_path_from_uttid(utt_id, seg_emb_paths))
+    else:
+        current_emb = np.load(get_path_from_uttid(utt_id, emb_paths))
 
     range_ = range(int(current_in_d_id)-1, max(start_index-1, int(current_in_d_id)-1-use_hist_num), -1)
     hist_embs = []
@@ -54,7 +58,7 @@ def get_embs(
         hist_emb_len += 1
 
     for _ in range(use_hist_num - len(hist_embs)):
-        hist_embs.append(np.zeros_like(current_emb))
+        hist_embs.append(np.zeros(current_emb.shape[-1]))
         history_speakers.append("PAD")
         history_emotions.append("PAD")
 

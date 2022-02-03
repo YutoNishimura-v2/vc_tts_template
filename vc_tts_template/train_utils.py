@@ -50,6 +50,8 @@ class check_grad_flow():
         self.num_step += 1
         for n, p in named_parameters:
             if p.requires_grad is True:
+                if p.grad is None:
+                    raise AttributeError(f"{n}' grad is None!!")
                 p = p.grad.abs().mean().cpu().numpy()
                 if (self.only_inf_grad is False) or (p == np.inf):
                     n = f"steps: {self.num_step}, param_name: " + n

@@ -1,9 +1,13 @@
 from typing import Dict, Optional
 
+import torch
 import torch.nn as nn
+import numpy as np
 
 from vc_tts_template.fastspeech2.fastspeech2 import FastSpeech2
 from vc_tts_template.fastspeech2wContexts.prosody_model import PEProsodyEncoder
+from vc_tts_template.fastspeech2wGMM.prosody_model import mel2phone, phone2utter
+from vc_tts_template.fastspeech2.varianceadaptor import LengthRegulator
 
 
 class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
@@ -138,6 +142,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
                     mel_emb_kernel=mel_emb_kernel,
                     mel_emb_dropout=mel_emb_dropout,
                 )
+        self.length_regulator = LengthRegulator()
 
     def contexts_forward(
         self,
@@ -145,17 +150,39 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         max_src_len,
         c_prosody_embs,
         c_prosody_embs_lens,
+        c_prosody_embs_duration,
+        c_prosody_embs_phonemes,
     ):
-        h_prosody_emb = self.peprosody_encoder(
-            c_prosody_embs.unsqueeze(1),
-            c_prosody_embs_lens.unsqueeze(1),
-        )
+        if c_prosody_embs_duration is None:
+            h_prosody_emb = self.peprosody_encoder(
+                c_prosody_embs.unsqueeze(1),
+                c_prosody_embs_lens.unsqueeze(1),
+            )
+            context_enc = self.context_encoder(h_prosody_emb).squeeze(1)
 
-        context_enc = self.context_encoder(h_prosody_emb).squeeze(1)
+            output = output + context_enc.unsqueeze(1).expand(
+                -1, max_src_len, -1
+            )
 
-        output = output + context_enc.unsqueeze(1).expand(
-            -1, max_src_len, -1
-        )
+        else:
+            (
+                output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
+            ) = mel2phone(c_prosody_embs, c_prosody_embs_duration.cpu().numpy())
+            outs = list()
+            for _output, src_lens in zip(output_sorted, src_lens_sorted):
+                out = self.peprosody_encoder(
+                    _output.unsqueeze(1),
+                    np.array(src_lens),
+                )
+                outs.append(out.squeeze(1))
+            outs = torch.cat(outs, 0)
+            h_prosody_emb = phone2utter(outs[inv_sort_idx], segment_nums)
+            context_enc = self.context_encoder(h_prosody_emb)
+            context_enc, _ = self.length_regulator(
+                context_enc, c_prosody_embs_phonemes, torch.max(c_prosody_embs_phonemes)
+            )
+            output = output + context_enc
+
         return output
 
     def forward(
@@ -173,6 +200,8 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         h_emotions,
         c_prosody_embs,
         c_prosody_embs_lens,
+        c_prosody_embs_duration,
+        c_prosody_embs_phonemes,
         h_prosody_embs,
         h_prosody_embs_lens,
         h_prosody_embs_len,
@@ -198,6 +227,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         )
         output = self.contexts_forward(
             output, max_src_len, c_prosody_embs, c_prosody_embs_lens,
+            c_prosody_embs_duration, c_prosody_embs_phonemes
         )
         (
             output,
