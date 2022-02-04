@@ -9,7 +9,8 @@ sys.path.append("../..")
 from vc_tts_template.fastspeech2wGMM.prosody_model import ProsodyPredictor
 from vc_tts_template.tacotron.decoder import LocationSensitiveAttention
 from vc_tts_template.utils import make_pad_mask
-from vc_tts_template.fastspeech2wGMM.layers import GRUwSort
+from vc_tts_template.fastspeech2wGMM.layers import GRUwSort, ConvBNorms2d
+from vc_tts_template.fastspeech2wGMM.prosody_model import encoder_init
 
 
 class ProsodyPredictorwAttention(ProsodyPredictor):
@@ -190,9 +191,14 @@ class PEProsodyEncoder(nn.Module):
         energy_bins: Optional[nn.Parameter] = None,
         shere_embedding: bool = True,
         n_mel_channel: int = 80,
-        mel_emb_dim: int = 256,
-        mel_emb_kernel: int = 31,
-        mel_emb_dropout: float = 0.5,
+        conv_in_channels=1,
+        conv_out_channels=1,
+        conv_kernel_size=1,
+        conv_stride=1,
+        conv_padding=None,
+        conv_dilation=1,
+        conv_bias=True,
+        conv_n_layers=2,
     ):
         super().__init__()
 
@@ -240,17 +246,14 @@ class PEProsodyEncoder(nn.Module):
             self.use_mel = False
         else:
             # melを用いる
-            self.hidden_sise = mel_emb_dim
-            gru_input_size = mel_emb_dim
-            self.mel_embedding = nn.Sequential(  # type:ignore
-                nn.Conv1d(
-                    in_channels=n_mel_channel,
-                    out_channels=mel_emb_dim,  # type:ignore
-                    kernel_size=mel_emb_kernel,  # type:ignore
-                    padding=(mel_emb_kernel - 1) // 2,  # type:ignore
-                ),
-                nn.Dropout(mel_emb_dropout),  # type:ignore
+            gru_input_size = n_mel_channel
+            self.hidden_sise = n_mel_channel
+            self.mel_embedding = ConvBNorms2d(
+                conv_in_channels, conv_out_channels, conv_kernel_size,
+                conv_stride, conv_padding, conv_dilation, conv_bias, conv_n_layers
             )
+            self.mel_embedding.apply(encoder_init)
+
             self.use_mel = True
 
         # 最初の発話の場合, hist_len=0になるため, allow_zeroが必要
@@ -293,8 +296,8 @@ class PEProsodyEncoder(nn.Module):
         else:
             h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
             h_prosody_embs = self.mel_embedding(
-                h_prosody_embs.transpose(1, 2)
-            ).transpose(1, 2).view(-1, hist_len, h_prosody_embs.size(1), self.hidden_sise)
+                h_prosody_embs.unsqueeze(1)
+            ).squeeze(1).view(-1, hist_len, h_prosody_embs.size(1), self.hidden_sise)
 
         # GRUによるglobal prosody化
         h_prosody_embs = h_prosody_embs.contiguous().view(
@@ -308,6 +311,140 @@ class PEProsodyEncoder(nn.Module):
         h_g_prosody_embs = self.global_bi_gru(h_prosody_embs, h_prosody_embs_lens)
         h_g_prosody_embs = h_g_prosody_embs.contiguous().view(-1, hist_len, h_g_prosody_embs.size(-1))
         return h_g_prosody_embs
+
+
+# class PEProsodyEncoder(nn.Module):
+#     """
+#     pitch, energyを受け取って, globalなprosodyへとencodeするクラス
+#     """
+#     def __init__(
+#         self,
+#         peprosody_encoder_gru_dim: int,
+#         peprosody_encoder_gru_num_layer: int,
+#         pitch_embedding: Optional[Union[nn.Sequential, nn.Embedding]],
+#         energy_embedding: Optional[Union[nn.Sequential, nn.Embedding]],
+#         pitch_bins: Optional[nn.Parameter] = None,
+#         energy_bins: Optional[nn.Parameter] = None,
+#         shere_embedding: bool = True,
+#         n_mel_channel: int = 80,
+#         mel_emb_dim: int = 256,
+#         mel_emb_kernel: int = 31,
+#         mel_emb_dropout: float = 0.5,
+#     ):
+#         super().__init__()
+
+#         if pitch_embedding is not None:
+#             # pitch, energyを用いる
+#             if pitch_bins is None:
+#                 # n_binsがNoneなら, 渡されるpitch_embeddingはnn.Sequential
+#                 self.hidden_sise = pitch_embedding[0].out_channels  # type:ignore
+#                 gru_input_size = self.hidden_sise * 2  # type:ignore
+#             else:
+#                 gru_input_size = pitch_embedding.embedding_dim * 2  # type:ignore
+
+#             self.pitch_bins = pitch_bins
+#             self.energy_bins = energy_bins
+#             if shere_embedding is True:
+#                 self.pitch_embedding = pitch_embedding
+#                 self.energy_embedding = energy_embedding
+#             else:
+#                 if pitch_bins is None:
+#                     self.pitch_embedding = nn.Sequential(  # type:ignore
+#                         nn.Conv1d(
+#                             in_channels=1,
+#                             out_channels=pitch_embedding[0].out_channels,  # type:ignore
+#                             kernel_size=pitch_embedding[0].kernel_size[0],  # type:ignore
+#                             padding=(pitch_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
+#                         ),
+#                         nn.Dropout(pitch_embedding[1].p),  # type:ignore
+#                     )
+#                     self.energy_embedding = nn.Sequential(  # type:ignore
+#                         nn.Conv1d(
+#                             in_channels=1,
+#                             out_channels=energy_embedding[0].out_channels,  # type:ignore
+#                             kernel_size=energy_embedding[0].kernel_size[0],  # type:ignore
+#                             padding=(energy_embedding[0].kernel_size[0] - 1) // 2,  # type:ignore
+#                         ),
+#                         nn.Dropout(energy_embedding[1].p),  # type:ignore
+#                     )
+#                 else:
+#                     self.pitch_embedding = nn.Embedding(
+#                         pitch_embedding.num_embeddings, pitch_embedding.embedding_dim  # type:ignore
+#                     )
+#                     self.energy_embedding = nn.Embedding(
+#                         energy_embedding.num_embeddings, energy_embedding.embedding_dim  # type:ignore
+#                     )
+#             self.use_mel = False
+#         else:
+#             # melを用いる
+#             self.hidden_sise = mel_emb_dim
+#             gru_input_size = mel_emb_dim
+#             self.mel_embedding = nn.Sequential(  # type:ignore
+#                 nn.Conv1d(
+#                     in_channels=n_mel_channel,
+#                     out_channels=mel_emb_dim,  # type:ignore
+#                     kernel_size=mel_emb_kernel,  # type:ignore
+#                     padding=(mel_emb_kernel - 1) // 2,  # type:ignore
+#                 ),
+#                 nn.Dropout(mel_emb_dropout),  # type:ignore
+#             )
+#             self.use_mel = True
+
+#         # 最初の発話の場合, hist_len=0になるため, allow_zeroが必要
+#         self.global_bi_gru = GRUwSort(
+#             input_size=gru_input_size, hidden_size=peprosody_encoder_gru_dim // 2,
+#             num_layers=peprosody_encoder_gru_num_layer, batch_first=True, bidirectional=True,
+#             sort=True, allow_zero_length=True, need_last=True
+#         )
+
+#     def forward(self, h_prosody_embs, h_prosody_embs_lens):
+#         # h_prosody_embs: (B, hist, time, 2 or 80)
+#         # h_prosody_embs_lens: (B, hist)
+
+#         hist_len = h_prosody_embs.size(1)
+
+#         if self.use_mel is False:
+#             # pitch, energyのembedding化
+#             h_pitches = h_prosody_embs[:, :, :, 0]
+#             h_energies = h_prosody_embs[:, :, :, 1]
+
+#             if self.pitch_bins is not None:
+#                 h_pitch_embs = self.pitch_embedding(
+#                     torch.bucketize(h_pitches, self.pitch_bins)
+#                 )
+#                 h_energy_embs = self.energy_embedding(
+#                     torch.bucketize(h_energies, self.energy_bins)
+#                 )
+#             else:
+#                 h_pitches = h_pitches.view(-1, h_pitches.size(-1)).unsqueeze(-1)
+#                 h_energies = h_energies.view(-1, h_energies.size(-1)).unsqueeze(-1)
+
+#                 h_pitch_embs = self.pitch_embedding(
+#                     h_pitches.transpose(1, 2)
+#                 ).transpose(1, 2).view(-1, hist_len, h_pitches.size(1), self.hidden_sise)
+#                 h_energy_embs = self.energy_embedding(
+#                     h_energies.transpose(1, 2)
+#                 ).transpose(1, 2).view(-1, hist_len, h_energies.size(1), self.hidden_sise)
+#             h_prosody_embs = torch.concat([h_pitch_embs, h_energy_embs], dim=-1)
+
+#         else:
+#             h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
+#             h_prosody_embs = self.mel_embedding(
+#                 h_prosody_embs.transpose(1, 2)
+#             ).transpose(1, 2).view(-1, hist_len, h_prosody_embs.size(1), self.hidden_sise)
+
+#         # GRUによるglobal prosody化
+#         h_prosody_embs = h_prosody_embs.contiguous().view(
+#             -1, h_prosody_embs.size(2), h_prosody_embs.size(3),
+#         )
+#         if type(h_prosody_embs_lens) == torch.Tensor:
+#             h_prosody_embs_lens = h_prosody_embs_lens.contiguous().view(-1)
+#         elif type(h_prosody_embs_lens) == np.ndarray:
+#             h_prosody_embs_lens = h_prosody_embs_lens.reshape(-1)
+
+#         h_g_prosody_embs = self.global_bi_gru(h_prosody_embs, h_prosody_embs_lens)
+#         h_g_prosody_embs = h_g_prosody_embs.contiguous().view(-1, hist_len, h_g_prosody_embs.size(-1))
+#         return h_g_prosody_embs
 
 
 class PEProsodyLocalEncoder(nn.Module):

@@ -30,9 +30,11 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         peprosody_encoder_gru_num_layer: int,
         shere_embedding: bool,
         mel_embedding_mode: int,
-        mel_emb_dim: int,
-        mel_emb_kernel: int,
-        mel_emb_dropout: float,
+        # mel_emb_dim: int,
+        # mel_emb_kernel: int,
+        # mel_emb_dropout: float,
+        peprosody_encoder_conv_kernel_size: int,
+        peprosody_encoder_conv_n_layers: int,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -138,10 +140,20 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
                     energy_embedding=None,
                     shere_embedding=shere_embedding,
                     n_mel_channel=n_mel_channel,
-                    mel_emb_dim=mel_emb_dim,
-                    mel_emb_kernel=mel_emb_kernel,
-                    mel_emb_dropout=mel_emb_dropout,
+                    conv_kernel_size=peprosody_encoder_conv_kernel_size,
+                    conv_n_layers=peprosody_encoder_conv_n_layers,
                 )
+                # self.peprosody_encoder = PEProsodyEncoder(
+                #     peprosody_encoder_gru_dim,
+                #     peprosody_encoder_gru_num_layer,
+                #     pitch_embedding=None,
+                #     energy_embedding=None,
+                #     shere_embedding=shere_embedding,
+                #     n_mel_channel=n_mel_channel,
+                #     mel_emb_dim=mel_emb_dim,
+                #     mel_emb_kernel=mel_emb_kernel,
+                #     mel_emb_dropout=mel_emb_dropout,
+                # )
         self.length_regulator = LengthRegulator()
 
     def contexts_forward(

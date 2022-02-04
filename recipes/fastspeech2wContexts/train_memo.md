@@ -1196,3 +1196,8 @@
         - spk: LINE_wContextwPEProsody_6
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - jobID: 9110469
+    - LINE_wContextwPEProsody_72_FS_PEPCE_w_Current
+        - spk: LINE_wContextwPEProsody_6
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - mel embeddingを，prosody extractorと同じとりかたにしてみた．
+        - jobID: 
