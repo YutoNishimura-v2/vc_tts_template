@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_6"
+spk: "LINE_wContextwPEProsody_4"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_72_FS_PEPCE_w_Current"
+tag: "LINE_wContextwPEProsody_73_FS_PEPCE_w_Current"
 
 sample_rate: 22050
 
@@ -70,7 +70,7 @@ input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset
 input_textgrid_paths:
 emb_speakers: "Teacher,MStudent,FStudent"
 mel_mode: 1
-pau_split: 1
+pau_split: 0
 
 ###########################################################
 #                TRAINING SETTING                         #
