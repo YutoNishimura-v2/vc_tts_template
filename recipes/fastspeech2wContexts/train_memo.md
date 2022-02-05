@@ -1206,4 +1206,4 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - mel embeddingを，prosody extractorと同じとりかたにしてみた．
         - これはutterance level
-        - jobID: 9135885
+        - jobID: 9135939
