@@ -6,7 +6,8 @@ from pathlib import Path
 @torch.no_grad()
 def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
                         speaker_dict, emotion_dict, acoustic_model,
-                        acoustic_out_scaler, vocoder_model):
+                        acoustic_out_scaler, vocoder_model,
+                        need_mel=False):
     ids = [Path(lab_file).name.replace("-feats.npy", "")]
 
     (
@@ -54,16 +55,16 @@ def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
     emotions = torch.tensor(emotions, dtype=torch.long).to(device)
     in_feats = torch.tensor(in_feats, dtype=torch.long).unsqueeze(0).to(device)
     src_lens = torch.tensor(src_lens, dtype=torch.long).to(device)
-    current_txt_emb = torch.tensor(current_txt_emb).unsqueeze(0).to(device)
-    history_txt_embs = torch.tensor(history_txt_embs).unsqueeze(0).to(device)
+    current_txt_emb = torch.tensor(current_txt_emb).float().unsqueeze(0).to(device)
+    history_txt_embs = torch.tensor(history_txt_embs).float().unsqueeze(0).to(device)
     hist_emb_len = torch.tensor(hist_emb_len, dtype=torch.long).unsqueeze(0).to(device)
     h_speakers = torch.tensor(h_speakers, dtype=torch.long).unsqueeze(0).to(device)
     h_emotions = torch.tensor(h_emotions, dtype=torch.long).unsqueeze(0).to(device)
-    current_prosody_emb = torch.tensor(current_prosody_emb).unsqueeze(0).to(device)
+    current_prosody_emb = torch.tensor(current_prosody_emb).float().unsqueeze(0).to(device)
     current_prosody_emb_len = torch.tensor(
         np.array([current_prosody_emb.size(1)]), dtype=torch.long
     ).to(device)
-    hist_prosody_embs = torch.tensor(hist_prosody_embs).unsqueeze(0).to(device)
+    hist_prosody_embs = torch.tensor(hist_prosody_embs).float().unsqueeze(0).to(device)
     hist_prosody_embs_lens = torch.tensor(
         hist_prosody_embs_lens, dtype=torch.long
     ).unsqueeze(0).to(device)
@@ -75,7 +76,7 @@ def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
     ).to(device) if hist_local_prosody_emb is not None else None
     hist_local_prosody_emb = torch.tensor(
         hist_local_prosody_emb
-    ).unsqueeze(0).to(device) if hist_local_prosody_emb is not None else None
+    ).float().unsqueeze(0).to(device) if hist_local_prosody_emb is not None else None
     hist_local_prosody_speaker = torch.tensor(
         hist_local_prosody_speaker, dtype=torch.long
     ).to(device) if hist_local_prosody_speaker is not None else None
@@ -111,4 +112,6 @@ def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
     mels = torch.Tensor(np.array(mels)).to(device)
     wavs = vocoder_model(mels.transpose(1, 2)).squeeze(1).cpu().data.numpy()
 
+    if need_mel is True:
+        return wavs[0], mel_post[0].cpu().data.numpy()
     return wavs[0]

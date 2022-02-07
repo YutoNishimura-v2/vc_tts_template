@@ -1,5 +1,6 @@
-from pathlib import Path
+import shutil
 import sys
+from pathlib import Path
 
 import hydra
 import joblib
@@ -8,18 +9,18 @@ import torch
 from hydra.utils import to_absolute_path
 from omegaconf import DictConfig, OmegaConf
 from scipy.io import wavfile
+from tqdm import tqdm
 
 sys.path.append("../..")
-from vc_tts_template.fastspeech2wContexts.gen import synthesis
-from vc_tts_template.fastspeech2wContexts.gen_PEProsody import synthesis_PEProsody
-from vc_tts_template.fastspeech2wContexts.collate_fn import (
-    make_dialogue_dict, get_embs
-)
-from vc_tts_template.fastspeech2wContexts.collate_fn_PEProsody import (
-    get_peprosody_embs
-)
-from vc_tts_template.utils import load_utt_list, optional_tqdm
 from recipes.common.fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
+from vc_tts_template.fastspeech2wContexts.collate_fn import (
+    get_embs, make_dialogue_dict)
+from vc_tts_template.fastspeech2wContexts.collate_fn_PEProsody import \
+    get_peprosody_embs
+from vc_tts_template.fastspeech2wContexts.gen import synthesis
+from vc_tts_template.fastspeech2wContexts.gen_PEProsody import \
+    synthesis_PEProsody
+from vc_tts_template.utils import load_utt_list, optional_tqdm
 
 
 @hydra.main(config_path="conf/synthesis", config_name="config")
@@ -105,7 +106,8 @@ def my_app(config: DictConfig) -> None:
             prosody_embeddings.append([h_prosody_emb, h_g_prosody_embs, h_prosody_speakers, h_prosody_emotions])
         elif "wPEProsody" in acoustic_model_name:
             (
-                current_prosody_emb, hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len, _, _,
+                current_prosody_emb, current_prosody_emb_duration, current_prosody_emb_phonemes,
+                hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len, _, _,
                 hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
             ) = get_peprosody_embs(
                 utt_id, prosody_emb_paths,
@@ -127,7 +129,7 @@ def my_app(config: DictConfig) -> None:
     for lab_file, context_embedding, prosody_embedding in optional_tqdm(config.tqdm, desc="Utterance")(
         zip(lab_files, context_embeddings, prosody_embeddings)
     ):
-        wav = _synthesis(
+        wav = _synthesis(  # type: ignore
             device, lab_file, context_embedding, prosody_embedding,
             acoustic_config.netG.speakers, acoustic_config.netG.emotions,
             acoustic_model, acoustic_out_scaler, vocoder_model
@@ -141,6 +143,94 @@ def my_app(config: DictConfig) -> None:
             out_wav_path,
             rate=config.sample_rate,
             data=(wav * 32767.0).astype(np.int16),
+        )
+
+    # Run synthesis by context of synthesized speech
+    out_wav_base = out_dir / "real_dialogue_synthesis"
+    out_wav_base.mkdir(parents=True, exist_ok=True)
+    # 0. prosody embをためる場所を新しく用意
+    synthesis_prosdoy_emb_base = out_dir / "real_dialogue_synthesis_embs"
+    synthesis_prosdoy_emb_base.mkdir(parents=True, exist_ok=True)
+    # copyしておく
+    preprocessed_prosody_emb_dir = Path(to_absolute_path(config.prosody_emb_dir))
+    for prosody_emb_path in preprocessed_prosody_emb_dir.glob("*.npy"):
+        shutil.copy(prosody_emb_path, synthesis_prosdoy_emb_base)
+    if (preprocessed_prosody_emb_dir / "segment_duration").exists():
+        synthesis_prosdoy_emb_seg_d_base = synthesis_prosdoy_emb_base / "segment_duration"
+        synthesis_prosdoy_emb_seg_d_base.mkdir(parents=True, exist_ok=True)
+        for prosody_emb_seg_d_path in (preprocessed_prosody_emb_dir / "segment_duration").glob("*.npy"):
+            shutil.copy(prosody_emb_seg_d_path, synthesis_prosdoy_emb_seg_d_base)
+    if (preprocessed_prosody_emb_dir / "segment_phonemes").exists():
+        synthesis_prosdoy_emb_seg_p_base = synthesis_prosdoy_emb_base / "segment_phonemes"
+        synthesis_prosdoy_emb_seg_p_base.mkdir(parents=True, exist_ok=True)
+        for prosody_emb_seg_p_path in (preprocessed_prosody_emb_dir / "segment_phonemes").glob("*.npy"):
+            shutil.copy(prosody_emb_seg_p_path, synthesis_prosdoy_emb_seg_p_base)
+
+    # 1. 対話順に読み込む
+    dialogue_keys = list(id2utt.keys())
+    dialogue_keys = sorted(dialogue_keys, key=lambda x: (int(x[0]), int(x[1])), reverse=False)
+    # 2. 対話順にデータを読み込み，処理していく
+    synthesis_prosdoy_emb_list = list(synthesis_prosdoy_emb_base.glob("*.npy"))
+
+    for dialogue_key in tqdm(dialogue_keys):
+        if int(dialogue_key[1]) == 0:
+            # turn=0は状況説明
+            continue
+        utt_id = id2utt[dialogue_key]
+
+        if utt_id not in utt_ids:
+            # 生成すべき発話でない場合(つまり，生徒とかの場合)
+            continue
+        context_embedding = get_embs(
+            utt_id, text_emb_paths,
+            utt2id, id2utt, use_hist_num
+        )
+        if "wProsody" in acoustic_model_name:
+            # NOTE: 対応したかったら，PEProsody同様にcopyしてあげる必要あり
+            assert RuntimeError("未対応")
+        elif "wPEProsody" in acoustic_model_name:
+            (
+                current_prosody_emb, current_prosody_emb_duration, current_prosody_emb_phonemes,
+                hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len, _, _,
+                hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
+            ) = get_peprosody_embs(
+                utt_id, synthesis_prosdoy_emb_list,
+                utt2id, id2utt, use_hist_num, start_index=1,
+                use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
+            )
+            prosody_embedding = [
+                current_prosody_emb, hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len,
+                hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
+            ]
+        else:
+            prosody_embedding = [None, None, None, None]
+
+        lab_file = in_dir / f"{utt_id.strip()}-feats.npy"
+
+        if config.mel_mode == 0:
+            # NOTE: 対応させたいなら，下の_synthsisでpitchとかを返せるようにすればいい.
+            assert RuntimeError("未対応")
+        wav, synthesised_mel = _synthesis(  # type: ignore
+            device, lab_file, context_embedding, prosody_embedding,
+            acoustic_config.netG.speakers, acoustic_config.netG.emotions,
+            acoustic_model, acoustic_out_scaler, vocoder_model,
+            need_mel=True,
+        )
+        wav = np.clip(wav, -1.0, 1.0)
+        wavfile.write(
+            out_wav_base / f"{utt_id}.wav",
+            rate=config.sample_rate,
+            data=(wav * 32767.0).astype(np.int16),
+        )
+        # 3. 新しいembeddingの用意
+        # 上書き保存という形でコピーしたprosody embがたまったdirに保存
+        # seg_dに関しては推論時には使わないので正解のままにしておいてok
+        # seg_pはテキストから決まるsegmentごとの音素数なのでそのままでok
+        # つまり，今後対話履歴として用いるmelだけ合成したもので上書きすればok
+        np.save(
+            synthesis_prosdoy_emb_base / f"{utt_id}-feats.npy",
+            synthesised_mel.astype(np.float32),
+            allow_pickle=False,
         )
 
     # add reconstruct wav output

@@ -264,6 +264,48 @@ def duration_split_by_pau(text: List[str], duration: np.ndarray):
     return np.array(duration_output), np.array(phone_output)
 
 
+def _process_wav(
+    wav_file, lab_file, sample_rate, filter_length, hop_length, win_length,
+    n_mel_channels, mel_fmin, mel_fmax, clip, log_base,
+    pitch_phoneme_averaging, energy_phoneme_averaging,
+    input_context_path_postfix,
+    mel_mode, pau_split, output_dir_prosody,
+    output_dir_prosody_seg_d, output_dir_prosody_seg_p
+):
+    text, mel, pitch, energy, duration, utt_id = process_utterance(
+        wav_file, lab_file, sample_rate, filter_length, hop_length, win_length,
+        n_mel_channels, mel_fmin, mel_fmax, clip, log_base,
+        pitch_phoneme_averaging, energy_phoneme_averaging,
+        input_context_path_postfix == ".lab", return_utt_id=True
+    )
+    if mel_mode is True:
+        np.save(
+            output_dir_prosody / f"{utt_id}-feats.npy",
+            mel.astype(np.float32),
+            allow_pickle=False,
+        )
+    else:
+        prosody = np.stack([pitch, energy], -1)
+        np.save(
+            output_dir_prosody / f"{utt_id}-feats.npy",
+            prosody.astype(np.float32),
+            allow_pickle=False,
+        )
+    if pau_split is True:
+        seg_duration, seg_phoneme = duration_split_by_pau(text, duration)
+        np.save(
+            output_dir_prosody_seg_d / f"{utt_id}-feats.npy",
+            seg_duration.astype(np.int32),
+            allow_pickle=False,
+        )
+        np.save(
+            output_dir_prosody_seg_p / f"{utt_id}-feats.npy",
+            seg_phoneme.astype(np.int32),
+            allow_pickle=False,
+        )
+    return utt_id
+
+
 def get_prosody_embeddings_wWav(
     input_wav_paths, input_lab_paths, input_textgrid_paths, output_dir,
     sample_rate, filter_length, hop_length, win_length,
@@ -299,7 +341,7 @@ def get_prosody_embeddings_wWav(
         with ProcessPoolExecutor(n_jobs) as executor:
             futures = [
                 executor.submit(
-                    process_utterance,
+                    _process_wav,
                     wav_file,
                     lab_file,
                     sample_rate,
@@ -313,39 +355,17 @@ def get_prosody_embeddings_wWav(
                     log_base,
                     pitch_phoneme_averaging > 0,
                     energy_phoneme_averaging > 0,
-                    input_context_path_postfix == ".lab",
-                    return_utt_id=True
+                    input_context_path_postfix,
+                    mel_mode,
+                    pau_split,
+                    output_dir_prosody,
+                    output_dir_prosody_seg_d,
+                    output_dir_prosody_seg_p
                 )
                 for wav_file, lab_file in zip(wav_files, lab_files)
             ]
             for future in tqdm(futures):
-                text, mel, pitch, energy, duration, utt_id = future.result()
-                if mel_mode is True:
-                    np.save(
-                        output_dir_prosody / f"{utt_id}-feats.npy",
-                        mel.astype(np.float32),
-                        allow_pickle=False,
-                    )
-                else:
-                    prosody = np.stack([pitch, energy], -1)
-                    np.save(
-                        output_dir_prosody / f"{utt_id}-feats.npy",
-                        prosody.astype(np.float32),
-                        allow_pickle=False,
-                    )
-                if pau_split is True:
-                    seg_duration, seg_phoneme = duration_split_by_pau(text, duration)
-                    np.save(
-                        output_dir_prosody_seg_d / f"{utt_id}-feats.npy",
-                        seg_duration.astype(np.int32),
-                        allow_pickle=False,
-                    )
-                    np.save(
-                        output_dir_prosody_seg_p / f"{utt_id}-feats.npy",
-                        seg_phoneme.astype(np.int32),
-                        allow_pickle=False,
-                    )
-
+                utt_id = future.result()
                 utt_ids.append(utt_id+'\n')
     with open(output_dir / "prosody_emb.list", "w") as f:
         f.writelines(utt_ids)

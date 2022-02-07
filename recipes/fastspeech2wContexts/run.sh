@@ -304,7 +304,7 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             use_hist_num=$use_hist_num \
             prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/prosody_emb \
             g_prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/g_prosody_emb \
-            use_local_prosody_hist_idx=$use_local_prosody_hist_idx \
+            use_local_prosody_hist_idx=$use_local_prosody_hist_idx mel_mode=$mel_mode \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
             acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \

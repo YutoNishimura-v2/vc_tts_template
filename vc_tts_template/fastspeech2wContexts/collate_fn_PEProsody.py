@@ -66,7 +66,7 @@ def get_peprosody_embs(
     hist_embs = pad_2d(hist_embs)  # type:ignore
 
     return (
-        np.array(current_emb), current_emb_duration, current_emb_phonemes,
+        current_emb, current_emb_duration, current_emb_phonemes,
         hist_embs, np.array(hist_embs_lens), hist_emb_len,
         np.array(history_speakers), np.array(history_emotions),
         hist_for_local_emb, hist_for_local_speaker, hist_for_local_emotion
