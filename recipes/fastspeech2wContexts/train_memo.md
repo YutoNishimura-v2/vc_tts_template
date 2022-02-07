@@ -1212,10 +1212,16 @@
         - これはutterance level
         - jobID: 9135939
 
-    ## stage2
-    - (LINE_wContextwPEProsody_74_TMCCE_GRU)
-        - spk: LINE_wContextwPEProsody_7
-        - pretrain: LINE_wContextwPEProsody_72_FS_PEPCE_w_Current
+    ## CLを1からやり直し. INTERSPEECH用
+    - LINE_wContextwPEProsody_74_CL_stage1
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - mel embeddingを，prosody extractorと同じとりかたにしてみた．
-        - segment levelでTMCCEを訓練
+        - これはutterance level
+        - jobID:
+    - LINE_wContextwPEProsody_75_CL_stage1_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - mel embeddingを，prosody extractorと同じとりかたにしてみた．
+        - これはsegment level
         - jobID:

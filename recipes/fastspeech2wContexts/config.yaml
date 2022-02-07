@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_7"
+spk: "LINE_wContextwPEProsody_4"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_74_TMCCE"
+tag: "LINE_wContextwPEProsody_74_CL_stage1"
 
 sample_rate: 22050
 
@@ -70,13 +70,13 @@ input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset
 input_textgrid_paths:
 emb_speakers: "Teacher,MStudent,FStudent"
 mel_mode: 1
-pau_split: 1
+pau_split: 0
 
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wContextswPEProsodyAfterwoPEPCE
+acoustic_model: fastspeech2wPEProsodywoPEPCE
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.
