@@ -1,9 +1,12 @@
 import numpy as np
-import torch.nn as nn
 import torch
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+import torch.nn as nn
 from torch import Tensor
 from torch.autograd import Variable
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+
+from vc_tts_template.fastspeech2.varianceadaptor import LengthRegulator
+from vc_tts_template.utils import make_pad_mask
 
 
 class Transpose(nn.Module):
@@ -154,20 +157,23 @@ class GRUwSort(nn.Module):
 
         self.output_dim = hidden_size * 2 if bidirectional is True else hidden_size
 
-    def forward(self, x, lens):
-        if self.sort is True:
-            if type(lens) == torch.Tensor:
-                sort_idx = torch.argsort(-lens)
-                inv_sort_idx = torch.argsort(sort_idx)
-            else:
-                lens = np.array(lens)
-                sort_idx = np.argsort(-lens)
-                inv_sort_idx = np.argsort(sort_idx)
-            x = x[sort_idx]
-            lens = lens[sort_idx]
+        self.length_regulator = LengthRegulator()
+
+    def forward(self, x, lens, y=None, y_lens=None):
+        # yがある場合: x, yの中身を一続きにする. そのあと，y_lens分のtensorを最終時刻から得る.
+        if y is not None:
+            x, lens = self.concat_sequences(x, lens, y, y_lens)
 
         if type(lens) == torch.Tensor:
             lens = lens.to("cpu").numpy()
+            if (y_lens is not None) and (type(y_lens) == torch.Tensor):
+                y_lens = y_lens.to("cpu").numpy()
+
+        if self.sort is True:
+            sort_idx = np.argsort(-lens)
+            inv_sort_idx = np.argsort(sort_idx)
+            x = x[sort_idx]
+            lens = lens[sort_idx]
 
         if self.allow_zero_length is True:
             x, lens = self.remove_zeros(x, lens)
@@ -180,7 +186,7 @@ class GRUwSort(nn.Module):
             out = self.restore_zeros(out)
 
         if self.need_last is True:
-            out = self.get_last_timestep(out, lens)
+            out = self.get_last_timestep(out, lens, y_lens)
 
         if self.sort is True:
             out = out[inv_sort_idx]
@@ -205,12 +211,44 @@ class GRUwSort(nn.Module):
             x[-self.zero_num:] = 0.0
         return x
 
-    def get_last_timestep(self, out, lens):
-        idx = (torch.LongTensor(lens) - 1).view(-1, 1).expand(
-            len(lens), out.size(2))
+    def get_last_timestep(self, out, lens, sec_lens=None):
+        # sec_lensで，最終時刻からいくつのデータを持っていくかを決める
         time_dimension = 1 if self.batch_first else 0
-        idx = idx.unsqueeze(time_dimension).to(out.device)
-        out = out.gather(
-            time_dimension, Variable(idx)
-        ).squeeze(time_dimension)
+
+        if sec_lens is not None:
+            idx = torch.arange(
+                0, np.max(lens)
+            ).unsqueeze(0).expand(out.size(0), -1).to(out.device)
+            mask = idx >= torch.LongTensor(lens).unsqueeze(1).expand(-1, np.max(lens)).to(out.device)
+            idx = idx.masked_fill(mask, np.max(lens)-1)
+            mask = idx < torch.LongTensor(lens-sec_lens).unsqueeze(1).expand(-1, np.max(lens)).to(out.device)
+            idx = idx.masked_fill(mask, np.max(lens)-1)
+            idx, _ = torch.sort(idx, dim=-1)
+
+            mask = make_pad_mask(sec_lens, maxlen=np.max(lens))
+            out = out.gather(
+                time_dimension, idx.unsqueeze(-1).expand_as(out)
+            ).masked_fill(mask.unsqueeze(-1), 0.0)[:, :np.max(sec_lens)]
+        else:
+            idx = (torch.LongTensor(lens) - 1).view(-1, 1).expand(
+                len(lens), out.size(-1)
+            )
+            idx = idx.unsqueeze(time_dimension).to(out.device)
+            out = out.gather(
+                time_dimension, Variable(idx)
+            ).squeeze(time_dimension)
         return out
+
+    def concat_sequences(self, x, lens, y, y_lens):
+        x_idxes = 1 - make_pad_mask(lens).float()
+        y_idxes = 1 - make_pad_mask(y_lens).float()
+        idxes = torch.cat([x_idxes, y_idxes], dim=-1)
+        _, idxes = torch.sort(-idxes, dim=-1, stable=True)
+
+        lens = lens + y_lens
+        x = torch.cat([x, y], dim=1)
+        time_dimension = 1 if self.batch_first else 0
+        x = x.gather(
+            time_dimension, idxes.unsqueeze(-1).expand(idxes.size(0), idxes.size(1), x.size(-1))
+        )
+        return x, lens

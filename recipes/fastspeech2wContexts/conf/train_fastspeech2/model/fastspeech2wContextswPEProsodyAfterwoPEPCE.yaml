@@ -19,11 +19,14 @@ netG:
   peprosody_encoder_gru_num_layer: 2
   shere_embedding: False
   current_attention: False
-  past_global_gru: True
+  past_global_gru: True  # Trueで従来法と同様のGRUになります
   mel_embedding_mode:
-  mel_emb_dim: 256
-  mel_emb_kernel: 31
-  mel_emb_dropout: 0.5
+  pau_split_mode:
+  # mel_emb_dim: 256
+  # mel_emb_kernel: 31
+  # mel_emb_dropout: 0.5
+  peprosody_encoder_conv_kernel_size: 3
+  peprosody_encoder_conv_n_layers: 2
   use_context_encoder: False
   use_prosody_encoder: False
   use_peprosody_encoder: False
@@ -57,4 +60,4 @@ netG:
   accent_info:
   FS_fix: True
   PE_fix: True
-  clone_PE_fix: True
+  clone_PE_fix: False

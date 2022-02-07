@@ -2,11 +2,12 @@ from typing import Dict, Optional
 
 import torch
 import torch.nn as nn
+import numpy as np
 from vc_tts_template.fastspeech2.fastspeech2 import FastSpeech2
-from vc_tts_template.fastspeech2wContexts.context_encoder import (
-        ConversationalProsodyContextEncoder, ConversationalContextEncoder, ConversationalProsodyEncoder
-)
+from vc_tts_template.fastspeech2wContexts.context_encoder import ConversationalContextEncoder
 from vc_tts_template.fastspeech2wContexts.prosody_model import PEProsodyEncoder
+from vc_tts_template.fastspeech2wGMM.prosody_model import mel2phone, phone2utter
+from vc_tts_template.fastspeech2.varianceadaptor import LengthRegulator
 
 
 class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
@@ -37,9 +38,12 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         current_attention: bool,
         past_global_gru: bool,
         mel_embedding_mode: int,
-        mel_emb_dim: int,
-        mel_emb_kernel: int,
-        mel_emb_dropout: float,
+        pau_split_mode: int,
+        # mel_emb_dim: int,
+        # mel_emb_kernel: int,
+        # mel_emb_dropout: float,
+        peprosody_encoder_conv_kernel_size: int,
+        peprosody_encoder_conv_n_layers: int,
         use_context_encoder: bool,
         use_prosody_encoder: bool,
         use_peprosody_encoder: bool,
@@ -125,44 +129,21 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         if use_prosody_encoder is True:
             # 外部で用意したglobal prosody embeddingを使う方式
             raise RuntimeError("未対応です")
-        if (use_context_encoder is True) and ((use_peprosody_encoder or use_melprosody_encoder) is True):
-            self.clone_context_encoder = ConversationalProsodyContextEncoder(
-                d_encoder_hidden=encoder_hidden_dim,
-                d_context_hidden=context_encoder_hidden_dim,
-                context_layer_num=context_num_layer,
-                context_dropout=context_encoder_dropout,
-                text_emb_size=text_emb_dim,
-                g_prosody_emb_size=peprosody_encoder_gru_dim,
-                speaker_embedding=self.clone_speaker_emb,
-                emotion_embedding=self.clone_emotion_emb,
-                current_attention=current_attention,
-                past_global_gru=past_global_gru,
-            )
-        elif (use_context_encoder is True) and ((use_peprosody_encoder or use_melprosody_encoder) is False):
-            self.clone_context_encoder = ConversationalContextEncoder(  # type:ignore
-                d_encoder_hidden=encoder_hidden_dim,
-                d_context_hidden=context_encoder_hidden_dim,
-                context_layer_num=context_num_layer,
-                context_dropout=context_encoder_dropout,
-                text_emb_size=text_emb_dim,
-                speaker_embedding=self.clone_speaker_emb,
-                emotion_embedding=self.clone_emotion_emb,
-                current_attention=current_attention,
-                past_global_gru=past_global_gru,
-            )
-        elif (use_context_encoder is False) and ((use_peprosody_encoder or use_melprosody_encoder) is True):
-            self.clone_context_encoder = ConversationalProsodyEncoder(  # type:ignore
-                d_encoder_hidden=encoder_hidden_dim,
-                d_context_hidden=context_encoder_hidden_dim,
-                context_layer_num=context_num_layer,
-                context_dropout=context_encoder_dropout,
-                g_prosody_emb_size=peprosody_encoder_gru_dim,
-                speaker_embedding=self.clone_speaker_emb,
-                emotion_embedding=self.clone_emotion_emb,
-                past_global_gru=past_global_gru,
-            )
-        else:
-            raise RuntimeError("未対応です. CEかPEProsodyのどちらかは利用しましょう.")
+        self.clone_context_encoder = ConversationalContextEncoder(  # type:ignore
+            d_encoder_hidden=encoder_hidden_dim,
+            d_context_hidden=context_encoder_hidden_dim,
+            context_layer_num=context_num_layer,
+            context_dropout=context_encoder_dropout,
+            text_emb_size=text_emb_dim,
+            prosody_emb_size=peprosody_encoder_gru_dim,
+            speaker_embedding=self.clone_speaker_emb,
+            emotion_embedding=self.clone_emotion_emb,
+            use_text_modal=use_context_encoder,
+            use_speech_modal=(use_peprosody_encoder or use_melprosody_encoder),
+            current_attention=current_attention,
+            past_global_gru=past_global_gru,
+            pau_split_mode=pau_split_mode > 0,
+        )
 
         # fixしない方
         if (stats is not None) and (use_prosody_encoder is True):
@@ -192,9 +173,8 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     energy_embedding=None,
                     shere_embedding=shere_embedding,
                     n_mel_channel=n_mel_channel,
-                    mel_emb_dim=mel_emb_dim,
-                    mel_emb_kernel=mel_emb_kernel,
-                    mel_emb_dropout=mel_emb_dropout,
+                    conv_kernel_size=peprosody_encoder_conv_kernel_size,
+                    conv_n_layers=peprosody_encoder_conv_n_layers,
                 )
             else:
                 self.clone_peprosody_encoder = None  # type:ignore
@@ -230,9 +210,8 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     energy_embedding=None,
                     shere_embedding=shere_embedding,
                     n_mel_channel=n_mel_channel,
-                    mel_emb_dim=mel_emb_dim,
-                    mel_emb_kernel=mel_emb_kernel,
-                    mel_emb_dropout=mel_emb_dropout,
+                    conv_kernel_size=peprosody_encoder_conv_kernel_size,
+                    conv_n_layers=peprosody_encoder_conv_n_layers,
                 )
 
         self.use_context_encoder = use_context_encoder
@@ -258,11 +237,14 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         if clone_PE_fix is True:
             self.clone_peprosody_encoder = self.peprosody_encoder
 
+        self.length_regulator = LengthRegulator()
+
     def contexts_forward(
         self,
         output,
         max_src_len,
         c_txt_embs,
+        c_txt_embs_lens,
         speakers,
         emotions,
         h_txt_embs,
@@ -274,16 +256,37 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         h_prosody_embs_len,
         c_prosody_embs,
         c_prosody_embs_lens,
+        c_prosody_embs_duration,
+        c_prosody_embs_phonemes,
         is_inference,
     ):
-        if c_prosody_embs is not None:
-            h_prosody_emb = self.peprosody_encoder(
-                c_prosody_embs.unsqueeze(1),
-                c_prosody_embs_lens.unsqueeze(1),
-            )
-            target = self.context_encoder(h_prosody_emb).squeeze(1)
+        if c_prosody_embs_duration is None:
+            if c_prosody_embs is not None:
+                h_prosody_emb = self.peprosody_encoder(
+                    c_prosody_embs.unsqueeze(1),
+                    c_prosody_embs_lens.unsqueeze(1),
+                )
+                target = self.context_encoder(h_prosody_emb).squeeze(1)
+            else:
+                target = None
+
         else:
-            target = None
+            if c_prosody_embs is not None:
+                (
+                    output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
+                ) = mel2phone(c_prosody_embs, c_prosody_embs_duration.cpu().numpy())
+                outs = list()
+                for _output, src_lens in zip(output_sorted, src_lens_sorted):
+                    out = self.peprosody_encoder(
+                        _output.unsqueeze(1),
+                        np.array(src_lens),
+                    )
+                    outs.append(out.squeeze(1))
+                outs = torch.cat(outs, 0)
+                h_prosody_emb = phone2utter(outs[inv_sort_idx], segment_nums)
+                target = self.context_encoder(h_prosody_emb)
+            else:
+                target = None
 
         if (self.use_peprosody_encoder or self.use_melprosody_encoder) is True:
             h_prosody_emb = self.clone_peprosody_encoder(
@@ -291,47 +294,40 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 h_prosody_embs_lens,
             )
 
-        if (self.use_context_encoder is True) and \
-                ((self.use_peprosody_encoder or self.use_melprosody_encoder) is True):
-            prediction = self.clone_context_encoder(
-                c_txt_embs,
-                speakers,
-                emotions,
-                h_txt_embs,
-                h_speakers,
-                h_emotions,
-                h_txt_emb_lens,
-                h_prosody_emb,
-                h_prosody_embs_len,
-            )
-        elif (self.use_context_encoder is True) and \
-                ((self.use_peprosody_encoder or self.use_melprosody_encoder) is False):
-            prediction = self.clone_context_encoder(
-                c_txt_embs,
-                speakers,
-                emotions,
-                h_txt_embs,
-                h_speakers,
-                h_emotions,
-                h_txt_emb_lens,
-            )
-        elif (self.use_context_encoder is False) and \
-                ((self.use_peprosody_encoder or self.use_melprosody_encoder) is True):
-            prediction = self.clone_context_encoder(
-                h_speakers,
-                h_emotions,
-                h_prosody_embs_len,
-                h_prosody_emb,
-            )
+        prediction = self.clone_context_encoder(
+            c_txt_embs,
+            c_txt_embs_lens,
+            speakers,
+            emotions,
+            h_txt_embs,
+            h_txt_emb_lens,  # [hist1, hist2, ...]
+            h_speakers,
+            h_emotions,
+            h_prosody_emb,
+            h_prosody_embs_len,  # [hist1, hist2, ...]. h_txt_emb_lensとは違って1 start.
+        )
 
-        if is_inference is False:
-            output = output + target.unsqueeze(1).expand(
-                -1, max_src_len, -1
-            )
+        if c_prosody_embs_duration is None:
+            if is_inference is False:
+                output = output + target.unsqueeze(1).expand(
+                    -1, max_src_len, -1
+                )
+            else:
+                output = output + prediction.unsqueeze(1).expand(
+                    -1, max_src_len, -1
+                )
         else:
-            output = output + prediction.unsqueeze(1).expand(
-                -1, max_src_len, -1
-            )
+            if is_inference is False:
+                _target, _ = self.length_regulator(
+                    target, c_prosody_embs_phonemes, torch.max(c_prosody_embs_phonemes)
+                )
+                output = output + _target
+            else:
+                _prediction, _ = self.length_regulator(
+                    prediction, c_prosody_embs_phonemes, torch.max(c_prosody_embs_phonemes)
+                )
+                output = output + _prediction
+
         return output, prediction, target
 
     def forward(
@@ -343,12 +339,15 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         src_lens,
         max_src_len,
         c_txt_embs,
+        c_txt_embs_lens,
         h_txt_embs,
         h_txt_emb_lens,
         h_speakers,
         h_emotions,
         c_prosody_embs,
         c_prosody_embs_lens,
+        c_prosody_embs_duration,
+        c_prosody_embs_phonemes,
         h_prosody_embs,
         h_prosody_embs_lens,
         h_prosody_embs_len,
@@ -386,10 +385,13 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
             texts, src_masks, max_src_len, speakers, emotions
         )
         output, prosody_emb_prediction, prosody_emb_target = self.contexts_forward(
-            output, max_src_len, c_txt_embs, speakers, emotions,
+            output, max_src_len, c_txt_embs, c_txt_embs_lens,
+            speakers, emotions,
             h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
             h_prosody_embs, h_prosody_embs_lens, h_prosody_embs_len,
-            c_prosody_embs, c_prosody_embs_lens, is_inference
+            c_prosody_embs, c_prosody_embs_lens,
+            c_prosody_embs_duration, c_prosody_embs_phonemes,
+            is_inference
         )
         (
             output,

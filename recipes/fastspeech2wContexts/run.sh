@@ -247,7 +247,8 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         model.netG.energy_feature_level=$energy_phoneme_averaging \
         model.netG.n_mel_channel=$n_mel_channels \
         model.netG.accent_info=$accent_info \
-        model.netG.mel_embedding_mode=$mel_mode
+        model.netG.mel_embedding_mode=$mel_mode \
+        model.netG.pau_split_mode=$pau_split
 fi
 
 if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then

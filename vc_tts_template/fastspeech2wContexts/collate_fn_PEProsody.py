@@ -290,6 +290,9 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
     durations = pad_1d(durations)
 
     # current text embについて
+    c_txt_embs_lens = np.array(
+        [c_txt_emb.shape[0] for c_txt_emb in c_txt_embs]
+    ) if len(c_txt_embs[0].shape) == 2 else None
     c_txt_embs = pad_2d(c_txt_embs) if len(c_txt_embs[0].shape) == 2 else np.array(c_txt_embs)
 
     # current prosodyについて
@@ -321,6 +324,7 @@ def reprocess(batch, idxs, speaker_dict, emotion_dict):
         energies,
         durations,
         np.array(c_txt_embs),
+        c_txt_embs_lens,
         np.array(h_txt_embs),
         np.array(h_txt_emb_lens),
         h_speakers,  # prosodyと共通

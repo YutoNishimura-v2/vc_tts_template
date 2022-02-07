@@ -44,6 +44,10 @@
     - LINE_wContextwPEProsody_6
         - out_LINE_woITAKOから作る. 
         - utterance-levelを卒業して，pauで分割したtextでBERTを計算したり，pau毎のdurationを計算して蓄えたもの．
+    - LINE_wContextwPEProsody_7
+        - out_LINE_woITAKOから作る. 
+        - utterance-levelを卒業して，pauで分割したtextでBERTを計算したり，pau毎のdurationを計算して蓄えたもの．
+        - pauの分割がうまくいっていなかったのでやり直し
 
 - exp
     - LINE_wContext_1
@@ -1207,3 +1211,11 @@
         - mel embeddingを，prosody extractorと同じとりかたにしてみた．
         - これはutterance level
         - jobID: 9135939
+
+    ## stage2
+    - (LINE_wContextwPEProsody_74_TMCCE_GRU)
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_72_FS_PEPCE_w_Current
+        - mel embeddingを，prosody extractorと同じとりかたにしてみた．
+        - segment levelでTMCCEを訓練
+        - jobID:

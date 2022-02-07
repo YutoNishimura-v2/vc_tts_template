@@ -20,11 +20,15 @@ class ConversationalContextEncoder(nn.Module):
         context_layer_num,
         context_dropout,
         text_emb_size,
+        prosody_emb_size,
         speaker_embedding,
         emotion_embedding,
-        current_attention=True,
-        past_global_gru=False,
+        use_text_modal=True,
+        use_speech_modal=True,
+        current_attention=True,  # attentionを用いるか
+        past_global_gru=False,  # 従来法のgruを用いるか
         gru_bidirectional=True,
+        pau_split_mode=False,
     ):
         super(ConversationalContextEncoder, self).__init__()
         d_model = d_encoder_hidden
@@ -32,100 +36,270 @@ class ConversationalContextEncoder(nn.Module):
         num_layers = context_layer_num
         dropout = context_dropout
         text_emb_size = text_emb_size
+        prosody_emb_size = prosody_emb_size
+
+        if (use_text_modal is False) and (use_speech_modal is False):
+            raise RuntimeError("textかspeechのどちらかのmodalはTrueにしてください.")
 
         self.text_emb_linear = nn.Linear(text_emb_size, d_cont_enc)
-        self.speaker_linear = nn.Linear(d_model, d_cont_enc)
-        if emotion_embedding is not None:
-            self.emotion_linear = nn.Linear(d_model, d_cont_enc)
-
-        self.enc_linear = nn.Sequential(
+        self.text_enc_linear = nn.Sequential(
             nn.Linear(
                 2*d_cont_enc if emotion_embedding is None else 3*d_cont_enc,
                 d_cont_enc
             ),
             nn.ReLU()
         )
-        self.gru = GRUwSort(
-            input_size=d_cont_enc,
-            hidden_size=d_cont_enc if gru_bidirectional is True else d_cont_enc * 2,
-            num_layers=num_layers,
-            batch_first=True,
-            bidirectional=gru_bidirectional,
-            sort=True,
-            dropout=dropout,
-            allow_zero_length=True,
-            need_last=True if past_global_gru is True else False,
-        )
-        self.gru_linear = nn.Sequential(
-            nn.Linear(2*d_cont_enc, d_cont_enc),
-            nn.ReLU()
-        )
+        if use_text_modal is True:
+            self.text_gru = GRUwSort(
+                input_size=d_cont_enc,
+                hidden_size=d_cont_enc if gru_bidirectional is True else d_cont_enc * 2,
+                num_layers=num_layers,
+                batch_first=True,
+                bidirectional=gru_bidirectional,
+                sort=True,
+                dropout=dropout,
+                allow_zero_length=True,
+                need_last=True if past_global_gru is True else False,
+            )
+            self.text_gru_linear = nn.Sequential(
+                nn.Linear(2*d_cont_enc, d_cont_enc),
+                nn.ReLU()
+            )
+            if (current_attention is True) and (past_global_gru is False):
+                # 基本Trueのほうが性能がいいです.
+                self.context_text_value_linear = nn.Linear(d_cont_enc, d_model)
+                self.context_text_query_linear = nn.Linear(d_cont_enc, d_model)
+                self.context_text_attention = SLA_wQuery(d_model)
+                self.context_text_linear = nn.Linear(d_cont_enc + d_model, d_model)
+            elif (current_attention is False) and (past_global_gru is True):
+                self.context_text_linear = nn.Linear(d_cont_enc * 2, d_model)
+                self.context_text_attention = None
+            elif (current_attention is False) and (past_global_gru is False):
+                self.context_text_linear = nn.Linear(d_cont_enc, d_model)
+                self.context_text_attention = SLA(d_model)
+            else:
+                raise RuntimeError("未対応です")
+        if use_speech_modal is True:
+            self.prosody_emb_linear = nn.Linear(prosody_emb_size, d_cont_enc)
+            self.prosody_enc_linear = nn.Sequential(
+                nn.Linear(
+                    2*d_cont_enc if emotion_embedding is None else 3*d_cont_enc,
+                    d_cont_enc
+                ),
+                nn.ReLU()
+            )
+            self.prosody_gru = GRUwSort(
+                input_size=d_cont_enc,
+                hidden_size=d_cont_enc,
+                num_layers=num_layers,
+                batch_first=True,
+                bidirectional=True,
+                sort=True,
+                dropout=dropout,
+                allow_zero_length=True,
+                need_last=True if past_global_gru is True else False,
+            )
+            self.prosody_gru_linear = nn.Sequential(
+                nn.Linear(2*d_cont_enc, d_cont_enc),
+                nn.ReLU()
+            )
+            if (current_attention is True) and (past_global_gru is False):
+                # 基本Trueのほうが性能がいいです.
+                self.context_prosody_value_linear = nn.Linear(d_cont_enc, d_model)
+                self.context_prosody_query_linear = nn.Linear(d_cont_enc, d_model)
+                self.context_prosody_attention = SLA_wQuery(d_model)
+                self.context_prosody_linear = nn.Linear(d_cont_enc + d_model, d_model)
+            elif (current_attention is False) and (past_global_gru is True):
+                self.context_prosody_linear = nn.Linear(d_cont_enc * 2, d_model)
+                self.context_prosody_attention = None
+            elif (current_attention is False) and (past_global_gru is False):
+                self.context_prosody_linear = nn.Linear(d_cont_enc, d_model)
+                self.context_prosody_attention = SLA(d_model)
+            else:
+                raise RuntimeError("未対応です")
 
-        if (current_attention is True) and (past_global_gru is False):
-            # 基本Trueのほうが性能がいいです.
-            self.context_value_linear = nn.Linear(d_cont_enc, d_model)
-            self.context_query_linear = nn.Linear(d_cont_enc, d_model)
-            self.context_attention = SLA_wQuery(d_model)
-            self.context_linear = nn.Linear(d_cont_enc + d_model, d_model)
-        elif (current_attention is False) and (past_global_gru is True):
-            self.context_linear = nn.Linear(d_cont_enc * 2, d_model)
-            self.context_attention = None
-        elif (current_attention is False) and (past_global_gru is False):
-            self.context_linear = nn.Linear(d_cont_enc, d_model)
-            self.context_attention = SLA(d_model)
-        else:
-            raise RuntimeError("未対応です")
+        self.speaker_linear = nn.Linear(d_model, d_cont_enc)
+        if emotion_embedding is not None:
+            self.emotion_linear = nn.Linear(d_model, d_cont_enc)
 
         self.speaker_embedding = speaker_embedding
         self.emotion_embedding = emotion_embedding
         self.current_attention = current_attention
+        self.past_global_gru = past_global_gru
+        self.pau_split_mode = pau_split_mode
+
+        self.use_text_modal = use_text_modal
+        self.use_speech_modal = use_speech_modal
 
     def forward(
-        self, text_emb, speaker, emotion, history_text_emb, history_speaker, history_emotion, history_lens
+        self, c_txt_embs, c_txt_embs_lens, speakers, emotions,
+        h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
+        h_prosody_emb, h_prosody_embs_len,
     ):
-        max_history_len = torch.max(history_lens)
-        history_masks = make_pad_mask(history_lens, max_history_len)
-        # Embedding
-        history_text_emb = torch.cat([history_text_emb, text_emb.unsqueeze(1)], dim=1)
-        history_text_emb = self.text_emb_linear(history_text_emb)
-        history_speaker = torch.cat([history_speaker, speaker.unsqueeze(1)], dim=1)
-        history_speaker = self.speaker_linear(self.speaker_embedding(history_speaker))
+        if self.pau_split_mode is False:
+            if self.use_text_modal is True:
+                max_t_history_len = torch.max(h_txt_emb_lens)
+                t_history_masks = make_pad_mask(h_txt_emb_lens, max_t_history_len)
 
-        history_enc = torch.cat([history_text_emb, history_speaker], dim=-1)
+            if self.use_speech_modal is True:
+                max_p_history_len = torch.max(h_prosody_embs_len)
+                p_history_masks = make_pad_mask(h_prosody_embs_len, max_p_history_len)
+
+            current_speaker = speakers.unsqueeze(1)
+            current_text_emb = self.text_emb_linear(c_txt_embs.unsqueeze(1))
+        else:
+            max_segment_len = c_txt_embs.size(1)
+
+            if self.use_text_modal is True:
+                max_t_history_len = torch.max(h_txt_emb_lens+c_txt_embs_lens)
+                t_history_masks = make_pad_mask(h_txt_emb_lens+c_txt_embs_lens, max_t_history_len)
+
+            if self.use_speech_modal is True:
+                max_p_history_len = torch.max(h_prosody_embs_len+c_txt_embs_lens)
+                p_history_masks = make_pad_mask(h_prosody_embs_len+c_txt_embs_lens, max_p_history_len)
+
+            current_speaker = speakers.unsqueeze(1).expand(-1, max_segment_len)
+            current_text_emb = self.text_emb_linear(c_txt_embs)
+
+        history_speaker = self.speaker_linear(self.speaker_embedding(h_speakers))
+
+        if self.use_text_modal is True:
+            history_text_emb = self.text_emb_linear(h_txt_embs)
+            history_text_enc = torch.cat([history_text_emb, history_speaker], dim=-1)
+
+        if self.use_speech_modal is True:
+            history_prosody_emb = self.prosody_emb_linear(h_prosody_emb)
+            history_prosody_enc = torch.cat([history_prosody_emb, history_speaker], dim=-1)
+
+        current_speaker = self.speaker_linear(self.speaker_embedding(current_speaker))
+        current_text_enc = torch.cat([current_text_emb, current_speaker], dim=-1)
 
         if self.emotion_embedding is not None:
-            history_emotion = torch.cat([history_emotion, emotion.unsqueeze(1)], dim=1)
-            history_emotion = self.emotion_linear(self.emotion_embedding(history_emotion))
-            history_enc = torch.cat([history_enc, history_emotion], dim=-1)
-
-        history_enc = self.enc_linear(history_enc)
-
-        # Split
-        enc_past, enc_current = torch.split(history_enc, history_enc.size(1)-1, dim=1)
-
-        # GRU
-        enc_past = self.gru_linear(self.gru(enc_past, history_lens))
-        if self.context_attention is not None:
-            enc_past = enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
-
-        # Encoding
-        # context_enc = enc_past
-        if self.current_attention is True:
-            context_enc = self.context_attention(
-                self.context_query_linear(enc_current), self.context_value_linear(enc_past),
-            )  # [B, d]
-            context_enc = self.context_linear(
-                torch.cat([enc_current.squeeze(1), context_enc], dim=-1)
-            )
-        else:
-            if self.context_attention is None:
-                context_enc = torch.cat([enc_current.squeeze(1), enc_past], dim=-1)
-                context_enc = self.context_linear(context_enc)
+            if self.pau_split_mode is False:
+                current_emotion = emotions.unsqueeze(1)
             else:
-                context_enc = torch.cat([enc_current, enc_past], dim=1)
-                context_enc = self.context_attention(self.context_linear(context_enc))  # [B, d]
+                current_emotion = emotions.unsqueeze(1).expand(-1, max_segment_len)
+            history_emotion = self.emotion_linear(self.emotion_embedding(h_emotions))
+            current_emotion = self.emotion_linear(self.emotion_embedding(current_emotion))
 
-        return context_enc
+            if self.use_text_modal is True:
+                history_text_enc = torch.cat([history_text_enc, history_emotion], dim=-1)
+            if self.use_speech_modal is True:
+                history_prosody_enc = torch.cat([history_prosody_enc, history_emotion], dim=-1)
+            current_text_enc = torch.cat([current_text_enc, current_emotion], dim=-1)
+
+        if self.use_text_modal is True:
+            history_text_enc = self.text_enc_linear(history_text_enc)
+        if self.use_speech_modal is True:
+            history_prosody_enc = self.prosody_enc_linear(history_prosody_enc)
+
+        current_text_enc = self.text_enc_linear(current_text_enc)
+
+        if self.pau_split_mode is False:
+            if self.use_text_modal is True:
+                # GRU
+                history_text_enc = self.text_gru_linear(self.text_gru(history_text_enc, h_txt_emb_lens))
+            if self.use_speech_modal is True:
+                # GRU
+                history_prosody_enc = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, h_prosody_embs_len))
+
+            # Encoding
+            if self.current_attention is True:
+                # Attention
+                if self.use_text_modal is True:
+                    context_text_enc = self.context_text_attention(
+                        self.context_text_query_linear(current_text_enc),
+                        self.context_text_value_linear(history_text_enc),
+                        mask=t_history_masks,
+                    )
+                    context_text_enc = self.context_text_linear(
+                        torch.cat([current_text_enc.squeeze(1), context_text_enc], dim=-1)
+                    )
+                if self.use_speech_modal is True:
+                    context_prosody_enc = self.context_prosody_attention(
+                        self.context_prosody_query_linear(current_text_enc),
+                        self.context_prosody_value_linear(history_prosody_enc),
+                        mask=p_history_masks,
+                    )
+                    context_prosody_enc = self.context_prosody_linear(
+                        torch.cat([current_text_enc.squeeze(1), context_prosody_enc], dim=-1)
+                    )
+            else:
+                if self.past_global_gru is True:
+                    # 従来法
+                    if self.use_text_modal is True:
+                        context_text_enc = torch.cat([current_text_enc.squeeze(1), history_text_enc], dim=-1)
+                        context_text_enc = self.context_text_linear(context_text_enc)
+                    if self.use_speech_modal is True:
+                        context_prosody_enc = torch.cat([current_text_enc.squeeze(1), history_prosody_enc], dim=-1)
+                        context_prosody_enc = self.context_prosody_linear(context_prosody_enc)
+                else:
+                    # SLA実装
+                    if self.use_text_modal is True:
+                        history_text_enc = history_text_enc.masked_fill(t_history_masks.unsqueeze(-1), 0)
+                        context_text_enc = torch.cat([current_text_enc, history_text_enc], dim=1)
+                        context_text_enc = self.context_text_attention(
+                            self.context_text_linear(context_text_enc)
+                        )
+                    if self.use_speech_modal is True:
+                        history_prosody_enc = history_prosody_enc.masked_fill(p_history_masks.unsqueeze(-1), 0)
+                        context_prosody_enc = torch.cat([current_text_enc, history_prosody_enc], dim=1)
+                        context_prosody_enc = self.context_prosody_attention(
+                            self.context_prosody_linear(context_prosody_enc)
+                        )
+        else:
+            if self.use_text_modal is True:
+                context_text_enc = self.text_gru_linear(
+                    self.text_gru(history_text_enc, h_txt_emb_lens, current_text_enc, c_txt_embs_lens)
+                )
+            if self.use_speech_modal is True:
+                context_prosody_enc = self.prosody_gru_linear(
+                    self.prosody_gru(history_prosody_enc, h_prosody_embs_len, current_text_enc, c_txt_embs_lens)
+                )
+
+            if self.current_attention is True:
+                # Attention
+                if self.use_text_modal is True:
+                    context_text_enc = self.context_text_attention(
+                        self.context_text_query_linear(current_text_enc),
+                        self.context_text_value_linear(context_text_enc),
+                        mask=t_history_masks,
+                    )
+                    context_text_enc = self.context_text_linear(
+                        torch.cat([current_text_enc, context_text_enc], dim=-1)
+                    )
+                if self.use_speech_modal is True:
+                    context_prosody_enc = self.context_prosody_attention(
+                        self.context_prosody_query_linear(current_text_enc),
+                        self.context_prosody_value_linear(context_prosody_enc),
+                        mask=p_history_masks,
+                    )
+                    context_prosody_enc = self.context_prosody_linear(
+                        torch.cat([current_text_enc, context_prosody_enc], dim=-1)
+                    )
+            else:
+                if self.past_global_gru is True:
+                    # 従来法
+                    if self.use_text_modal is True:
+                        context_text_enc = torch.cat([
+                            current_text_enc, context_text_enc
+                        ], dim=-1)
+                        context_text_enc = self.context_text_linear(context_text_enc)
+                    if self.use_speech_modal is True:
+                        context_prosody_enc = torch.cat([
+                            current_text_enc, context_prosody_enc
+                        ], dim=-1)
+                        context_prosody_enc = self.context_prosody_linear(context_prosody_enc)
+                else:
+                    # SLAのやつ
+                    assert RuntimeError("未対応")
+
+        if (self.use_text_modal is True) and (self.use_speech_modal is True):
+            return context_text_enc + context_prosody_enc
+        elif (self.use_text_modal is True) and (self.use_speech_modal is False):
+            return context_text_enc
+        elif (self.use_text_modal is False) and (self.use_speech_modal is True):
+            return context_prosody_enc
 
 
 class SLA(nn.Module):
@@ -164,7 +338,7 @@ class SLA_wQuery(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, query, encoding, mask=None):
-        # query: (B, 1, d_enc)
+        # query: (B, x, d_enc)
         # encoding: (B, time, d_enc)
         # mask: (B, time)
         with torch.cuda.amp.autocast(enabled=False):
@@ -172,7 +346,7 @@ class SLA_wQuery(nn.Module):
             query = query.to(torch.float32)
             attn = torch.bmm(encoding, query.transpose(1, 2))
 
-        # attn: (B, time, 1)
+        # attn: (B, time, x)
         if mask is not None:
             attn = attn.masked_fill(mask.unsqueeze(-1), -np.inf)
             aux_mask = (attn == -np.inf).all(self.softmax.dim).unsqueeze(self.softmax.dim)
@@ -180,257 +354,3 @@ class SLA_wQuery(nn.Module):
         score = self.softmax(attn).transpose(-2, -1)
         fused_rep = torch.matmul(score, encoding).squeeze(1)  # [B, d]
         return fused_rep
-
-
-class ConversationalProsodyContextEncoder(nn.Module):
-    """ Conversational Context Encoder """
-
-    def __init__(
-        self,
-        d_encoder_hidden,
-        d_context_hidden,
-        context_layer_num,
-        context_dropout,
-        text_emb_size,
-        g_prosody_emb_size,
-        speaker_embedding,
-        emotion_embedding,
-        current_attention=True,
-        past_global_gru=False,
-        gru_bidirectional=True,
-    ):
-        super(ConversationalProsodyContextEncoder, self).__init__()
-        d_model = d_encoder_hidden
-        d_cont_enc = d_context_hidden
-        num_layers = context_layer_num
-        dropout = context_dropout
-
-        self.text_emb_linear = nn.Linear(text_emb_size, d_cont_enc)
-        self.prosody_emb_linear = nn.Linear(g_prosody_emb_size, d_cont_enc)
-        self.speaker_linear = nn.Linear(d_model, d_cont_enc)
-        if emotion_embedding is not None:
-            self.emotion_linear = nn.Linear(d_model, d_cont_enc)
-
-        self.enc_linear = nn.Sequential(
-            nn.Linear(
-                2*d_cont_enc if emotion_embedding is None else 3*d_cont_enc,
-                d_cont_enc
-            ),
-            nn.ReLU()
-        )
-        self.prosody_enc_linear = nn.Sequential(
-            nn.Linear(
-                2*d_cont_enc if emotion_embedding is None else 3*d_cont_enc,
-                d_cont_enc
-            ),
-            nn.ReLU()
-        )
-        self.gru = GRUwSort(
-            input_size=d_cont_enc,
-            hidden_size=d_cont_enc if gru_bidirectional is True else d_cont_enc * 2,
-            num_layers=num_layers,
-            batch_first=True,
-            bidirectional=gru_bidirectional,
-            sort=True,
-            dropout=dropout,
-            allow_zero_length=True,
-            need_last=True if past_global_gru is True else False,
-        )
-        self.gru_linear = nn.Sequential(
-            nn.Linear(2*d_cont_enc, d_cont_enc),
-            nn.ReLU()
-        )
-        self.prosody_gru = GRUwSort(
-            input_size=d_cont_enc,
-            hidden_size=d_cont_enc if gru_bidirectional is True else d_cont_enc * 2,
-            num_layers=num_layers,
-            batch_first=True,
-            bidirectional=gru_bidirectional,
-            sort=True,
-            dropout=dropout,
-            allow_zero_length=True,
-            need_last=True if past_global_gru is True else False,
-        )
-        self.prosody_gru_linear = nn.Sequential(
-            nn.Linear(2*d_cont_enc, d_cont_enc),
-            nn.ReLU()
-        )
-
-        if (current_attention is True) and (past_global_gru is False):
-            self.context_query_linear = nn.Linear(d_cont_enc, d_model)
-            self.context_value_linear = nn.Linear(d_cont_enc, d_model)
-            self.context_linear = nn.Linear(d_cont_enc + d_model, d_model)
-            self.context_attention = SLA_wQuery(d_model)
-
-            self.prosody_context_query_linear = nn.Linear(d_cont_enc, d_model)
-            self.prosody_context_value_linear = nn.Linear(d_cont_enc, d_model)
-            self.prosody_context_attention = SLA_wQuery(d_model)
-        elif (current_attention is False) and (past_global_gru is True):
-            self.context_linear = nn.Linear(d_cont_enc * 2, d_model)
-            self.context_attention = None
-            self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
-            self.prosody_context_attention = None
-        elif (current_attention is False) and (past_global_gru is False):
-            self.context_linear = nn.Linear(d_cont_enc, d_model)
-            self.context_attention = SLA(d_model)
-            self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
-            self.prosody_context_attention = SLA(d_model)
-        else:
-            raise RuntimeError("未対応です")
-
-        self.speaker_embedding = speaker_embedding
-        self.emotion_embedding = emotion_embedding
-        self.current_attention = current_attention
-
-    def forward(
-        self, text_emb, speaker, emotion,
-        history_text_emb, history_speaker, history_emotion, history_lens,
-        h_g_prosody_embs, h_g_prosody_embs_lens,
-    ):
-        history_masks = make_pad_mask(history_lens, torch.max(history_lens))
-        history_prosody_masks = make_pad_mask(h_g_prosody_embs_lens, torch.max(h_g_prosody_embs_lens))
-        # Embedding
-        history_text_emb = torch.cat([history_text_emb, text_emb.unsqueeze(1)], dim=1)
-        history_text_emb = self.text_emb_linear(history_text_emb)
-        history_prosody_emb = self.prosody_emb_linear(h_g_prosody_embs)
-        history_speaker = torch.cat([history_speaker, speaker.unsqueeze(1)], dim=1)
-        history_speaker = self.speaker_linear(self.speaker_embedding(history_speaker))
-
-        history_enc = torch.cat([history_text_emb, history_speaker], dim=-1)
-        history_prosody_enc = torch.cat([history_prosody_emb, history_speaker[:, :-1]], dim=-1)
-
-        if self.emotion_embedding is not None:
-            history_emotion = torch.cat([history_emotion, emotion.unsqueeze(1)], dim=1)
-            history_emotion = self.emotion_linear(self.emotion_embedding(history_emotion))
-            history_enc = torch.cat([history_enc, history_emotion], dim=-1)
-            history_prosody_enc = torch.cat([history_prosody_enc, history_emotion[:, :-1]], dim=-1)
-
-        history_enc = self.enc_linear(history_enc)
-        history_prosody_enc = self.prosody_enc_linear(history_prosody_enc)
-
-        # Split
-        enc_past, enc_current = torch.split(history_enc, history_enc.size(1)-1, dim=1)
-
-        # GRU
-        enc_past = self.gru_linear(self.gru(enc_past, history_lens))
-        prosody_enc_past = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, h_g_prosody_embs_lens))
-        if self.context_attention is not None:
-            enc_past = enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
-            prosody_enc_past = prosody_enc_past.masked_fill(history_prosody_masks.unsqueeze(-1), 0)
-
-        if self.current_attention is True:
-            context_enc = self.context_attention(
-                self.context_query_linear(enc_current), self.context_value_linear(enc_past)
-            )  # [B, d]
-            prosody_context_enc = self.prosody_context_attention(
-                self.prosody_context_query_linear(enc_current), self.prosody_context_value_linear(prosody_enc_past)
-            )  # [B, d]
-            context_enc = self.context_linear(
-                torch.cat([enc_current.squeeze(1), context_enc], dim=-1)
-            )
-        else:
-            if self.context_attention is None:
-                context_enc = torch.cat([enc_current.squeeze(1), enc_past], dim=-1)
-                context_enc = self.context_linear(context_enc)
-                prosody_context_enc = self.prosody_context_linear(prosody_enc_past)
-            else:
-                context_enc = torch.cat([enc_current, enc_past], dim=1)
-                context_enc = self.context_attention(
-                    self.context_linear(context_enc)
-                )  # [B, d]
-                prosody_context_enc = self.prosody_context_attention(
-                    self.prosody_context_linear(prosody_enc_past)
-                )  # [B, d]
-
-        return context_enc + prosody_context_enc
-
-
-class ConversationalProsodyEncoder(nn.Module):
-    """ Conversational Prosody Encoder
-    Context Encoderのprosodyのみver
-    """
-
-    def __init__(
-        self,
-        d_encoder_hidden,
-        d_context_hidden,
-        context_layer_num,
-        context_dropout,
-        g_prosody_emb_size,
-        speaker_embedding,
-        emotion_embedding,
-        past_global_gru=False,
-    ):
-        super(ConversationalProsodyEncoder, self).__init__()
-        d_model = d_encoder_hidden
-        d_cont_enc = d_context_hidden
-        num_layers = context_layer_num
-        dropout = context_dropout
-
-        self.prosody_emb_linear = nn.Linear(g_prosody_emb_size, d_cont_enc)
-        self.speaker_linear = nn.Linear(d_model, d_cont_enc)
-        if emotion_embedding is not None:
-            self.emotion_linear = nn.Linear(d_model, d_cont_enc)
-
-        self.prosody_enc_linear = nn.Sequential(
-            nn.Linear(
-                2*d_cont_enc if emotion_embedding is None else 3*d_cont_enc,
-                d_cont_enc
-            ),
-            nn.ReLU()
-        )
-        self.prosody_gru = GRUwSort(
-            input_size=d_cont_enc,
-            hidden_size=d_cont_enc,
-            num_layers=num_layers,
-            batch_first=True,
-            bidirectional=True,
-            sort=True,
-            dropout=dropout,
-            allow_zero_length=True,
-            need_last=True if past_global_gru is True else False,
-        )
-        self.prosody_gru_linear = nn.Sequential(
-            nn.Linear(2*d_cont_enc, d_cont_enc),
-            nn.ReLU()
-        )
-        if past_global_gru is True:
-            self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
-            self.prosody_context_attention = None
-        else:
-            self.prosody_context_linear = nn.Linear(d_cont_enc, d_model)
-            self.prosody_context_attention = SLA(d_model)
-
-        self.speaker_embedding = speaker_embedding
-        self.emotion_embedding = emotion_embedding
-
-    def forward(
-        self, history_speaker, history_emotion, history_lens, h_g_prosody_embs
-    ):
-        max_history_len = torch.max(history_lens)
-        history_masks = make_pad_mask(history_lens, max_history_len)
-        # Embedding
-        history_prosody_emb = self.prosody_emb_linear(h_g_prosody_embs)
-        history_speaker = self.speaker_linear(self.speaker_embedding(history_speaker))
-
-        history_prosody_enc = torch.cat([history_prosody_emb, history_speaker], dim=-1)
-
-        if self.emotion_embedding is not None:
-            history_emotion = self.emotion_linear(self.emotion_embedding(history_emotion))
-            history_prosody_enc = torch.cat([history_prosody_enc, history_emotion], dim=-1)
-
-        history_prosody_enc = self.prosody_enc_linear(history_prosody_enc)
-
-        # GRU
-        prosody_enc_past = self.prosody_gru_linear(self.prosody_gru(history_prosody_enc, history_lens))
-        if self.prosody_context_attention is not None:
-            prosody_enc_past = prosody_enc_past.masked_fill(history_masks.unsqueeze(-1), 0)
-
-        # ↓new!
-        # Encoding
-        if self.prosody_context_attention is None:
-            prosody_context_enc = self.prosody_context_linear(prosody_enc_past)
-        else:
-            prosody_context_enc = self.prosody_context_attention(self.prosody_context_linear(prosody_enc_past))
-
-        return prosody_context_enc

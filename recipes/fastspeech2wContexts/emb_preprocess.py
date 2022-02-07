@@ -61,7 +61,7 @@ def get_parser():
 
 
 def split_text_by_pau(text: str):
-    pau_cher = ["、", "。", "！", "？", "「", "」"]
+    pau_cher = ["、", "。", "！", "？", "「", "」", "・", "…", "，", "!"]
     output = []
 
     flg = 0
@@ -120,34 +120,15 @@ def get_text_embeddings(
         batch_id = []
         batch_text = []
         for i, (id_, text) in tqdm(enumerate(zip(file_names, texts))):
-            for t_ in split_text_by_pau(text):
-                batch_id.append(id_)
-                batch_text.append(t_)
+            output = model.encode(split_text_by_pau(text))
+            np.save(
+                output_dir / f"{id_}-feats.npy",
+                np.array(output).astype(np.float32),
+                allow_pickle=False,
+            )
 
-            if ((i+1) % batch_size == 0) or (i == len(file_names)-1):
-                output = model.encode(batch_text)
-                before_id = batch_id[0]
-                tmp_output = []
-                for filename, text_emb in zip(batch_id, output):
-                    if before_id != filename:
-                        np.save(
-                            output_dir / f"{filename}-feats.npy",
-                            np.array(tmp_output).astype(np.float32),
-                            allow_pickle=False,
-                        )
-                        tmp_output = []
-                    tmp_output.append(text_emb)
-                    before_id = filename
-                np.save(
-                    output_dir / f"{filename}-feats.npy",
-                    np.array(tmp_output).astype(np.float32),
-                    allow_pickle=False,
-                )
-
-                batch_id = []
-                batch_text = []
-            else:
-                continue
+            batch_id = []
+            batch_text = []
 
 
 def get_prosody_embeddings_wGMM(
