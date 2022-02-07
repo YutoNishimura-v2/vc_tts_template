@@ -15,6 +15,7 @@ netG:
   peprosody_encoder_gru_num_layer: 2
   shere_embedding: False
   mel_embedding_mode:
+  pau_split_mode:
   # mel_emb_dim: 256
   # mel_emb_kernel: 31
   # mel_emb_dropout: 0.5
