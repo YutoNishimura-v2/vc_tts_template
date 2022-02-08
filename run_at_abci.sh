@@ -7,8 +7,8 @@
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_Teacher_sr22050_LINE_Teacher_2_202111281851.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/fastspeech2VC/JSUT_NICT_LINE_4_sr22050_JSUT_NICT_LINE_4_202111162213.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_3_sr22050_LINE_emotionprediction_58_202201141005.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_74_202202080112.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_7_sr22050_LINE_wContextwPEProsody_75_202202080128.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_74_202202081908.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_7_sr22050_LINE_wContextwPEProsody_75_202202081906.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1_sr22050_JSUT_NICT_LINE_1_202201181515.log run_at_abci.sh
 # 例: 8250289
 # 例: qrsh -g $ABCI_GROUP -l rt_AG.small=1 -l h_rt=10:00:00

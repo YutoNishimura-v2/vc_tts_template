@@ -1213,15 +1213,69 @@
         - jobID: 9135939
 
     ## CLを1からやり直し. INTERSPEECH用
+    ### stage 1
+    #### utterance-level
     - LINE_wContextwPEProsody_74_CL_stage1
         - spk: LINE_wContextwPEProsody_4
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - mel embeddingを，prosody extractorと同じとりかたにしてみた．
         - これはutterance level
-        - jobID: 9159601
+        - jobID: 9171380
+    #### segment-level
     - LINE_wContextwPEProsody_75_CL_stage1_seg
         - spk: LINE_wContextwPEProsody_7
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - mel embeddingを，prosody extractorと同じとりかたにしてみた．
         - これはsegment level
-        - jobID: 9159625
+        - jobID: 9171374
+    ### stage 2
+    #### utterance-level
+    - LINE_wContextwPEProsody_76_CL_stage2_TMCCE_GRU
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_74_CL_stage1
+        - jobID: 
+    - LINE_wContextwPEProsody_77_CL_stage2_TMCCE_Attn
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_74_CL_stage1
+        - jobID: 
+    - LINE_wContextwPEProsody_78_CL_stage2_SMCCE_GRU
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_74_CL_stage1
+        - jobID: 
+    - LINE_wContextwPEProsody_79_CL_stage2_SMCCE_Attn
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_74_CL_stage1
+        - jobID: 
+    - LINE_wContextwPEProsody_80_CL_stage2_CMCCE_GRU
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_74_CL_stage1
+        - jobID: 
+    - LINE_wContextwPEProsody_81_CL_stage2_CMCCE_Attn
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_74_CL_stage1
+        - jobID: 
+    #### segment-level
+    - LINE_wContextwPEProsody_82_CL_stage2_TMCCE_GRU_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
+        - jobID: 
+    - LINE_wContextwPEProsody_83_CL_stage2_TMCCE_Attn_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
+        - jobID: 
+    - LINE_wContextwPEProsody_84_CL_stage2_SMCCE_GRU_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
+        - jobID: 
+    - LINE_wContextwPEProsody_85_CL_stage2_SMCCE_Attn_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
+        - jobID: 
+    - LINE_wContextwPEProsody_86_CL_stage2_CMCCE_GRU_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
+        - jobID: 
+    - LINE_wContextwPEProsody_87_CL_stage2_CMCCE_Attn_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
+        - jobID: 
