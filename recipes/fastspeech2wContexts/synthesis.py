@@ -115,7 +115,8 @@ def my_app(config: DictConfig) -> None:
                 use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
             )
             prosody_embeddings.append([
-                current_prosody_emb, hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len,
+                current_prosody_emb, current_prosody_emb_duration, current_prosody_emb_phonemes,
+                hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len,
                 hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
             ])
         else:
@@ -199,7 +200,8 @@ def my_app(config: DictConfig) -> None:
                 use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
             )
             prosody_embedding = [
-                current_prosody_emb, hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len,
+                current_prosody_emb, current_prosody_emb_duration, current_prosody_emb_phonemes,
+                hist_prosody_embs, hist_prosody_embs_lens, hist_prosody_embs_len,
                 hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
             ]
         else:
