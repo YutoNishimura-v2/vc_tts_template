@@ -69,7 +69,7 @@ class ConversationalContextEncoder(nn.Module):
                 # 基本Trueのほうが性能がいいです.
                 self.context_text_value_linear = nn.Linear(d_cont_enc, d_model)
                 self.context_text_query_linear = nn.Linear(d_cont_enc, d_model)
-                self.context_text_attention = SLA_wQuery(d_model)
+                self.context_text_attention = SLA_wQuery(pau_split_mode)
                 self.context_text_linear = nn.Linear(d_cont_enc + d_model, d_model)
             elif (current_attention is False) and (past_global_gru is True):
                 self.context_text_linear = nn.Linear(d_cont_enc * 2, d_model)
@@ -107,7 +107,7 @@ class ConversationalContextEncoder(nn.Module):
                 # 基本Trueのほうが性能がいいです.
                 self.context_prosody_value_linear = nn.Linear(d_cont_enc, d_model)
                 self.context_prosody_query_linear = nn.Linear(d_cont_enc, d_model)
-                self.context_prosody_attention = SLA_wQuery(d_model)
+                self.context_prosody_attention = SLA_wQuery(pau_split_mode)
                 self.context_prosody_linear = nn.Linear(d_cont_enc + d_model, d_model)
             elif (current_attention is False) and (past_global_gru is True):
                 self.context_prosody_linear = nn.Linear(d_cont_enc * 2, d_model)
@@ -323,8 +323,14 @@ class SLA(nn.Module):
             aux_mask = (attn == -np.inf).all(self.softmax.dim).unsqueeze(self.softmax.dim)
             attn = attn.masked_fill(aux_mask, 0)  # Remove all -inf along softmax.dim
         score = self.softmax(attn).transpose(-2, -1)  # [B, 1, T]
-        fused_rep = torch.matmul(score, encoding).squeeze(1)  # [B, d]
-
+        try:
+            fused_rep = torch.matmul(score, encoding).squeeze(1)  # [B, d]
+        except RuntimeError:
+            print("attn: ", attn.size())
+            print("mask: ", mask.size())
+            print("score: ", score.size())
+            print("encoding: ", encoding.size())
+            exit(1)
         return fused_rep
 
 
@@ -333,9 +339,10 @@ class SLA_wQuery(nn.Module):
     Queryを取れるようにして, そのqueryでattentionをとる.
     """
 
-    def __init__(self, d_enc):
+    def __init__(self, leave_dim_1=False):
         super(SLA_wQuery, self).__init__()
         self.softmax = nn.Softmax(dim=1)
+        self.leave_dim_1 = leave_dim_1
 
     def forward(self, query, encoding, mask=None):
         # query: (B, x, d_enc)
@@ -351,6 +358,11 @@ class SLA_wQuery(nn.Module):
             attn = attn.masked_fill(mask.unsqueeze(-1), -np.inf)
             aux_mask = (attn == -np.inf).all(self.softmax.dim).unsqueeze(self.softmax.dim)
             attn = attn.masked_fill(aux_mask, 0)  # Remove all -inf along softmax.dim
+        # score: (B, x, time)
         score = self.softmax(attn).transpose(-2, -1)
-        fused_rep = torch.matmul(score, encoding).squeeze(1)  # [B, d]
-        return fused_rep
+        fused_rep = torch.matmul(score, encoding)  # [B, x, d]
+
+        if self.leave_dim_1 is True:
+            return fused_rep
+        else:
+            return fused_rep.squeeze(1)
