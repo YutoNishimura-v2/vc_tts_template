@@ -30,6 +30,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         peprosody_encoder_gru_num_layer: int,
         shere_embedding: bool,
         mel_embedding_mode: int,
+        pau_split_mode: int,
         # mel_emb_dim: int,
         # mel_emb_kernel: int,
         # mel_emb_dropout: float,
@@ -144,6 +145,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
                     conv_n_layers=peprosody_encoder_conv_n_layers,
                 )
         self.length_regulator = LengthRegulator()
+        self.pau_split_mode = pau_split_mode > 0
 
     def contexts_forward(
         self,
@@ -154,7 +156,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         c_prosody_embs_duration,
         c_prosody_embs_phonemes,
     ):
-        if c_prosody_embs_duration is None:
+        if self.pau_split_mode is False:
             h_prosody_emb = self.peprosody_encoder(
                 c_prosody_embs.unsqueeze(1),
                 c_prosody_embs_lens.unsqueeze(1),
@@ -195,6 +197,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         src_lens,
         max_src_len,
         c_txt_embs,
+        c_txt_embs_lens,
         h_txt_embs,
         h_txt_emb_lens,
         h_speakers,
