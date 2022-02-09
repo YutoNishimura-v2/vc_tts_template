@@ -140,10 +140,26 @@ class ConvLNorms1d(nn.Module):
 class GRUwSort(nn.Module):
     """
     pack_padded_sequenceなどを内部でやってくれるクラスです.
+    Examples:
+        input:
+        >>> x = torch.randn(1, 10, 1)
+        >>> lens = torch.tensor([0]).long()
+        args: allow_zero_length=True, need_last=False, keep_dim_1=False,
+        output: zeros: (1, 0, hidden_size*2)
+
+        args: allow_zero_length=True, need_last=True, keep_dim_1=False,
+        output: zeros: (1, hidden_size*2)
+
+        args: allow_zero_length=True, need_last=False, keep_dim_1=True,
+        output: zeros: (1, 10, hidden_size*2)
+
+        args: allow_zero_length=True, need_last=True, keep_dim_1=True,
+        output: zeros: (1, hidden_size*2)
     """
     def __init__(self, input_size, hidden_size, num_layers,
                  batch_first, bidirectional, sort, dropout=0.0,
-                 allow_zero_length=False, need_last=False) -> None:
+                 allow_zero_length=False, need_last=False,
+                 keep_dim_1=False,) -> None:
         super().__init__()
         self.gru = nn.GRU(
             input_size=input_size, hidden_size=hidden_size, num_layers=num_layers,
@@ -154,6 +170,7 @@ class GRUwSort(nn.Module):
         self.zero_num = 0
         self.allow_zero_length = allow_zero_length
         self.need_last = need_last
+        self.keep_dim_1 = keep_dim_1
 
         self.output_dim = hidden_size * 2 if bidirectional is True else hidden_size
 
@@ -176,11 +193,24 @@ class GRUwSort(nn.Module):
             lens = lens[sort_idx]
 
         if self.allow_zero_length is True:
-            x, lens = self.remove_zeros(x, lens)
+            x, lens, allzero_flg = self.remove_zeros(x, lens)
+            if allzero_flg is True:
+                dim_1_len = x.size(1) if (self.keep_dim_1 or self.need_last) is True else 0
+                out = torch.zeros(
+                    x.size(0), dim_1_len, self.output_dim,
+                    dtype=x.dtype
+                ).to(x.device)
+                if self.need_last is True:
+                    out = self.get_last_timestep(out, lens, y_lens)
+                return out
 
+        x_len = x.size(1)
         x = pack_padded_sequence(x, lens, batch_first=self.batch_first)
         out, _ = self.gru(x)
-        out, _ = pad_packed_sequence(out, batch_first=self.batch_first)
+        out, _ = pad_packed_sequence(
+            out, batch_first=self.batch_first,
+            total_length=x_len if self.keep_dim_1 is True else None
+        )
 
         if self.allow_zero_length is True:
             out = self.restore_zeros(out)
@@ -197,14 +227,18 @@ class GRUwSort(nn.Module):
         # 最新実装ではもはやremoveしていないことに注意
         self.zero_num = np.sum(lens == 0)
         if self.zero_num == 0:
-            return x, lens
+            return x, lens, False
         # 1にしておけば, 最後のget_last_timestepでも実装が容易になる
         lens[-self.zero_num:] = 1
 
         if x.size(1) == 0:
             raise ValueError("未対応です. xのtimeは少なくとも1以上にしてください.")
 
-        return x, lens
+        if len(lens) == self.zero_num:
+            # all zero!!
+            return x, lens, True
+
+        return x, lens, False
 
     def restore_zeros(self, x):
         if self.zero_num > 0:

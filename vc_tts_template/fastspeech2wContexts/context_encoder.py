@@ -323,14 +323,7 @@ class SLA(nn.Module):
             aux_mask = (attn == -np.inf).all(self.softmax.dim).unsqueeze(self.softmax.dim)
             attn = attn.masked_fill(aux_mask, 0)  # Remove all -inf along softmax.dim
         score = self.softmax(attn).transpose(-2, -1)  # [B, 1, T]
-        try:
-            fused_rep = torch.matmul(score, encoding).squeeze(1)  # [B, d]
-        except RuntimeError:
-            print("attn: ", attn.size())
-            print("mask: ", mask.size())
-            print("score: ", score.size())
-            print("encoding: ", encoding.size())
-            exit(1)
+        fused_rep = torch.matmul(score, encoding).squeeze(1)  # [B, d]
         return fused_rep
 
 
