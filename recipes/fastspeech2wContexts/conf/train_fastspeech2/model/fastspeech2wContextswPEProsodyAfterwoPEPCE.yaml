@@ -27,7 +27,7 @@ netG:
   # mel_emb_dropout: 0.5
   peprosody_encoder_conv_kernel_size: 3
   peprosody_encoder_conv_n_layers: 2
-  use_context_encoder: False
+  use_context_encoder: True
   use_prosody_encoder: False
   use_peprosody_encoder: False
   use_melprosody_encoder: True

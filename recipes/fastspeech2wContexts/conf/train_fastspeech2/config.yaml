@@ -93,7 +93,7 @@ train:
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
     # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
-    # checkpoint: exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_74_CL_stage1/fastspeech2wPEProsodywoPEPCE/latest.pth
-    checkpoint: exp/LINE_wContextwPEProsody_7_sr22050_LINE_wContextwPEProsody_75_CL_stage1_seg/fastspeech2wPEProsodywoPEPCE/latest.pth
+    checkpoint: exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_74_CL_stage1/fastspeech2wPEProsodywoPEPCE/latest.pth
+    # checkpoint: exp/LINE_wContextwPEProsody_7_sr22050_LINE_wContextwPEProsody_75_CL_stage1_seg/fastspeech2wPEProsodywoPEPCE/latest.pth
     optimizer_reset: True
     load_modules:
