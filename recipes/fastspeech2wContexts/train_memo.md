@@ -1242,7 +1242,7 @@
         - spk: LINE_wContextwPEProsody_4
         - pretrain: LINE_wContextwPEProsody_74_CL_stage1
         - jobID: 9182246
-    - LINE_wContextwPEProsody_79_CL_stage2_SMCCE_Attn
+    - LINE_wContextwPEProsody_79_CL_stage2_SMCCE_Attn: done
         - spk: LINE_wContextwPEProsody_4
         - pretrain: LINE_wContextwPEProsody_74_CL_stage1
         - jobID: 9202555
@@ -1250,7 +1250,7 @@
         - spk: LINE_wContextwPEProsody_4
         - pretrain: LINE_wContextwPEProsody_74_CL_stage1
         - jobID: 9182263
-    - LINE_wContextwPEProsody_81_CL_stage2_CMCCE_Attn
+    - LINE_wContextwPEProsody_81_CL_stage2_CMCCE_Attn: done
         - spk: LINE_wContextwPEProsody_4
         - pretrain: LINE_wContextwPEProsody_74_CL_stage1
         - jobID: 9202845
@@ -1271,11 +1271,11 @@
         - spk: LINE_wContextwPEProsody_7
         - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
         - jobID: 9183971
-    - LINE_wContextwPEProsody_86_CL_stage2_CMCCE_GRU_seg
+    - LINE_wContextwPEProsody_86_CL_stage2_CMCCE_GRU_seg: done
         - spk: LINE_wContextwPEProsody_7
         - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
         - jobID: 9199309
-    - LINE_wContextwPEProsody_87_CL_stage2_CMCCE_Attn_seg
+    - LINE_wContextwPEProsody_87_CL_stage2_CMCCE_Attn_seg: done
         - spk: LINE_wContextwPEProsody_7
         - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
         - jobID: 9199454

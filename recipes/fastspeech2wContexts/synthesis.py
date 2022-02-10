@@ -67,17 +67,24 @@ def my_app(config: DictConfig) -> None:
     dialogue_info = to_absolute_path(config.dialogue_info)
     utt2id, id2utt = make_dialogue_dict(dialogue_info)
     text_emb_paths = list(Path(to_absolute_path(config.emb_dir)).glob("*.npy"))
+    emb_seg_dir = Path(to_absolute_path(config.emb_dir)) / "segmented_text_emb"
+    text_seg_emb_paths = list(emb_seg_dir.glob("*.npy")) if emb_seg_dir.exists() else None
     use_hist_num = config.use_hist_num
     # read prosody embeddings
     prosody_emb_paths = list(Path(to_absolute_path(config.prosody_emb_dir)).glob("*.npy"))
     g_prosody_emb_paths = list(Path(to_absolute_path(config.g_prosody_emb_dir)).glob("*.npy"))
+    prosody_emb_seg_d_dir = Path(to_absolute_path(config.prosody_emb_dir)) / "segment_duration"
+    prosody_emb_seg_p_dir = Path(to_absolute_path(config.prosody_emb_dir)) / "segment_phonemes"
+    prosody_seg_d_emb_paths = list(prosody_emb_seg_d_dir.glob("*.npy")) if prosody_emb_seg_d_dir.exists() else None
+    prosody_seg_p_emb_paths = list(prosody_emb_seg_p_dir.glob("*.npy")) if prosody_emb_seg_p_dir.exists() else None
 
     # prepare text embedding
     context_embeddings = []
     for utt_id in utt_ids:
         current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions = get_embs(
             utt_id, text_emb_paths,
-            utt2id, id2utt, use_hist_num
+            utt2id, id2utt, use_hist_num,
+            seg_emb_paths=text_seg_emb_paths
         )
         context_embeddings.append([current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions])
 
@@ -91,7 +98,7 @@ def my_app(config: DictConfig) -> None:
                     utt_id, prosody_emb_paths,
                     utt2id, id2utt, use_hist_num,
                     start_index=1, only_latest=True,
-                    use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
+                    use_local_prosody_hist_idx=config.use_local_prosody_hist_idx,
                 )
             else:
                 h_prosody_emb = h_prosody_speakers = h_prosody_emotions = None
@@ -112,7 +119,8 @@ def my_app(config: DictConfig) -> None:
             ) = get_peprosody_embs(
                 utt_id, prosody_emb_paths,
                 utt2id, id2utt, use_hist_num, start_index=1,
-                use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
+                use_local_prosody_hist_idx=config.use_local_prosody_hist_idx,
+                seg_d_emb_paths=prosody_seg_d_emb_paths, seg_p_emb_paths=prosody_seg_p_emb_paths,
             )
             prosody_embeddings.append([
                 current_prosody_emb, current_prosody_emb_duration, current_prosody_emb_phonemes,
@@ -184,7 +192,8 @@ def my_app(config: DictConfig) -> None:
             continue
         context_embedding = get_embs(
             utt_id, text_emb_paths,
-            utt2id, id2utt, use_hist_num
+            utt2id, id2utt, use_hist_num,
+            seg_emb_paths=text_seg_emb_paths
         )
         if "wProsody" in acoustic_model_name:
             # NOTE: 対応したかったら，PEProsody同様にcopyしてあげる必要あり
@@ -197,7 +206,8 @@ def my_app(config: DictConfig) -> None:
             ) = get_peprosody_embs(
                 utt_id, synthesis_prosdoy_emb_list,
                 utt2id, id2utt, use_hist_num, start_index=1,
-                use_local_prosody_hist_idx=config.use_local_prosody_hist_idx
+                use_local_prosody_hist_idx=config.use_local_prosody_hist_idx,
+                seg_d_emb_paths=prosody_seg_d_emb_paths, seg_p_emb_paths=prosody_seg_p_emb_paths,
             )
             prosody_embedding = [
                 current_prosody_emb, current_prosody_emb_duration, current_prosody_emb_phonemes,
