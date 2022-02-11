@@ -262,11 +262,11 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
     ):
         if c_prosody_embs_duration is None:
             if c_prosody_embs is not None:
-                h_prosody_emb = self.peprosody_encoder(
+                c_prosody_emb = self.peprosody_encoder(
                     c_prosody_embs.unsqueeze(1),
                     c_prosody_embs_lens.unsqueeze(1),
                 )
-                target = self.context_encoder(h_prosody_emb).squeeze(1)
+                target = self.context_encoder(c_prosody_emb).squeeze(1)
             else:
                 target = None
 
@@ -283,8 +283,8 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     )
                     outs.append(out.squeeze(1))
                 outs = torch.cat(outs, 0)
-                h_prosody_emb = phone2utter(outs[inv_sort_idx], segment_nums)
-                target = self.context_encoder(h_prosody_emb)
+                c_prosody_emb = phone2utter(outs[inv_sort_idx], segment_nums)
+                target = self.context_encoder(c_prosody_emb)
             else:
                 target = None
 
@@ -293,6 +293,8 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 h_prosody_embs,
                 h_prosody_embs_lens,
             )
+        else:
+            h_prosody_emb = None
 
         prediction = self.clone_context_encoder(
             c_txt_embs,

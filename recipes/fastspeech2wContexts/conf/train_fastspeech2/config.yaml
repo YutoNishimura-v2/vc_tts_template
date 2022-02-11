@@ -83,8 +83,8 @@ train:
       max_lr_scale: 0.016  # max_lr = 0.001 / base_lr = 0.0625 
   
   criterion:
-    _target_: vc_tts_template.fastspeech2wContexts.fastspeech2wContextswPEProsodyAfterwoPEPCE.FastSpeech2wContextswPEProsodyAfterwoPEPCEsLoss
-    # _target_: vc_tts_template.fastspeech2.loss.FastSpeech2Loss
+    # _target_: vc_tts_template.fastspeech2wContexts.fastspeech2wContextswPEProsodyAfterwoPEPCE.FastSpeech2wContextswPEProsodyAfterwoPEPCEsLoss
+    _target_: vc_tts_template.fastspeech2.loss.FastSpeech2Loss
     pitch_feature_level:
     energy_feature_level:
     # beta: 0.02
@@ -93,7 +93,8 @@ train:
   pretrained:
     # 注意: ./run.shのいるディレクトリがcwdです.
     # 例: "exp/jsut_sr22050/fastspeech2/latest.pth"
-    checkpoint: exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_74_CL_stage1/fastspeech2wPEProsodywoPEPCE/latest.pth
+    checkpoint: ../fastspeech2/exp/jsut_sr22050_JSUT_5/fastspeech2/latest.pth
+    # checkpoint: exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_74_CL_stage1/fastspeech2wPEProsodywoPEPCE/latest.pth
     # checkpoint: exp/LINE_wContextwPEProsody_7_sr22050_LINE_wContextwPEProsody_75_CL_stage1_seg/fastspeech2wPEProsodywoPEPCE/latest.pth
     optimizer_reset: True
     load_modules:

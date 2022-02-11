@@ -1279,3 +1279,15 @@
         - spk: LINE_wContextwPEProsody_7
         - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
         - jobID: 9199454
+
+    ## JTもやり直してみる
+    - LINE_wContextwPEProsody_88_JT_TMCCE_GRU_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - 従来法にsegを導入したもの
+        - jobID: 
+    - LINE_wContextwPEProsody_89_JT_CMCCE_Attn_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - 提案法のJT ver
+        - jobID: 

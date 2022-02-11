@@ -1,6 +1,6 @@
 # from .emotion_predictor import EmotionPredictor
 # from .fastspeech2wContexts import FastSpeech2wContexts
-# from .fastspeech2wContextswPEProsody import FastSpeech2wContextswPEProsody
+from .fastspeech2wContextswPEProsody import FastSpeech2wContextswPEProsody
 from .fastspeech2wContextswPEProsodyAfterwoPEPCE import \
     FastSpeech2wContextswPEProsodyAfterwoPEPCE
 # from .fastspeech2wContextswProsody import Fastspeech2wContextswProsody
