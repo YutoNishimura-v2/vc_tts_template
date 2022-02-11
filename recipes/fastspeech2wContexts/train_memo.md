@@ -1285,9 +1285,9 @@
         - spk: LINE_wContextwPEProsody_7
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - 従来法にsegを導入したもの
-        - jobID: 
+        - jobID: 9241953
     - LINE_wContextwPEProsody_89_JT_CMCCE_Attn_seg
         - spk: LINE_wContextwPEProsody_7
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - 提案法のJT ver
-        - jobID: 
+        - jobID: 9241956
