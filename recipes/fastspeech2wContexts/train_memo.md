@@ -1313,3 +1313,33 @@
         - spk: LINE_wContextwPEProsody_7
         - pretrain: LINE_wContextwPEProsody_87_CL_stage2_CMCCE_Attn_seg
         - jobID: 9273514
+    
+    ### まだ下がりそうなので追加
+    - LINE_wContextwPEProsody_94_JT_TMCCE_GRU_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_90_JT_TMCCE_GRU_seg
+        - 従来法にsegを導入したもの
+        - 追加で500epoch
+        - jobID: 9292658
+    - LINE_wContextwPEProsody_95_JT_CMCCE_Attn_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_91_JT_CMCCE_Attn_seg
+        - 提案法のJT ver
+        - 追加で500epoch
+        - jobID: 9292659
+
+    ### stage 1も下がりそうなので，おなじだけ回す
+    - LINE_wContextwPEProsody_96_CL_stage1
+        - spk: LINE_wContextwPEProsody_4
+        - pretrain: LINE_wContextwPEProsody_74_CL_stage1
+        - mel embeddingを，prosody extractorと同じとりかたにしてみた．
+        - これはutterance level
+        - 追加1000epoch
+        - jobID: 9292665
+    - LINE_wContextwPEProsody_97_CL_stage1_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_75_CL_stage1_seg
+        - mel embeddingを，prosody extractorと同じとりかたにしてみた．
+        - これはsegment level
+        - 追加1000epoch
+        - jobID: 9292675
