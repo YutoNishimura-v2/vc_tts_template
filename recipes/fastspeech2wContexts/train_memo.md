@@ -1291,3 +1291,25 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - 提案法のJT ver
         - jobID: 9241956
+    - LINE_wContextwPEProsody_90_JT_TMCCE_GRU_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_88_JT_TMCCE_GRU_seg
+        - 従来法にsegを導入したもの
+        - 追加で500epoch
+        - jobID: 9272969
+    - LINE_wContextwPEProsody_91_JT_CMCCE_Attn_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_89_JT_CMCCE_Attn_seg
+        - 提案法のJT ver
+        - 追加で500epoch
+        - jobID: 9272979
+    
+    ### 比較対象も正しい比較のためにさらに訓練
+    - LINE_wContextwPEProsody_92_CL_stage2_TMCCE_GRU_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_82_CL_stage2_TMCCE_GRU_seg
+        - jobID: 9273255
+    - LINE_wContextwPEProsody_93_CL_stage2_CMCCE_Attn_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_87_CL_stage2_CMCCE_Attn_seg
+        - jobID: 9273514
