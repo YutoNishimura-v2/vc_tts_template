@@ -68,10 +68,12 @@ def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
     h_speakers = torch.tensor(h_speakers, dtype=torch.long).unsqueeze(0).to(device)
     h_emotions = torch.tensor(h_emotions, dtype=torch.long).unsqueeze(0).to(device)
 
-    current_prosody_emb = torch.tensor(current_prosody_emb).float().unsqueeze(0).to(device)
+    current_prosody_emb = torch.tensor(
+        current_prosody_emb
+    ).float().unsqueeze(0).to(device) if current_prosody_emb is not None else None
     current_prosody_emb_len = torch.tensor(
         np.array([current_prosody_emb.size(1)]), dtype=torch.long
-    ).to(device)
+    ).to(device) if current_prosody_emb is not None else None
     current_prosody_emb_duration = torch.tensor(
         current_prosody_emb_duration, dtype=torch.long
     ).unsqueeze(0).to(device) if current_prosody_emb_duration is not None else None

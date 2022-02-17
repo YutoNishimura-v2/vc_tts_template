@@ -13,7 +13,9 @@ def get_peprosody_embs(
     utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use_hist_num: int,
     start_index: int = 0, use_local_prosody_hist_idx: int = 0,
     seg_d_emb_paths: Optional[List] = None, seg_p_emb_paths: Optional[List] = None,
+    emb_dim: int = 80,
 ):
+    # TODO: emb_dimは今ハードコーディング中．ちゃんとconfigから受け取れるようにするべき
     current_d_id, current_in_d_id = utt2id[utt_id]
 
     def get_path_from_uttid(utt_id, emb_paths):
@@ -24,7 +26,9 @@ def get_peprosody_embs(
                 break
         return answer
 
-    current_emb = np.load(get_path_from_uttid(utt_id, emb_paths))
+    current_emb = np.load(
+        get_path_from_uttid(utt_id, emb_paths)
+    ) if get_path_from_uttid(utt_id, emb_paths).exists() else None
     current_emb_duration = np.load(
         get_path_from_uttid(utt_id, seg_d_emb_paths)
     ) if seg_d_emb_paths is not None else None
@@ -46,7 +50,10 @@ def get_peprosody_embs(
 
     for _ in range(use_hist_num - len(hist_embs)):
         # current len > hist len の時, paddingすると大分無駄があるので切る.
-        hist_embs.append(np.zeros_like(current_emb)[:1, :])
+        if current_emb is not None:
+            hist_embs.append(np.zeros_like(current_emb)[:1, :])
+        else:
+            hist_embs.append(np.zeros((1, emb_dim)))
         history_speakers.append("PAD")
         history_emotions.append("PAD")
 

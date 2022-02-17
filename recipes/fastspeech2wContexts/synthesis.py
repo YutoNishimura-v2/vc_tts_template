@@ -1,6 +1,7 @@
 import shutil
 import sys
 from pathlib import Path
+import os
 
 import hydra
 import joblib
@@ -180,6 +181,11 @@ def my_app(config: DictConfig) -> None:
     dialogue_keys = sorted(dialogue_keys, key=lambda x: (int(x[0]), int(x[1])), reverse=False)
     # 2. 対話順にデータを読み込み，処理していく
     synthesis_prosdoy_emb_list = list(synthesis_prosdoy_emb_base.glob("*.npy"))
+    # ここでリークを避けるため，合成対象のファイルをすべて削除しておく
+    for emb_path in synthesis_prosdoy_emb_list:
+        utt_id = emb_path.stem.replace("-feats", "")
+        if utt_id in utt_ids:
+            os.remove(emb_path)
 
     for dialogue_key in tqdm(dialogue_keys):
         if int(dialogue_key[1]) == 0:
