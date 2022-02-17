@@ -34,7 +34,7 @@ def get_peprosody_embs(
     else:
         current_emb = np.load(
             get_path_from_uttid(utt_id, seg_emb_paths)
-        ) if get_path_from_uttid(utt_id, seg_emb_paths).exists() else None        
+        ) if get_path_from_uttid(utt_id, seg_emb_paths).exists() else None
     current_emb_duration = np.load(
         get_path_from_uttid(utt_id, seg_d_emb_paths)
     ) if seg_d_emb_paths is not None else None
