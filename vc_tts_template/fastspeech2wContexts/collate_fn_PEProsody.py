@@ -12,6 +12,7 @@ from vc_tts_template.fastspeech2wContexts.collate_fn import make_dialogue_dict, 
 def get_peprosody_embs(
     utt_id: str, emb_paths: List[Path], utt2id: Dict, id2utt: Dict, use_hist_num: int,
     start_index: int = 0, use_local_prosody_hist_idx: int = 0,
+    seg_emb_paths: Optional[List] = None,
     seg_d_emb_paths: Optional[List] = None, seg_p_emb_paths: Optional[List] = None,
     emb_dim: int = 80,
 ):
@@ -26,9 +27,14 @@ def get_peprosody_embs(
                 break
         return answer
 
-    current_emb = np.load(
-        get_path_from_uttid(utt_id, emb_paths)
-    ) if get_path_from_uttid(utt_id, emb_paths).exists() else None
+    if seg_emb_paths is None:
+        current_emb = np.load(
+            get_path_from_uttid(utt_id, emb_paths)
+        ) if get_path_from_uttid(utt_id, emb_paths).exists() else None
+    else:
+        current_emb = np.load(
+            get_path_from_uttid(utt_id, seg_emb_paths)
+        ) if get_path_from_uttid(utt_id, seg_emb_paths).exists() else None        
     current_emb_duration = np.load(
         get_path_from_uttid(utt_id, seg_d_emb_paths)
     ) if seg_d_emb_paths is not None else None
@@ -99,6 +105,7 @@ class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
         text_emb_paths: List,
         prosody_emb_paths: List,
         text_seg_emb_paths: Optional[List],
+        prosody_seg_emb_paths: Optional[List],
         prosody_seg_d_emb_paths: Optional[List],
         prosody_seg_p_emb_paths: Optional[List],
         use_hist_num: int,
@@ -113,6 +120,7 @@ class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
         self.text_emb_paths = text_emb_paths
         self.prosody_emb_paths = prosody_emb_paths
         self.text_seg_emb_paths = text_seg_emb_paths
+        self.prosody_seg_emb_paths = prosody_seg_emb_paths
         self.prosody_seg_d_emb_paths = prosody_seg_d_emb_paths
         self.prosody_seg_p_emb_paths = prosody_seg_p_emb_paths
         self.use_hist_num = use_hist_num
@@ -139,6 +147,7 @@ class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
             self.in_paths[idx].name.replace("-feats.npy", ""), self.prosody_emb_paths,
             self.utt2id, self.id2utt, self.use_hist_num, start_index=1,
             use_local_prosody_hist_idx=self.use_local_prosody_hist_idx,
+            seg_emb_paths=self.prosody_seg_emb_paths,
             seg_d_emb_paths=self.prosody_seg_d_emb_paths,
             seg_p_emb_paths=self.prosody_seg_p_emb_paths,
         )
@@ -205,9 +214,11 @@ def fastspeech2wPEProsody_get_data_loaders(data_config: Dict, collate_fn: Callab
         prosody_emb_paths = list(prosody_emb_dir.glob("*.npy"))
 
         emb_seg_dir = emb_dir / "segmented_text_emb"
+        prosody_emb_seg_dir = prosody_emb_dir / "segmented_prosody_emb"
         prosody_emb_seg_d_dir = prosody_emb_dir / "segment_duration"
         prosody_emb_seg_p_dir = prosody_emb_dir / "segment_phonemes"
         text_seg_emb_paths = list(emb_seg_dir.glob("*.npy")) if emb_seg_dir.exists() else None
+        prosody_seg_emb_paths = list(prosody_emb_seg_dir.glob("*.npy")) if prosody_emb_seg_dir.exists() else None
         prosody_seg_d_emb_paths = list(prosody_emb_seg_d_dir.glob("*.npy")) if prosody_emb_seg_d_dir.exists() else None
         prosody_seg_p_emb_paths = list(prosody_emb_seg_p_dir.glob("*.npy")) if prosody_emb_seg_p_dir.exists() else None
 
@@ -221,6 +232,7 @@ def fastspeech2wPEProsody_get_data_loaders(data_config: Dict, collate_fn: Callab
             text_emb_paths,
             prosody_emb_paths,
             text_seg_emb_paths,
+            prosody_seg_emb_paths,
             prosody_seg_d_emb_paths,
             prosody_seg_p_emb_paths,
             use_hist_num=data_config.use_hist_num,  # type:ignore

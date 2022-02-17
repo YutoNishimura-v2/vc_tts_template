@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_7"
+spk: "LINE_wContextwPEProsody_9"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_95_JT_CMCCE_Attn_seg"
+tag: "LINE_wContextwPEProsody_102_CL_stage1_seg"
 
 sample_rate: 22050
 
@@ -68,15 +68,18 @@ pretrained_checkpoints:
 input_wav_paths: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050,../../../dataset/out_LINE_MStudent/LINE_MStudent/wav/22050,../../../dataset/out_LINE_FStudent/LINE_FStudent/wav/22050"
 input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
 input_textgrid_paths:
-emb_speakers: "Teacher,MStudent,FStudent"
-mel_mode: 1
+emb_speakers:
+SSL_name: "WavLM"
+SSL_weight: "microsoft/wavlm-large"
+SSL_sample_rate: 16000
+mel_mode: 0
 pau_split: 1
 
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wContextswPEProsody
+acoustic_model: fastspeech2wPEProsodywoPEPCE
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.

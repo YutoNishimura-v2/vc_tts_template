@@ -11,16 +11,17 @@ netG:
   conv_kernel_size_2: 1
   encoder_dropout: 0.2
   # context encoder
-  peprosody_encoder_gru_dim: 256
-  peprosody_encoder_gru_num_layer: 2
+  peprosody_encoder_gru_dim:
+  peprosody_encoder_gru_num_layer:
   shere_embedding: False
   mel_embedding_mode:
   pau_split_mode:
   # mel_emb_dim: 256
   # mel_emb_kernel: 31
   # mel_emb_dropout: 0.5
-  peprosody_encoder_conv_kernel_size: 3
-  peprosody_encoder_conv_n_layers: 2
+  peprosody_encoder_conv_kernel_size:
+  peprosody_encoder_conv_n_layers:
+  sslprosody_emb_dim: 512
   # variance predictor
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3

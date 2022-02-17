@@ -147,6 +147,7 @@ def to_device(data, phase, device):
         c_prosody_embs_lens = torch.from_numpy(c_prosody_embs_lens).long().to(device, non_blocking=True)
         if c_prosody_embs_duration is not None:
             c_prosody_embs_duration = torch.from_numpy(c_prosody_embs_duration).long().to(device, non_blocking=True)
+        if c_prosody_embs_phonemes is not None:
             c_prosody_embs_phonemes = torch.from_numpy(c_prosody_embs_phonemes).long().to(device, non_blocking=True)
         h_prosody_embs = torch.from_numpy(h_prosody_embs).float().to(device, non_blocking=True)
         h_prosody_embs_lens = torch.from_numpy(h_prosody_embs_lens).long().to(device, non_blocking=True)

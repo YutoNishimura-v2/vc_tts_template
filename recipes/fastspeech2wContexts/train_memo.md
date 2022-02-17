@@ -48,6 +48,12 @@
         - out_LINE_woITAKOから作る. 
         - utterance-levelを卒業して，pauで分割したtextでBERTを計算したり，pau毎のdurationを計算して蓄えたもの．
         - pauの分割がうまくいっていなかったのでやり直し
+    - LINE_wContextwPEProsody_8
+        - out_LINE_woITAKOから作る. 
+        - textと同様に，音声の方も事前に用意したprosodyを利用することに
+        - これはutterance ver
+    - LINE_wContextwPEProsody_9
+        - LINE_wContextwPEProsody_8のsegment ver
 
 - exp
     - LINE_wContext_1
@@ -1358,3 +1364,16 @@
         - pretrain: LINE_wContextwPEProsody_97_CL_stage1_seg
         - PEをresetしないで重みを引き継いだ場合．
         - jobID: 9323620
+
+    ## 新しく，wavLMのembを使ってみる試み
+    ### stage1
+    - LINE_wContextwPEProsody_101_CL_stage1
+        - spk: LINE_wContextwPEProsody_8
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - prosodyをWavLMにしてみた初トライ
+        - jobID: 
+    - LINE_wContextwPEProsody_102_CL_stage1_seg
+        - spk: LINE_wContextwPEProsody_9
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - prosodyをWavLMにしてみた初トライ+seg
+        - jobID: 

@@ -19,6 +19,9 @@ use_hist_num:
 prosody_emb_dir:
 g_prosody_emb_dir:
 use_local_prosody_hist_idx:
+SSL_name:
+SSL_weight:
+SSL_sample_rate:
 mel_mode:
 # リストの逆順で発話を処理する
 reverse: false

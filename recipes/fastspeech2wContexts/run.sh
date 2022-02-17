@@ -66,6 +66,7 @@ if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
         --clip $clip --log_base $log_base \
         --pitch_phoneme_averaging $pitch_phoneme_averaging \
         --energy_phoneme_averaging $energy_phoneme_averaging \
+        --SSL_name $SSL_name --SSL_weight $SSL_weight --SSL_sample_rate $SSL_sample_rate \
         --mel_mode $mel_mode --pau_split $pau_split --n_jobs $n_jobs
 
     for s in ${datasets[@]}; do
@@ -121,7 +122,8 @@ if [ ${stage} -le 2 ] && [ ${stop_stage} -ge 2 ]; then
         done
     done
 
-    if [ ! -z ${input_wav_paths} ]; then
+    if [ ! -z ${input_wav_paths} ] && [ -z ${SSL_name} ]; then
+        echo "normalizing prosody embs..."
         xrun python $COMMON_ROOT/fit_scaler.py $dumpdir/${spk}_sr${sample_rate}/prosody_emb.list \
             $dumpdir/${spk}_sr${sample_rate}/prosody_emb \
             $dumpdir/${spk}_sr${sample_rate}/prosody_emb_scaler.joblib \
@@ -305,7 +307,9 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             use_hist_num=$use_hist_num \
             prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/prosody_emb \
             g_prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/g_prosody_emb \
-            use_local_prosody_hist_idx=$use_local_prosody_hist_idx mel_mode=$mel_mode \
+            use_local_prosody_hist_idx=$use_local_prosody_hist_idx \
+            SSL_name=$SSL_name SSL_weight=$SSL_weight SSL_sample_rate=$SSL_sample_rate \ 
+            mel_mode=$mel_mode \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
             acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \

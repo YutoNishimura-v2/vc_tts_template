@@ -11,6 +11,8 @@ from hydra.utils import to_absolute_path
 from omegaconf import DictConfig, OmegaConf
 from scipy.io import wavfile
 from tqdm import tqdm
+from transformers import Wav2Vec2FeatureExtractor, WavLMModel
+import librosa
 
 sys.path.append("../..")
 from recipes.common.fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
@@ -158,6 +160,16 @@ def my_app(config: DictConfig) -> None:
     # Run synthesis by context of synthesized speech
     out_wav_base = out_dir / "real_dialogue_synthesis"
     out_wav_base.mkdir(parents=True, exist_ok=True)
+
+    # -1. SSL modelを利用するならここで準備しておく
+    if config.SSL_name is not None:
+        if config.SSL_name == "WavLM":
+            assert config.SSL_sample_rate == 16000, "sampling rateは16000のみ有効です"
+            processor = Wav2Vec2FeatureExtractor.from_pretrained(config.SSL_weight)
+            model = WavLMModel.from_pretrained(config.SSL_weight).to(device)
+        else:
+            raise RuntimeError(f"model名: {config.SSL_name} は未対応です.")
+
     # 0. prosody embをためる場所を新しく用意
     synthesis_prosdoy_emb_base = out_dir / "real_dialogue_synthesis_embs"
     synthesis_prosdoy_emb_base.mkdir(parents=True, exist_ok=True)
@@ -175,7 +187,6 @@ def my_app(config: DictConfig) -> None:
         synthesis_prosdoy_emb_seg_p_base.mkdir(parents=True, exist_ok=True)
         for prosody_emb_seg_p_path in (preprocessed_prosody_emb_dir / "segment_phonemes").glob("*.npy"):
             shutil.copy(prosody_emb_seg_p_path, synthesis_prosdoy_emb_seg_p_base)
-
     # 1. 対話順に読み込む
     dialogue_keys = list(id2utt.keys())
     dialogue_keys = sorted(dialogue_keys, key=lambda x: (int(x[0]), int(x[1])), reverse=False)
@@ -225,7 +236,7 @@ def my_app(config: DictConfig) -> None:
 
         lab_file = in_dir / f"{utt_id.strip()}-feats.npy"
 
-        if config.mel_mode == 0:
+        if (config.mel_mode == 0) and (config.SSL_name is None):
             # NOTE: 対応させたいなら，下の_synthsisでpitchとかを返せるようにすればいい.
             assert RuntimeError("未対応")
         wav, synthesised_mel = _synthesis(  # type: ignore
@@ -245,11 +256,30 @@ def my_app(config: DictConfig) -> None:
         # seg_dに関しては推論時には使わないので正解のままにしておいてok
         # seg_pはテキストから決まるsegmentごとの音素数なのでそのままでok
         # つまり，今後対話履歴として用いるmelだけ合成したもので上書きすればok
-        np.save(
-            synthesis_prosdoy_emb_base / f"{utt_id}-feats.npy",
-            synthesised_mel.astype(np.float32),
-            allow_pickle=False,
-        )
+        if config.mel_mode == 1:
+            np.save(
+                synthesis_prosdoy_emb_base / f"{utt_id}-feats.npy",
+                synthesised_mel.astype(np.float32),
+                allow_pickle=False,
+            )
+        elif config.SSL_name is not None:
+            _sr, x = wavfile.read(out_wav_base / f"{utt_id}.wav")
+            if x.dtype in [np.int16, np.int32]:
+                x = (x / np.iinfo(x.dtype).max).astype(np.float64)
+            wav = librosa.resample(x, _sr, config.SSL_sample_rate)
+            inputs = processor(
+                wav, sampling_rate=config.SSL_sample_rate, return_tensors="pt",
+            ).to(device)
+            with torch.no_grad():
+                outputs = model(**inputs)
+            extract_features = torch.mean(
+                outputs.extract_features.squeeze(0), dim=0
+            ).cpu().numpy().reshape(1, -1)
+            np.save(
+                synthesis_prosdoy_emb_base / f"{utt_id}-feats.npy",
+                extract_features.astype(np.float32),
+                allow_pickle=False,
+            )
 
     # add reconstruct wav output
     out_dir = out_dir / "reconstruct"

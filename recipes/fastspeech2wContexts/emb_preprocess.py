@@ -11,10 +11,14 @@ from hydra.utils import to_absolute_path
 from omegaconf import OmegaConf
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
+from transformers import Wav2Vec2FeatureExtractor, WavLMModel
+import librosa
+from scipy.io import wavfile
 
 sys.path.append("../..")
 from recipes.fastspeech2wContexts.preprocess import process_utterance
 from vc_tts_template.utils import adaptive_load_state_dict, pad_1d, pad_2d
+from recipes.fastspeech2.preprocess import process_lab_file
 
 
 def init_for_list(input_):
@@ -54,6 +58,9 @@ def get_parser():
     parser.add_argument("--log_base", type=str)
     parser.add_argument("--pitch_phoneme_averaging", type=int)
     parser.add_argument("--energy_phoneme_averaging", type=int)
+    parser.add_argument("--SSL_name", type=str, nargs='?')
+    parser.add_argument("--SSL_weight", type=str, nargs='?')
+    parser.add_argument("--SSL_sample_rate", type=int, nargs='?')
     parser.add_argument("--mel_mode", type=int)
     parser.add_argument("--pau_split", type=int)
     parser.add_argument("--n_jobs", type=int)
@@ -287,15 +294,104 @@ def _process_wav(
     return utt_id
 
 
+def _process_wav_bySSL(
+    wav_files, lab_files,
+    accent_info, hop_length,
+    SSL_name, SSL_weight, SSL_sample_rate,
+    output_dir, pau_split,
+    output_dir_prosody_seg_p
+):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    if SSL_name == "WavLM":
+        assert SSL_sample_rate == 16000, "sampling rateは16000のみ有効です"
+        processor = Wav2Vec2FeatureExtractor.from_pretrained(SSL_weight)
+        model = WavLMModel.from_pretrained(SSL_weight).to(device)
+    else:
+        raise RuntimeError(f"model名: {SSL_name} は未対応です.")
+
+    if pau_split is True:
+        output_seg_dir = output_dir / "segmented_prosody_emb"
+        output_seg_dir.mkdir(parents=True, exist_ok=True)
+
+    utt_ids = []
+    for wav_path, lab_path in tqdm(zip(wav_files, lab_files)):
+        utt_id = wav_path.stem
+
+        text, duration, start, end = process_lab_file(
+            lab_path, accent_info, SSL_sample_rate, hop_length
+        )
+
+        _sr, x = wavfile.read(wav_path)
+        if x.dtype in [np.int16, np.int32]:
+            x = (x / np.iinfo(x.dtype).max).astype(np.float64)
+        wav = librosa.resample(x, _sr, SSL_sample_rate)
+        wav = wav[
+            int(SSL_sample_rate * start): int(SSL_sample_rate * end)
+        ].astype(np.float32)
+
+        inputs = processor(
+            wav, sampling_rate=SSL_sample_rate, return_tensors="pt",
+        ).to(device)
+        with torch.no_grad():
+            outputs = model(**inputs)
+
+        extract_features = torch.mean(
+            outputs.extract_features.squeeze(0), dim=0
+        ).cpu().numpy().reshape(1, -1)  # 2次元データが想定されているので
+
+        np.save(
+            output_dir / f"{utt_id}-feats.npy",
+            extract_features.astype(np.float32),
+            allow_pickle=False,
+        )
+        utt_ids.append(utt_id)
+
+        if pau_split is True:
+            seg_duration, seg_phoneme = duration_split_by_pau(text, duration)
+
+            before_d = 0
+            outputs = []
+            for d in seg_duration:
+                seg_wav = wav[before_d*hop_length:(before_d+d)*hop_length]
+                seg_input = processor(
+                    seg_wav, sampling_rate=SSL_sample_rate, return_tensors="pt"
+                ).to(device)
+                with torch.no_grad():
+                    seg_output = model(**seg_input)
+                seg_extract_feature = torch.mean(
+                    seg_output.extract_features.squeeze(0), dim=0
+                ).cpu().numpy()
+                outputs.append(seg_extract_feature)
+
+                before_d += d
+
+            np.save(
+                output_seg_dir / f"{utt_id}-feats.npy",
+                np.array(outputs).astype(np.float32),
+                allow_pickle=False,
+            )
+            np.save(
+                output_dir_prosody_seg_p / f"{utt_id}-feats.npy",
+                seg_phoneme.astype(np.int32),
+                allow_pickle=False,
+            )
+
+    return utt_ids
+
+
 def get_prosody_embeddings_wWav(
     input_wav_paths, input_lab_paths, input_textgrid_paths, output_dir,
     sample_rate, filter_length, hop_length, win_length,
     n_mel_channels, mel_fmin, mel_fmax, clip, log_base,
     pitch_phoneme_averaging, energy_phoneme_averaging,
+    SSL_name, SSL_weight, SSL_sample_rate,
     mel_mode, pau_split, n_jobs
 ):
     if (input_lab_paths is not None) and (input_textgrid_paths is not None):
         raise ValueError("labを利用したいのか, textgridを利用したいのか, どちらか一方のみを埋めてください")
+    if (SSL_name is not None) and (mel_mode == 1):
+        raise ValueError("melを利用したいのか, SSLmodelを利用したいのか一方を選択してください.")
 
     input_context_path = input_lab_paths if input_lab_paths is not None else input_textgrid_paths
     input_context_path_postfix = ".lab" if input_lab_paths is not None else ".TextGrid"
@@ -306,10 +402,15 @@ def get_prosody_embeddings_wWav(
     output_dir_prosody.mkdir(parents=True, exist_ok=True)
 
     if pau_split is True:
-        output_dir_prosody_seg_d = output_dir_prosody / "segment_duration"
         output_dir_prosody_seg_p = output_dir_prosody / "segment_phonemes"
-        output_dir_prosody_seg_d.mkdir(parents=True, exist_ok=True)
         output_dir_prosody_seg_p.mkdir(parents=True, exist_ok=True)
+
+        if SSL_name is None:
+            # mel modeの時に使いたい
+            output_dir_prosody_seg_d = output_dir_prosody / "segment_duration"
+            output_dir_prosody_seg_d.mkdir(parents=True, exist_ok=True)
+    else:
+        output_dir_prosody_seg_p = output_dir_prosody_seg_d = None
 
     utt_ids = []
 
@@ -319,35 +420,44 @@ def get_prosody_embeddings_wWav(
             Path(input_context_path_base) / (input_wav_path.stem + input_context_path_postfix)
             for input_wav_path in wav_files
         ]
-        with ProcessPoolExecutor(n_jobs) as executor:
-            futures = [
-                executor.submit(
-                    _process_wav,
-                    wav_file,
-                    lab_file,
-                    sample_rate,
-                    filter_length,
-                    hop_length,
-                    win_length,
-                    n_mel_channels,
-                    mel_fmin,
-                    mel_fmax,
-                    clip,
-                    log_base,
-                    pitch_phoneme_averaging > 0,
-                    energy_phoneme_averaging > 0,
-                    input_context_path_postfix,
-                    mel_mode,
-                    pau_split,
-                    output_dir_prosody,
-                    output_dir_prosody_seg_d,
-                    output_dir_prosody_seg_p
-                )
-                for wav_file, lab_file in zip(wav_files, lab_files)
-            ]
-            for future in tqdm(futures):
-                utt_id = future.result()
-                utt_ids.append(utt_id+'\n')
+        if SSL_name is not None:
+            utt_ids = _process_wav_bySSL(
+                wav_files, lab_files,
+                input_context_path_postfix == ".lab", hop_length,
+                SSL_name, SSL_weight, SSL_sample_rate,
+                output_dir_prosody, pau_split,
+                output_dir_prosody_seg_p
+            )
+        else:
+            with ProcessPoolExecutor(n_jobs) as executor:
+                futures = [
+                    executor.submit(
+                        _process_wav,
+                        wav_file,
+                        lab_file,
+                        sample_rate,
+                        filter_length,
+                        hop_length,
+                        win_length,
+                        n_mel_channels,
+                        mel_fmin,
+                        mel_fmax,
+                        clip,
+                        log_base,
+                        pitch_phoneme_averaging > 0,
+                        energy_phoneme_averaging > 0,
+                        input_context_path_postfix,
+                        mel_mode,
+                        pau_split,
+                        output_dir_prosody,
+                        output_dir_prosody_seg_d,
+                        output_dir_prosody_seg_p
+                    )
+                    for wav_file, lab_file in zip(wav_files, lab_files)
+                ]
+                for future in tqdm(futures):
+                    utt_id = future.result()
+                    utt_ids.append(utt_id+'\n')
     with open(output_dir / "prosody_emb.list", "w") as f:
         f.writelines(utt_ids)
 
@@ -381,5 +491,6 @@ if __name__ == "__main__":
             args.sample_rate, args.filter_length, args.hop_length, args.win_length,
             args.n_mel_channels, args.mel_fmin, args.mel_fmax, args.clip, args.log_base,
             args.pitch_phoneme_averaging, args.energy_phoneme_averaging,
+            args.SSL_name, args.SSL_weight, args.SSL_sample_rate,
             args.mel_mode > 0, args.pau_split > 0, args.n_jobs,
         )

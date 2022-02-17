@@ -36,6 +36,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         # mel_emb_dropout: float,
         peprosody_encoder_conv_kernel_size: int,
         peprosody_encoder_conv_n_layers: int,
+        sslprosody_emb_dim: Optional[int],
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -112,38 +113,42 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
             )
 
         self.context_encoder = nn.Linear(  # type: ignore
-            peprosody_encoder_gru_dim, encoder_hidden_dim
+            peprosody_encoder_gru_dim if sslprosody_emb_dim is None else sslprosody_emb_dim,
+            encoder_hidden_dim
         )
-        if stats is not None:
-            self.peprosody_encoder = PEProsodyEncoder(
-                peprosody_encoder_gru_dim,
-                peprosody_encoder_gru_num_layer,
-                pitch_embedding=self.variance_adaptor.pitch_embedding,
-                energy_embedding=self.variance_adaptor.energy_embedding,
-                pitch_bins=self.variance_adaptor.pitch_bins,
-                energy_bins=self.variance_adaptor.energy_bins,
-                shere_embedding=shere_embedding
-            )
-        else:
-            if mel_embedding_mode == 0:
+        if sslprosody_emb_dim is None:
+            if stats is not None:
                 self.peprosody_encoder = PEProsodyEncoder(
                     peprosody_encoder_gru_dim,
                     peprosody_encoder_gru_num_layer,
                     pitch_embedding=self.variance_adaptor.pitch_embedding,
                     energy_embedding=self.variance_adaptor.energy_embedding,
+                    pitch_bins=self.variance_adaptor.pitch_bins,
+                    energy_bins=self.variance_adaptor.energy_bins,
                     shere_embedding=shere_embedding
                 )
             else:
-                self.peprosody_encoder = PEProsodyEncoder(
-                    peprosody_encoder_gru_dim,
-                    peprosody_encoder_gru_num_layer,
-                    pitch_embedding=None,
-                    energy_embedding=None,
-                    shere_embedding=shere_embedding,
-                    n_mel_channel=n_mel_channel,
-                    conv_kernel_size=peprosody_encoder_conv_kernel_size,
-                    conv_n_layers=peprosody_encoder_conv_n_layers,
-                )
+                if mel_embedding_mode == 0:
+                    self.peprosody_encoder = PEProsodyEncoder(
+                        peprosody_encoder_gru_dim,
+                        peprosody_encoder_gru_num_layer,
+                        pitch_embedding=self.variance_adaptor.pitch_embedding,
+                        energy_embedding=self.variance_adaptor.energy_embedding,
+                        shere_embedding=shere_embedding
+                    )
+                else:
+                    self.peprosody_encoder = PEProsodyEncoder(
+                        peprosody_encoder_gru_dim,
+                        peprosody_encoder_gru_num_layer,
+                        pitch_embedding=None,
+                        energy_embedding=None,
+                        shere_embedding=shere_embedding,
+                        n_mel_channel=n_mel_channel,
+                        conv_kernel_size=peprosody_encoder_conv_kernel_size,
+                        conv_n_layers=peprosody_encoder_conv_n_layers,
+                    )
+        else:
+            self.peprosody_encoder = None  # type: ignore
         self.length_regulator = LengthRegulator()
         self.pau_split_mode = pau_split_mode > 0
 
@@ -157,10 +162,13 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         c_prosody_embs_phonemes,
     ):
         if self.pau_split_mode is False:
-            h_prosody_emb = self.peprosody_encoder(
-                c_prosody_embs.unsqueeze(1),
-                c_prosody_embs_lens.unsqueeze(1),
-            )
+            if self.peprosody_encoder is not None:
+                h_prosody_emb = self.peprosody_encoder(
+                    c_prosody_embs.unsqueeze(1),
+                    c_prosody_embs_lens.unsqueeze(1),
+                )
+            else:
+                h_prosody_emb = c_prosody_embs
             context_enc = self.context_encoder(h_prosody_emb).squeeze(1)
 
             output = output + context_enc.unsqueeze(1).expand(
@@ -168,18 +176,21 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
             )
 
         else:
-            (
-                output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
-            ) = mel2phone(c_prosody_embs, c_prosody_embs_duration.cpu().numpy())
-            outs = list()
-            for _output, src_lens in zip(output_sorted, src_lens_sorted):
-                out = self.peprosody_encoder(
-                    _output.unsqueeze(1),
-                    np.array(src_lens),
-                )
-                outs.append(out.squeeze(1))
-            outs = torch.cat(outs, 0)
-            h_prosody_emb = phone2utter(outs[inv_sort_idx], segment_nums)
+            if self.peprosody_encoder is not None:
+                (
+                    output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
+                ) = mel2phone(c_prosody_embs, c_prosody_embs_duration.cpu().numpy())
+                outs = list()
+                for _output, src_lens in zip(output_sorted, src_lens_sorted):
+                    out = self.peprosody_encoder(
+                        _output.unsqueeze(1),
+                        np.array(src_lens),
+                    )
+                    outs.append(out.squeeze(1))
+                outs = torch.cat(outs, 0)
+                h_prosody_emb = phone2utter(outs[inv_sort_idx], segment_nums)
+            else:
+                h_prosody_emb = c_prosody_embs
             context_enc = self.context_encoder(h_prosody_emb)
             context_enc, _ = self.length_regulator(
                 context_enc, c_prosody_embs_phonemes, torch.max(c_prosody_embs_phonemes)

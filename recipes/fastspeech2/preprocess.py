@@ -123,10 +123,9 @@ def get_alignmentwPP(PP, start_times, end_times, sr, hop_length):
     return phones, durations, start_time, end_time
 
 
-def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
-                      n_mels, fmin, fmax, clip_thresh, log_base,
-                      pitch_phoneme_averaging, energy_phoneme_averaging,
-                      accent_info, return_utt_id=False):
+def process_lab_file(
+    lab_path, accent_info, sr, hop_length
+):
     if accent_info is True:
         labels = hts.load(lab_path)
         PP = pp_symbols(labels.contexts, all_accent_info=accent_info)
@@ -139,6 +138,16 @@ def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
         text, duration, start, end = get_alignment(
             textgrid.get_tier_by_name("phones"), sr, hop_length
         )
+    return text, duration, start, end
+
+
+def process_utterance(wav_path, lab_path, sr, n_fft, hop_length, win_length,
+                      n_mels, fmin, fmax, clip_thresh, log_base,
+                      pitch_phoneme_averaging, energy_phoneme_averaging,
+                      accent_info, return_utt_id=False):
+    text, duration, start, end = process_lab_file(
+        lab_path, accent_info, sr, hop_length
+    )
     if start >= end:
         return None
     # Read and trim wav files
