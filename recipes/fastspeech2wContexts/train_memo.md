@@ -1343,3 +1343,18 @@
         - これはsegment level
         - 追加1000epoch
         - jobID: 9292675
+    - LINE_wContextwPEProsody_98_CL_stage2_TMCCE_GRU_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_97_CL_stage1_seg
+        - 今までと同様．pretrainをもう少しちゃんとやった場合
+        - jobID: 9323252
+    - LINE_wContextwPEProsody_99_CL_stage2_CMCCE_Attn_seg
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_97_CL_stage1_seg
+        - 今までと同様．pretrainをもう少しちゃんとやった場合
+        - jobID: 9323312
+    - LINE_wContextwPEProsody_100_CL_stage2_CMCCE_Attn_seg_PEnotReset
+        - spk: LINE_wContextwPEProsody_7
+        - pretrain: LINE_wContextwPEProsody_97_CL_stage1_seg
+        - PEをresetしないで重みを引き継いだ場合．
+        - jobID: 9323620
