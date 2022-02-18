@@ -339,10 +339,17 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
             else:
                 batch_size = h_prosody_embs.size(0)
                 history_len = h_prosody_embs.size(1)
-                h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
-                h_prosody_emb = self.clone_peprosody_encoder(
-                    h_prosody_embs
-                ).view(batch_size, history_len, -1)
+                # TODO: かなりハードコーディング．なんとかしないと
+                if h_prosody_embs.size(-2) == 1:
+                    # layer_num = 1, つまりデータ全てがPADの時
+                    if self.sslprosody_layer_num == 1:
+                        raise RuntimeError("未対応です")
+                    h_prosody_emb = h_prosody_embs.view(batch_size, history_len, -1)
+                else:
+                    h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
+                    h_prosody_emb = self.clone_peprosody_encoder(
+                        h_prosody_embs
+                    ).view(batch_size, history_len, -1)
         else:
             h_prosody_emb = None
 
