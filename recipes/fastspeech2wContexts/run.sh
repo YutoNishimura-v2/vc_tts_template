@@ -308,7 +308,9 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/prosody_emb \
             g_prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/g_prosody_emb \
             use_local_prosody_hist_idx=$use_local_prosody_hist_idx \
-            SSL_name=$SSL_name SSL_weight=$SSL_weight SSL_sample_rate=$SSL_sample_rate \ 
+            SSL_name=$SSL_name \
+            SSL_weight=$SSL_weight \
+            SSL_sample_rate=$SSL_sample_rate \
             mel_mode=$mel_mode \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
