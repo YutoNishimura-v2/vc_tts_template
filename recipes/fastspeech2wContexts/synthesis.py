@@ -279,13 +279,12 @@ def my_app(config: DictConfig) -> None:
                     wav, sampling_rate=config.SSL_sample_rate, return_tensors="pt",
                 ).to(device)
                 with torch.no_grad():
-                    outputs = model(**inputs)
-                extract_features = torch.mean(
-                    outputs.extract_features.squeeze(0), dim=0
-                ).cpu().numpy().reshape(1, -1)
+                    outputs = model(**inputs, output_hidden_states=True)
+                outputs = torch.tensor(np.array([tn.cpu().numpy() for tn in outputs.hidden_states]))[1:]
+                outputs = torch.mean(outputs.squeeze(1), dim=1).numpy()
                 np.save(
                     synthesis_prosdoy_emb_base / f"{utt_id}-feats.npy",
-                    extract_features.astype(np.float32),
+                    outputs.astype(np.float32),
                     allow_pickle=False,
                 )
 

@@ -45,6 +45,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         peprosody_encoder_conv_kernel_size: int,
         peprosody_encoder_conv_n_layers: int,
         sslprosody_emb_dim: Optional[int],
+        sslprosody_layer_num: Optional[int],
         use_context_encoder: bool,
         use_prosody_encoder: bool,
         use_peprosody_encoder: bool,
@@ -181,7 +182,12 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 else:
                     self.clone_peprosody_encoder = None  # type:ignore
         else:
-            self.clone_peprosody_encoder = None  # type:ignore
+            self.clone_peprosody_encoder = nn.Conv1d(  # type: ignore
+                in_channels=sslprosody_layer_num,  # type: ignore
+                out_channels=1,
+                kernel_size=1,
+                bias=False,
+            )
 
         # fixする方
         self.context_encoder = nn.Linear(  # type: ignore
@@ -220,7 +226,12 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                         conv_n_layers=peprosody_encoder_conv_n_layers,
                     )
         else:
-            self.peprosody_encoder = None  # type:ignore
+            self.peprosody_encoder = nn.Conv1d(  # type: ignore
+                in_channels=sslprosody_layer_num,  # type: ignore
+                out_channels=1,
+                kernel_size=1,
+                bias=False,
+            )
 
         self.use_context_encoder = use_context_encoder
         self.use_peprosody_encoder = use_peprosody_encoder

@@ -21,7 +21,8 @@ netG:
   # mel_emb_dropout: 0.5
   peprosody_encoder_conv_kernel_size:
   peprosody_encoder_conv_n_layers:
-  sslprosody_emb_dim: 512
+  sslprosody_emb_dim: 1024
+  sslprosody_layer_num: 24
   # variance predictor
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3

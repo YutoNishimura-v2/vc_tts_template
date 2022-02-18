@@ -1371,26 +1371,26 @@
         - spk: LINE_wContextwPEProsody_8
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - prosodyをWavLMにしてみた初トライ
-        - jobID: 9339219
+        - jobID: 
     - LINE_wContextwPEProsody_102_CL_stage1_seg
         - spk: LINE_wContextwPEProsody_9
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - prosodyをWavLMにしてみた初トライ+seg
-        - jobID: 9339220
+        - jobID: 
     ### stage2
     - LINE_wContextwPEProsody_103_CL_stage2_TMCCE_GRU
         - spk: LINE_wContextwPEProsody_8
         - pretrain: LINE_wContextwPEProsody_101_CL_stage1
-        - jobID: 9340155
+        - jobID: 
     - LINE_wContextwPEProsody_104_CL_stage2_CMCCE_Attn
         - spk: LINE_wContextwPEProsody_8
         - pretrain: LINE_wContextwPEProsody_101_CL_stage1
-        - jobID: 9340160
+        - jobID: 
     - LINE_wContextwPEProsody_105_CL_stage2_TMCCE_GRU_seg
         - spk: LINE_wContextwPEProsody_9
         - pretrain: LINE_wContextwPEProsody_102_CL_stage1_seg
-        - jobID: 9340164
+        - jobID: 
     - LINE_wContextwPEProsody_106_CL_stage2_CMCCE_Attn_seg
         - spk: LINE_wContextwPEProsody_9
         - pretrain: LINE_wContextwPEProsody_102_CL_stage1_seg
-        - jobID: 9340173
+        - jobID: 

@@ -37,6 +37,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         peprosody_encoder_conv_kernel_size: int,
         peprosody_encoder_conv_n_layers: int,
         sslprosody_emb_dim: Optional[int],
+        sslprosody_layer_num: Optional[int],
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -147,10 +148,18 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
                         conv_kernel_size=peprosody_encoder_conv_kernel_size,
                         conv_n_layers=peprosody_encoder_conv_n_layers,
                     )
+            self.use_ssl = False
         else:
-            self.peprosody_encoder = None  # type: ignore
+            self.peprosody_encoder = nn.Conv1d(  # type: ignore
+                in_channels=sslprosody_layer_num,  # type: ignore
+                out_channels=1,
+                kernel_size=1,
+                bias=False,
+            )
+            self.use_ssl = True
         self.length_regulator = LengthRegulator()
         self.pau_split_mode = pau_split_mode > 0
+        self.sslprosody_layer_num = sslprosody_layer_num
 
     def contexts_forward(
         self,
@@ -162,13 +171,14 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
         c_prosody_embs_phonemes,
     ):
         if self.pau_split_mode is False:
-            if self.peprosody_encoder is not None:
+            if self.use_ssl is False:
                 h_prosody_emb = self.peprosody_encoder(
                     c_prosody_embs.unsqueeze(1),
                     c_prosody_embs_lens.unsqueeze(1),
                 )
             else:
-                h_prosody_emb = c_prosody_embs
+                h_prosody_emb = self.peprosody_encoder(c_prosody_embs)
+
             context_enc = self.context_encoder(h_prosody_emb).squeeze(1)
 
             output = output + context_enc.unsqueeze(1).expand(
@@ -176,7 +186,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
             )
 
         else:
-            if self.peprosody_encoder is not None:
+            if self.use_ssl is False:
                 (
                     output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
                 ) = mel2phone(c_prosody_embs, c_prosody_embs_duration.cpu().numpy())
@@ -190,7 +200,12 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
                 outs = torch.cat(outs, 0)
                 h_prosody_emb = phone2utter(outs[inv_sort_idx], segment_nums)
             else:
-                h_prosody_emb = c_prosody_embs
+                # c_prosody_embs: (B, max_seg_len*self.sslprosody_layer_num, dim)
+                max_seg_len = int(torch.max(c_prosody_embs_lens) / self.sslprosody_layer_num)
+                c_prosody_embs = c_prosody_embs.view(c_prosody_embs.size(0), self.sslprosody_layer_num, -1)
+                h_prosody_emb = self.peprosody_encoder(
+                    c_prosody_embs
+                ).squeeze(1).view(c_prosody_embs.size(0), max_seg_len, -1)
             context_enc = self.context_encoder(h_prosody_emb)
             context_enc, _ = self.length_regulator(
                 context_enc, c_prosody_embs_phonemes, torch.max(c_prosody_embs_phonemes)

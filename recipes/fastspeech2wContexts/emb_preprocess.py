@@ -334,15 +334,14 @@ def _process_wav_bySSL(
             wav, sampling_rate=SSL_sample_rate, return_tensors="pt",
         ).to(device)
         with torch.no_grad():
-            outputs = model(**inputs)
+            outputs = model(**inputs, output_hidden_states=True)
 
-        extract_features = torch.mean(
-            outputs.extract_features.squeeze(0), dim=0
-        ).cpu().numpy().reshape(1, -1)  # 2次元データが想定されているので
+        outputs = torch.tensor(np.array([tn.cpu().numpy() for tn in outputs.hidden_states]))[1:]
+        outputs = torch.mean(outputs.squeeze(1), dim=1).numpy()
 
         np.save(
             output_dir / f"{utt_id}-feats.npy",
-            extract_features.astype(np.float32),
+            outputs.astype(np.float32),
             allow_pickle=False,
         )
         utt_ids.append(utt_id)
@@ -358,14 +357,16 @@ def _process_wav_bySSL(
                     seg_wav, sampling_rate=SSL_sample_rate, return_tensors="pt"
                 ).to(device)
                 with torch.no_grad():
-                    seg_output = model(**seg_input)
-                seg_extract_feature = torch.mean(
-                    seg_output.extract_features.squeeze(0), dim=0
-                ).cpu().numpy()
-                outputs.append(seg_extract_feature)
+                    seg_output = model(**seg_input, output_hidden_states=True)
+                # [1:]で embedding を除去. 先頭に入っている根拠は，実装.
+                seg_output = torch.tensor(np.array([tn.cpu().numpy() for tn in seg_output.hidden_states]))[1:]
+                seg_output = torch.mean(seg_output.squeeze(1), dim=1).numpy()
+                outputs.append(seg_output)
 
                 before_d += d
 
+            # NOTE: 時間方向にmeanを取っているから以下はできること．
+            outputs = np.concatenate(outputs)
             np.save(
                 output_seg_dir / f"{utt_id}-feats.npy",
                 np.array(outputs).astype(np.float32),
