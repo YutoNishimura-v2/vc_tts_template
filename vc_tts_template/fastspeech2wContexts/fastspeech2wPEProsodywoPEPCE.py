@@ -203,7 +203,7 @@ class FastSpeech2wPEProsodywoPEPCE(FastSpeech2):
                 # c_prosody_embs: (B, max_seg_len*self.sslprosody_layer_num, dim)
                 max_seg_len = int(torch.max(c_prosody_embs_lens) / self.sslprosody_layer_num)
                 c_prosody_embs = c_prosody_embs.view(c_prosody_embs.size(0), max_seg_len, self.sslprosody_layer_num, -1)
-                c_prosody_embs = c_prosody_embs.transpose(1, 2).view(c_prosody_embs.size(0), self.sslprosody_layer_num, -1)
+                c_prosody_embs = c_prosody_embs.transpose(1, 2).contiguous().view(c_prosody_embs.size(0), self.sslprosody_layer_num, -1)
                 h_prosody_emb = self.peprosody_encoder(
                     c_prosody_embs
                 ).squeeze(1).view(c_prosody_embs.size(0), max_seg_len, -1)

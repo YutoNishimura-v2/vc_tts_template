@@ -1376,7 +1376,7 @@
         - spk: LINE_wContextwPEProsody_9
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - prosodyをWavLMにしてみた初トライ+seg
-        - jobID: 9341471
+        - jobID: 9341524
     ### stage2
     - LINE_wContextwPEProsody_103_CL_stage2_TMCCE_GRU
         - spk: LINE_wContextwPEProsody_8
