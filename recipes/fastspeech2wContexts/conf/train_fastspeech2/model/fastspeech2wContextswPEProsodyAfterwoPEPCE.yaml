@@ -18,8 +18,8 @@ netG:
   peprosody_encoder_gru_dim:
   peprosody_encoder_gru_num_layer:
   shere_embedding: False
-  current_attention: True
-  past_global_gru: False  # Trueで従来法と同様のGRUになります
+  current_attention: False
+  past_global_gru: True  # Trueで従来法と同様のGRUになります
   mel_embedding_mode:
   pau_split_mode:
   # mel_emb_dim: 256
@@ -27,11 +27,12 @@ netG:
   # mel_emb_dropout: 0.5
   peprosody_encoder_conv_kernel_size:
   peprosody_encoder_conv_n_layers:
-  sslprosody_emb_dim: 512
+  sslprosody_emb_dim: 1024
+  sslprosody_layer_num: 24
   use_context_encoder: True
   use_prosody_encoder: False
   use_peprosody_encoder: False
-  use_melprosody_encoder: True
+  use_melprosody_encoder: False
   # variance predictor
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3

@@ -182,12 +182,15 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 else:
                     self.clone_peprosody_encoder = None  # type:ignore
         else:
-            self.clone_peprosody_encoder = nn.Conv1d(  # type: ignore
-                in_channels=sslprosody_layer_num,  # type: ignore
-                out_channels=1,
-                kernel_size=1,
-                bias=False,
-            )
+            if (use_prosody_encoder is True) or (use_peprosody_encoder is True) or (use_melprosody_encoder is True):
+                self.clone_peprosody_encoder = nn.Conv1d(  # type: ignore
+                    in_channels=sslprosody_layer_num,  # type: ignore
+                    out_channels=1,
+                    kernel_size=1,
+                    bias=False,
+                )
+            else:
+                self.clone_peprosody_encoder = None  # type:ignore
 
         # fixする方
         self.context_encoder = nn.Linear(  # type: ignore
@@ -225,6 +228,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                         conv_kernel_size=peprosody_encoder_conv_kernel_size,
                         conv_n_layers=peprosody_encoder_conv_n_layers,
                     )
+            self.use_ssl = False
         else:
             self.peprosody_encoder = nn.Conv1d(  # type: ignore
                 in_channels=sslprosody_layer_num,  # type: ignore
@@ -232,6 +236,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 kernel_size=1,
                 bias=False,
             )
+            self.use_ssl = True
 
         self.use_context_encoder = use_context_encoder
         self.use_peprosody_encoder = use_peprosody_encoder
@@ -258,6 +263,8 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
             self.clone_peprosody_encoder = self.peprosody_encoder
 
         self.length_regulator = LengthRegulator()
+        self.pau_split_mode = pau_split_mode > 0
+        self.sslprosody_layer_num = sslprosody_layer_num
 
     def contexts_forward(
         self,
@@ -280,22 +287,22 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         c_prosody_embs_phonemes,
         is_inference,
     ):
-        if c_prosody_embs_duration is None:
+        if self.pau_split_mode is False:
             if c_prosody_embs is not None:
-                if self.peprosody_encoder is not None:
+                if self.use_ssl is False:
                     c_prosody_emb = self.peprosody_encoder(
                         c_prosody_embs.unsqueeze(1),
                         c_prosody_embs_lens.unsqueeze(1),
                     )
                 else:
-                    c_prosody_emb = c_prosody_embs
+                    c_prosody_emb = self.peprosody_encoder(c_prosody_embs)
                 target = self.context_encoder(c_prosody_emb).squeeze(1)
             else:
                 target = None
 
         else:
             if c_prosody_embs is not None:
-                if self.peprosody_encoder is not None:
+                if self.use_ssl is False:
                     (
                         output_sorted, src_lens_sorted, segment_nums, inv_sort_idx
                     ) = mel2phone(c_prosody_embs, c_prosody_embs_duration.cpu().numpy())
@@ -309,19 +316,33 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     outs = torch.cat(outs, 0)
                     c_prosody_emb = phone2utter(outs[inv_sort_idx], segment_nums)
                 else:
-                    c_prosody_emb = c_prosody_embs
+                    max_seg_len = int(torch.max(c_prosody_embs_lens) / self.sslprosody_layer_num)
+                    c_prosody_embs = c_prosody_embs.view(
+                        c_prosody_embs.size(0), max_seg_len, self.sslprosody_layer_num, -1
+                    )
+                    c_prosody_embs = c_prosody_embs.transpose(1, 2).contiguous().view(
+                        c_prosody_embs.size(0), self.sslprosody_layer_num, -1
+                    )
+                    c_prosody_emb = self.peprosody_encoder(
+                        c_prosody_embs
+                    ).squeeze(1).view(c_prosody_embs.size(0), max_seg_len, -1)
                 target = self.context_encoder(c_prosody_emb)
             else:
                 target = None
 
         if (self.use_peprosody_encoder or self.use_melprosody_encoder) is True:
-            if self.clone_peprosody_encoder is not None:
+            if self.use_ssl is False:
                 h_prosody_emb = self.clone_peprosody_encoder(
                     h_prosody_embs,
                     h_prosody_embs_lens,
                 )
             else:
-                h_prosody_emb = h_prosody_embs.squeeze(-2)
+                batch_size = h_prosody_embs.size(0)
+                history_len = h_prosody_embs.size(1)
+                h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
+                h_prosody_emb = self.clone_peprosody_encoder(
+                    h_prosody_embs
+                ).view(batch_size, history_len, -1)
         else:
             h_prosody_emb = None
 
