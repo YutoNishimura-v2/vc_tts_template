@@ -41,6 +41,8 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         # mel_emb_dropout: float,
         peprosody_encoder_conv_kernel_size: int,
         peprosody_encoder_conv_n_layers: int,
+        sslprosody_emb_dim: Optional[int],
+        sslprosody_layer_num: Optional[int],
         use_context_encoder: bool,
         use_prosody_encoder: bool,
         use_peprosody_encoder: bool,
@@ -129,7 +131,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
             context_layer_num=context_num_layer,
             context_dropout=context_encoder_dropout,
             text_emb_size=text_emb_dim,
-            prosody_emb_size=peprosody_encoder_gru_dim,
+            prosody_emb_size=peprosody_encoder_gru_dim if sslprosody_emb_dim is None else sslprosody_emb_dim,
             speaker_embedding=self.speaker_emb,
             emotion_embedding=self.emotion_emb,
             use_text_modal=use_context_encoder,
@@ -138,44 +140,59 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
             past_global_gru=past_global_gru,
             pau_split_mode=pau_split_mode > 0,
         )
-        if (stats is not None) and (use_prosody_encoder is True):
-            self.peprosody_encoder = PEProsodyEncoder(
-                peprosody_encoder_gru_dim,
-                peprosody_encoder_gru_num_layer,
-                pitch_embedding=self.variance_adaptor.pitch_embedding,
-                energy_embedding=self.variance_adaptor.energy_embedding,
-                pitch_bins=self.variance_adaptor.pitch_bins,
-                energy_bins=self.variance_adaptor.energy_bins,
-                shere_embedding=shere_embedding
-            )
-        else:
-            if use_peprosody_encoder is True:
+        if sslprosody_emb_dim is None:
+            if (stats is not None) and (use_prosody_encoder is True):
                 self.peprosody_encoder = PEProsodyEncoder(
                     peprosody_encoder_gru_dim,
                     peprosody_encoder_gru_num_layer,
                     pitch_embedding=self.variance_adaptor.pitch_embedding,
                     energy_embedding=self.variance_adaptor.energy_embedding,
+                    pitch_bins=self.variance_adaptor.pitch_bins,
+                    energy_bins=self.variance_adaptor.energy_bins,
                     shere_embedding=shere_embedding
                 )
-            elif use_melprosody_encoder is True:
-                self.peprosody_encoder = PEProsodyEncoder(
-                    peprosody_encoder_gru_dim,
-                    peprosody_encoder_gru_num_layer,
-                    pitch_embedding=None,
-                    energy_embedding=None,
-                    shere_embedding=shere_embedding,
-                    n_mel_channel=n_mel_channel,
-                    conv_kernel_size=peprosody_encoder_conv_kernel_size,
-                    conv_n_layers=peprosody_encoder_conv_n_layers,
+            else:
+                if use_peprosody_encoder is True:
+                    self.peprosody_encoder = PEProsodyEncoder(
+                        peprosody_encoder_gru_dim,
+                        peprosody_encoder_gru_num_layer,
+                        pitch_embedding=self.variance_adaptor.pitch_embedding,
+                        energy_embedding=self.variance_adaptor.energy_embedding,
+                        shere_embedding=shere_embedding
+                    )
+                elif use_melprosody_encoder is True:
+                    self.peprosody_encoder = PEProsodyEncoder(
+                        peprosody_encoder_gru_dim,
+                        peprosody_encoder_gru_num_layer,
+                        pitch_embedding=None,
+                        energy_embedding=None,
+                        shere_embedding=shere_embedding,
+                        n_mel_channel=n_mel_channel,
+                        conv_kernel_size=peprosody_encoder_conv_kernel_size,
+                        conv_n_layers=peprosody_encoder_conv_n_layers,
+                    )
+                else:
+                    self.peprosody_encoder = None  # type:ignore
+            self.use_ssl = False
+        else:
+            if (use_prosody_encoder is True) or (use_peprosody_encoder is True) or (use_melprosody_encoder is True):
+                self.peprosody_encoder = nn.Conv1d(  # type: ignore
+                    in_channels=sslprosody_layer_num,  # type: ignore
+                    out_channels=1,
+                    kernel_size=1,
+                    bias=False,
                 )
             else:
                 self.peprosody_encoder = None  # type:ignore
+            self.use_ssl = True
 
         self.use_context_encoder = use_context_encoder
         self.use_peprosody_encoder = use_peprosody_encoder
         self.use_melprosody_encoder = use_melprosody_encoder
 
         self.length_regulator = LengthRegulator()
+        self.pau_split_mode = pau_split_mode > 0
+        self.sslprosody_layer_num = sslprosody_layer_num
 
     def contexts_forward(
         self,
@@ -195,10 +212,25 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         c_prosody_embs_phonemes,
     ):
         if (self.use_peprosody_encoder or self.use_melprosody_encoder) is True:
-            h_prosody_emb = self.peprosody_encoder(
-                h_prosody_embs,
-                h_prosody_embs_lens,
-            )
+            if self.use_ssl is False:
+                h_prosody_emb = self.peprosody_encoder(
+                    h_prosody_embs,
+                    h_prosody_embs_lens,
+                )
+            else:
+                batch_size = h_prosody_embs.size(0)
+                history_len = h_prosody_embs.size(1)
+                # TODO: かなりハードコーディング．なんとかしないと
+                if h_prosody_embs.size(-2) == 1:
+                    # layer_num = 1, つまりデータ全てがPADの時
+                    if self.sslprosody_layer_num == 1:
+                        raise RuntimeError("未対応です")
+                    h_prosody_emb = h_prosody_embs.view(batch_size, history_len, -1)
+                else:
+                    h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
+                    h_prosody_emb = self.peprosody_encoder(
+                        h_prosody_embs
+                    ).view(batch_size, history_len, -1)
         else:
             h_prosody_emb = None
 

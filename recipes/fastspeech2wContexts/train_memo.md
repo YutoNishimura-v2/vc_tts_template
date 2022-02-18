@@ -1394,3 +1394,20 @@
         - spk: LINE_wContextwPEProsody_9
         - pretrain: LINE_wContextwPEProsody_102_CL_stage1_seg
         - jobID: 9346323
+    ### JTも念のため
+    - LINE_wContextwPEProsody_107_JT_TMCCE_GRU
+        - spk: LINE_wContextwPEProsody_8
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_108_JT_CMCCE_Attn
+        - spk: LINE_wContextwPEProsody_8
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_109_JT_TMCCE_GRU_seg
+        - spk: LINE_wContextwPEProsody_9
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_110_JT_CMCCE_Attn_seg
+        - spk: LINE_wContextwPEProsody_9
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
