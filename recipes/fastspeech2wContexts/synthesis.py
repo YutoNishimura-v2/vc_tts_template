@@ -171,7 +171,7 @@ def my_app(config: DictConfig) -> None:
                 assert config.SSL_sample_rate == 16000, "sampling rateは16000のみ有効です"
                 processor = Wav2Vec2FeatureExtractor.from_pretrained(config.SSL_weight)
                 model = WavLMModel.from_pretrained(config.SSL_weight).to(device)
-                histry_dummy_dim = 512
+                histry_dummy_dim = 1024
             else:
                 raise RuntimeError(f"model名: {config.SSL_name} は未対応です.")
         else:
