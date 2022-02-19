@@ -1411,3 +1411,21 @@
         - spk: LINE_wContextwPEProsody_9
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - jobID: 9348309
+
+    ### interspeechに向けて，JT/utter/WavLMを追加訓練
+    - LINE_wContextwPEProsody_111_JT_TMCCE_Attn
+        - spk: LINE_wContextwPEProsody_8
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 9362250
+    - LINE_wContextwPEProsody_112_JT_SMCCE_GRU
+        - spk: LINE_wContextwPEProsody_8
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 9362257
+    - LINE_wContextwPEProsody_113_JT_SMCCE_Attn
+        - spk: LINE_wContextwPEProsody_8
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 9362295
+    - LINE_wContextwPEProsody_114_JT_CMCCE_GRU
+        - spk: LINE_wContextwPEProsody_8
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 9362296
