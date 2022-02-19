@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_8"
+spk: "LINE_wContextwPEProsody_9"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_107_JT_TMCCE_GRU"
+tag: "LINE_wContextwPEProsody_110_JT_CMCCE_Attn_seg"
 
 sample_rate: 22050
 
@@ -73,7 +73,7 @@ SSL_name: "WavLM"
 SSL_weight: "microsoft/wavlm-large"
 SSL_sample_rate: 16000
 mel_mode: 0
-pau_split: 0
+pau_split: 1
 
 ###########################################################
 #                TRAINING SETTING                         #
