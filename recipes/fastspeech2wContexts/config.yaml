@@ -2,7 +2,7 @@
 spk: "LINE_wContextwPEProsody_10"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_115_JT_SMCCE_GRU"
+tag: "LINE_wContextwPEProsody_118_JT_CMCCE_Attn"
 
 sample_rate: 22050
 
