@@ -176,12 +176,15 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
             self.use_ssl = False
         else:
             if (use_prosody_encoder is True) or (use_peprosody_encoder is True) or (use_melprosody_encoder is True):
-                self.peprosody_encoder = nn.Conv1d(  # type: ignore
-                    in_channels=sslprosody_layer_num,  # type: ignore
-                    out_channels=1,
-                    kernel_size=1,
-                    bias=False,
-                )
+                if sslprosody_layer_num > 1:  # type:ignore
+                    self.peprosody_encoder = nn.Conv1d(  # type: ignore
+                        in_channels=sslprosody_layer_num,  # type: ignore
+                        out_channels=1,
+                        kernel_size=1,
+                        bias=False,
+                    )
+                else:
+                    self.peprosody_encoder = None  # type:ignore
             else:
                 self.peprosody_encoder = None  # type:ignore
             self.use_ssl = True
@@ -218,19 +221,21 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
                     h_prosody_embs_lens,
                 )
             else:
-                batch_size = h_prosody_embs.size(0)
-                history_len = h_prosody_embs.size(1)
-                # TODO: かなりハードコーディング．なんとかしないと
-                if h_prosody_embs.size(-2) == 1:
-                    # layer_num = 1, つまりデータ全てがPADの時
-                    if self.sslprosody_layer_num == 1:
-                        raise RuntimeError("未対応です")
-                    h_prosody_emb = h_prosody_embs.view(batch_size, history_len, -1)
+                # h_prosody_embs: (B, hist_len, layer_num, dim)
+                if self.peprosody_encoder is not None:
+                    batch_size = h_prosody_embs.size(0)
+                    history_len = h_prosody_embs.size(1)
+                    if h_prosody_embs.size(-2) == 1:
+                        # batch全てPADのデータはこれになる
+                        h_prosody_emb = h_prosody_embs.view(batch_size, history_len, -1)
+                    else:
+                        h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
+                        h_prosody_emb = self.peprosody_encoder(
+                            h_prosody_embs
+                        ).view(batch_size, history_len, -1)
                 else:
-                    h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
-                    h_prosody_emb = self.peprosody_encoder(
-                        h_prosody_embs
-                    ).view(batch_size, history_len, -1)
+                    h_prosody_emb = h_prosody_embs.squeeze(-2)
+
         else:
             h_prosody_emb = None
 

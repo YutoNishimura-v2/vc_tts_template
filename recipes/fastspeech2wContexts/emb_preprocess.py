@@ -11,7 +11,7 @@ from hydra.utils import to_absolute_path
 from omegaconf import OmegaConf
 from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
-from transformers import Wav2Vec2FeatureExtractor, WavLMModel
+from transformers import Wav2Vec2FeatureExtractor, WavLMModel, Wav2Vec2Model
 import librosa
 from scipy.io import wavfile
 
@@ -307,6 +307,10 @@ def _process_wav_bySSL(
         assert SSL_sample_rate == 16000, "sampling rateは16000のみ有効です"
         processor = Wav2Vec2FeatureExtractor.from_pretrained(SSL_weight)
         model = WavLMModel.from_pretrained(SSL_weight).to(device)
+    elif SSL_name == "wav2vec2":
+        assert SSL_sample_rate == 16000, "sampling rateは16000のみ有効です"
+        processor = Wav2Vec2FeatureExtractor.from_pretrained(SSL_weight)
+        model = Wav2Vec2Model.from_pretrained(SSL_weight).to(device)
     else:
         raise RuntimeError(f"model名: {SSL_name} は未対応です.")
 
@@ -336,8 +340,12 @@ def _process_wav_bySSL(
         with torch.no_grad():
             outputs = model(**inputs, output_hidden_states=True)
 
-        outputs = torch.tensor(np.array([tn.cpu().numpy() for tn in outputs.hidden_states]))[1:]
-        outputs = torch.mean(outputs.squeeze(1), dim=1).numpy()
+        if SSL_name == "WavLM":
+            outputs = torch.tensor(np.array([tn.cpu().numpy() for tn in outputs.hidden_states]))[1:]
+            outputs = torch.mean(outputs.squeeze(1), dim=1).numpy()
+        elif SSL_name == "wav2vec2":
+            outputs = outputs.last_hidden_state.cpu().squeeze(0)
+            outputs = torch.mean(outputs, dim=0, keepdim=True).numpy()
 
         np.save(
             output_dir / f"{utt_id}-feats.npy",
@@ -359,8 +367,12 @@ def _process_wav_bySSL(
                 with torch.no_grad():
                     seg_output = model(**seg_input, output_hidden_states=True)
                 # [1:]で embedding を除去. 先頭に入っている根拠は，実装.
-                seg_output = torch.tensor(np.array([tn.cpu().numpy() for tn in seg_output.hidden_states]))[1:]
-                seg_output = torch.mean(seg_output.squeeze(1), dim=1).numpy()
+                if SSL_name == "WavLM":
+                    seg_output = torch.tensor(np.array([tn.cpu().numpy() for tn in seg_output.hidden_states]))[1:]
+                    seg_output = torch.mean(seg_output.squeeze(1), dim=1).numpy()
+                elif SSL_name == "wav2vec2":
+                    seg_output = seg_output.last_hidden_state.cpu().squeeze(0)
+                    seg_output = torch.mean(seg_output, dim=0, keepdim=True).numpy()
                 outputs.append(seg_output)
 
                 before_d += d

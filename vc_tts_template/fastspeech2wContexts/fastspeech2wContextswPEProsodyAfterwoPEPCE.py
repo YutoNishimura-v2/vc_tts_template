@@ -183,12 +183,15 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     self.clone_peprosody_encoder = None  # type:ignore
         else:
             if (use_prosody_encoder is True) or (use_peprosody_encoder is True) or (use_melprosody_encoder is True):
-                self.clone_peprosody_encoder = nn.Conv1d(  # type: ignore
-                    in_channels=sslprosody_layer_num,  # type: ignore
-                    out_channels=1,
-                    kernel_size=1,
-                    bias=False,
-                )
+                if sslprosody_layer_num > 1:  # type:ignore
+                    self.clone_peprosody_encoder = nn.Conv1d(  # type: ignore
+                        in_channels=sslprosody_layer_num,  # type: ignore
+                        out_channels=1,
+                        kernel_size=1,
+                        bias=False,
+                    )
+                else:
+                    self.clone_peprosody_encoder = None  # type:ignore
             else:
                 self.clone_peprosody_encoder = None  # type:ignore
 
@@ -230,12 +233,15 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     )
             self.use_ssl = False
         else:
-            self.peprosody_encoder = nn.Conv1d(  # type: ignore
-                in_channels=sslprosody_layer_num,  # type: ignore
-                out_channels=1,
-                kernel_size=1,
-                bias=False,
-            )
+            if sslprosody_layer_num > 1:  # type:ignore
+                self.peprosody_encoder = nn.Conv1d(  # type: ignore
+                    in_channels=sslprosody_layer_num,  # type: ignore
+                    out_channels=1,
+                    kernel_size=1,
+                    bias=False,
+                )
+            else:
+                self.peprosody_encoder = None  # type:ignore
             self.use_ssl = True
 
         self.use_context_encoder = use_context_encoder
@@ -295,7 +301,11 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                         c_prosody_embs_lens.unsqueeze(1),
                     )
                 else:
-                    c_prosody_emb = self.peprosody_encoder(c_prosody_embs)
+                    if self.peprosody_encoder is not None:
+                        c_prosody_emb = self.peprosody_encoder(c_prosody_embs)
+                    else:
+                        c_prosody_emb = c_prosody_embs.squeeze(1)
+
                 target = self.context_encoder(c_prosody_emb).squeeze(1)
             else:
                 target = None
@@ -316,16 +326,19 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     outs = torch.cat(outs, 0)
                     c_prosody_emb = phone2utter(outs[inv_sort_idx], segment_nums)
                 else:
-                    max_seg_len = int(torch.max(c_prosody_embs_lens) / self.sslprosody_layer_num)
-                    c_prosody_embs = c_prosody_embs.view(
-                        c_prosody_embs.size(0), max_seg_len, self.sslprosody_layer_num, -1
-                    )
-                    c_prosody_embs = c_prosody_embs.transpose(1, 2).contiguous().view(
-                        c_prosody_embs.size(0), self.sslprosody_layer_num, -1
-                    )
-                    c_prosody_emb = self.peprosody_encoder(
-                        c_prosody_embs
-                    ).squeeze(1).view(c_prosody_embs.size(0), max_seg_len, -1)
+                    if self.peprosody_encoder is not None:
+                        max_seg_len = int(torch.max(c_prosody_embs_lens) / self.sslprosody_layer_num)
+                        c_prosody_embs = c_prosody_embs.view(
+                            c_prosody_embs.size(0), max_seg_len, self.sslprosody_layer_num, -1
+                        )
+                        c_prosody_embs = c_prosody_embs.transpose(1, 2).contiguous().view(
+                            c_prosody_embs.size(0), self.sslprosody_layer_num, -1
+                        )
+                        c_prosody_emb = self.peprosody_encoder(
+                            c_prosody_embs
+                        ).squeeze(1).view(c_prosody_embs.size(0), max_seg_len, -1)
+                    else:
+                        c_prosody_emb = c_prosody_embs
                 target = self.context_encoder(c_prosody_emb)
             else:
                 target = None
@@ -337,19 +350,19 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                     h_prosody_embs_lens,
                 )
             else:
-                batch_size = h_prosody_embs.size(0)
-                history_len = h_prosody_embs.size(1)
-                # TODO: かなりハードコーディング．なんとかしないと
-                if h_prosody_embs.size(-2) == 1:
-                    # layer_num = 1, つまりデータ全てがPADの時
-                    if self.sslprosody_layer_num == 1:
-                        raise RuntimeError("未対応です")
-                    h_prosody_emb = h_prosody_embs.view(batch_size, history_len, -1)
+                if self.clone_peprosody_encoder is not None:
+                    batch_size = h_prosody_embs.size(0)
+                    history_len = h_prosody_embs.size(1)
+                    if h_prosody_embs.size(-2) == 1:
+                        # layer_num = 1, つまりデータ全てがPADの時
+                        h_prosody_emb = h_prosody_embs.view(batch_size, history_len, -1)
+                    else:
+                        h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
+                        h_prosody_emb = self.clone_peprosody_encoder(
+                            h_prosody_embs
+                        ).view(batch_size, history_len, -1)
                 else:
-                    h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
-                    h_prosody_emb = self.clone_peprosody_encoder(
-                        h_prosody_embs
-                    ).view(batch_size, history_len, -1)
+                    h_prosody_emb = h_prosody_embs.squeeze(-2)
         else:
             h_prosody_emb = None
 

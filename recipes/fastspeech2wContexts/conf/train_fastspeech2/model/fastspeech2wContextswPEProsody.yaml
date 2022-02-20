@@ -28,8 +28,8 @@ netG:
   peprosody_encoder_conv_kernel_size:
   peprosody_encoder_conv_n_layers:
   sslprosody_emb_dim: 1024
-  sslprosody_layer_num: 24
-  use_context_encoder: True
+  sslprosody_layer_num: 1
+  use_context_encoder: False
   use_prosody_encoder: False
   use_peprosody_encoder: False
   use_melprosody_encoder: True

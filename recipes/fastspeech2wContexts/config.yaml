@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_8"
+spk: "LINE_wContextwPEProsody_10"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_114_JT_CMCCE_GRU"
+tag: "LINE_wContextwPEProsody_115_JT_SMCCE_GRU"
 
 sample_rate: 22050
 
@@ -69,8 +69,8 @@ input_wav_paths: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050,../../../data
 input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
 input_textgrid_paths:
 emb_speakers:
-SSL_name: "WavLM"
-SSL_weight: "microsoft/wavlm-large"
+SSL_name: "wav2vec2"
+SSL_weight: "facebook/wav2vec2-large-xlsr-53"
 SSL_sample_rate: 16000
 mel_mode: 0
 pau_split: 0

@@ -51,9 +51,15 @@
     - LINE_wContextwPEProsody_8
         - out_LINE_woITAKOから作る. 
         - textと同様に，音声の方も事前に用意したprosodyを利用することに
+        - WavLM採用
         - これはutterance ver
     - LINE_wContextwPEProsody_9
         - LINE_wContextwPEProsody_8のsegment ver
+    - LINE_wContextwPEProsody_10
+        - out_LINE_woITAKOから作る. 
+        - textと同様に，音声の方も事前に用意したprosodyを利用することに
+        - Wav2vec2.0を採用
+        - これはutterance ver
 
 - exp
     - LINE_wContext_1
@@ -1429,3 +1435,21 @@
         - spk: LINE_wContextwPEProsody_8
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - jobID: 9362296
+
+    ### JT/utter/Wav2vec2
+    - LINE_wContextwPEProsody_115_JT_SMCCE_GRU
+        - spk: LINE_wContextwPEProsody_10
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_116_JT_SMCCE_Attn
+        - spk: LINE_wContextwPEProsody_10
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_117_JT_CMCCE_GRU
+        - spk: LINE_wContextwPEProsody_10
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_118_JT_CMCCE_Attn
+        - spk: LINE_wContextwPEProsody_10
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
