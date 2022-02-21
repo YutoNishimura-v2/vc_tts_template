@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_10"
+spk: "LINE_wContextwPEProsody_13"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_118_JT_CMCCE_Attn"
+tag: "LINE_wContextwPEProsody_121_JT_CMCCE_Attn"
 
 sample_rate: 22050
 
@@ -70,7 +70,7 @@ input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset
 input_textgrid_paths:
 emb_speakers:
 SSL_name: "wav2vec2"
-SSL_weight: "facebook/wav2vec2-large-xlsr-53"
+SSL_weight: "Bagus/wav2vec2-xlsr-japanese-speech-emotion-recognition"
 SSL_sample_rate: 16000
 mel_mode: 0
 pau_split: 0
