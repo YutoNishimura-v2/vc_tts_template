@@ -59,6 +59,25 @@
         - out_LINE_woITAKOから作る. 
         - textと同様に，音声の方も事前に用意したprosodyを利用することに
         - Wav2vec2.0を採用
+            - facebook/wav2vec2-large-xlsr-53
+        - これはutterance ver
+    - LINE_wContextwPEProsody_11
+        - out_LINE_woITAKOから作る. 
+        - textと同様に，音声の方も事前に用意したprosodyを利用することに
+        - Wav2vec2.0を採用
+            - jonatasgrosman/wav2vec2-large-xlsr-53-japanese
+        - これはutterance ver
+    - LINE_wContextwPEProsody_12
+        - out_LINE_woITAKOから作る. 
+        - textと同様に，音声の方も事前に用意したprosodyを利用することに
+        - Wav2vec2.0を採用
+            - NTQAI/wav2vec2-large-japanese
+        - これはutterance ver
+    - LINE_wContextwPEProsody_13
+        - out_LINE_woITAKOから作る. 
+        - textと同様に，音声の方も事前に用意したprosodyを利用することに
+        - Wav2vec2.0を採用
+            - Bagus/wav2vec2-xlsr-japanese-speech-emotion-recognition
         - これはutterance ver
 
 - exp
@@ -1453,3 +1472,17 @@
         - spk: LINE_wContextwPEProsody_10
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - jobID: 9377615
+
+    ## いろいろSSLモデル試してみる
+    - LINE_wContextwPEProsody_119_JT_CMCCE_Attn
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_120_JT_CMCCE_Attn
+        - spk: LINE_wContextwPEProsody_12
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_121_JT_CMCCE_Attn
+        - spk: LINE_wContextwPEProsody_13
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID:
