@@ -11,7 +11,7 @@ from hydra.utils import to_absolute_path
 from omegaconf import DictConfig, OmegaConf
 from scipy.io import wavfile
 from tqdm import tqdm
-from transformers import Wav2Vec2FeatureExtractor, WavLMModel
+from transformers import Wav2Vec2FeatureExtractor, WavLMModel, Wav2Vec2Model
 import librosa
 
 sys.path.append("../..")
@@ -172,6 +172,11 @@ def my_app(config: DictConfig) -> None:
                 processor = Wav2Vec2FeatureExtractor.from_pretrained(config.SSL_weight)
                 model = WavLMModel.from_pretrained(config.SSL_weight).to(device)
                 histry_dummy_dim = 1024
+            elif config.SSL_name == "wav2vec2":
+                assert config.SSL_sample_rate == 16000, "sampling rateは16000のみ有効です"
+                processor = Wav2Vec2FeatureExtractor.from_pretrained(config.SSL_weight)
+                model = Wav2Vec2Model.from_pretrained(config.SSL_weight).to(device)
+                histry_dummy_dim = 1024
             else:
                 raise RuntimeError(f"model名: {config.SSL_name} は未対応です.")
         else:
@@ -280,8 +285,13 @@ def my_app(config: DictConfig) -> None:
                 ).to(device)
                 with torch.no_grad():
                     outputs = model(**inputs, output_hidden_states=True)
-                outputs = torch.tensor(np.array([tn.cpu().numpy() for tn in outputs.hidden_states]))[1:]
-                outputs = torch.mean(outputs.squeeze(1), dim=1).numpy()
+
+                if config.SSL_name == "WavLM":
+                    outputs = torch.tensor(np.array([tn.cpu().numpy() for tn in outputs.hidden_states]))[1:]
+                    outputs = torch.mean(outputs.squeeze(1), dim=1).numpy()
+                elif config.SSL_name == "wav2vec2":
+                    outputs = outputs.last_hidden_state.cpu().squeeze(0)
+                    outputs = torch.mean(outputs, dim=0, keepdim=True).numpy()
                 np.save(
                     synthesis_prosdoy_emb_base / f"{utt_id}-feats.npy",
                     outputs.astype(np.float32),
