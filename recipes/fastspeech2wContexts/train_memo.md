@@ -1486,3 +1486,21 @@
         - spk: LINE_wContextwPEProsody_13
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - jobID: 9385212
+    
+    ### おニューなSSLモデルで実験
+    - LINE_wContextwPEProsody_122_JT_SMCCE_GRU
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_123_JT_SMCCE_Attn
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_124_JT_CMCCE_GRU
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
+    - LINE_wContextwPEProsody_125_JT_CMCCE_Attn
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - jobID: 
