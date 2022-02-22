@@ -12,3 +12,5 @@ dataset/
 *.png
 *.tar.gz
 **/*.wav
+
+**/*.log
