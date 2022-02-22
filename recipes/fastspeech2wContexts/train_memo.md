@@ -1491,28 +1491,28 @@
     - LINE_wContextwPEProsody_122_JT_SMCCE_GRU
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
-        - jobID: 
+        - jobID: 9391780
     - LINE_wContextwPEProsody_123_JT_SMCCE_Attn
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
-        - jobID: 
+        - jobID: 9391787
     - LINE_wContextwPEProsody_124_JT_CMCCE_GRU
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
-        - jobID: 
+        - jobID: 9391818
     - LINE_wContextwPEProsody_125_JT_CMCCE_Attn
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
-        - jobID: 
+        - jobID: 9391828
     
     #### おニューだけど，concatにしてみる
     - LINE_wContextwPEProsody_126_JT_CMCCE_GRU
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
-        - jobID: 
+        - jobID: 9391837
     - LINE_wContextwPEProsody_127_JT_CMCCE_Attn
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
-        - jobID: 
+        - jobID: 9391841

@@ -33,7 +33,7 @@ netG:
   use_prosody_encoder: False
   use_peprosody_encoder: False
   use_melprosody_encoder: True
-  last_concat: False
+  last_concat: True
   # variance predictor
   variance_predictor_filter_size: 256
   variance_predictor_kernel_size: 3
