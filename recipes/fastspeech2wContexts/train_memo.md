@@ -1504,3 +1504,15 @@
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - jobID: 
+    
+    #### おニューだけど，concatにしてみる
+    - LINE_wContextwPEProsody_126_JT_CMCCE_GRU
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - jobID: 
+    - LINE_wContextwPEProsody_127_JT_CMCCE_Attn
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - jobID: 

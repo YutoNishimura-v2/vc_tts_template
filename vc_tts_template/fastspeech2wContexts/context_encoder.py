@@ -29,6 +29,7 @@ class ConversationalContextEncoder(nn.Module):
         past_global_gru=False,  # 従来法のgruを用いるか
         gru_bidirectional=True,
         pau_split_mode=False,
+        last_concat=False,
     ):
         super(ConversationalContextEncoder, self).__init__()
         d_model = d_encoder_hidden
@@ -122,6 +123,9 @@ class ConversationalContextEncoder(nn.Module):
         if emotion_embedding is not None:
             self.emotion_linear = nn.Linear(d_model, d_cont_enc)
 
+        if (last_concat is True) and (use_text_modal is True) and (use_speech_modal is True):
+            self.last_concat_linear = nn.Linear(d_model*2, d_model)
+
         self.speaker_embedding = speaker_embedding
         self.emotion_embedding = emotion_embedding
         self.current_attention = current_attention
@@ -130,6 +134,7 @@ class ConversationalContextEncoder(nn.Module):
 
         self.use_text_modal = use_text_modal
         self.use_speech_modal = use_speech_modal
+        self.last_concat = last_concat
 
     def forward(
         self, c_txt_embs, c_txt_embs_lens, speakers, emotions,
@@ -295,7 +300,14 @@ class ConversationalContextEncoder(nn.Module):
                     assert RuntimeError("未対応")
 
         if (self.use_text_modal is True) and (self.use_speech_modal is True):
-            return context_text_enc + context_prosody_enc
+            if self.last_concat is True:
+                return self.last_concat_linear(
+                    torch.cat([
+                        context_text_enc, context_prosody_enc
+                    ], dim=-1)
+                )
+            else:
+                return context_text_enc + context_prosody_enc
         elif (self.use_text_modal is True) and (self.use_speech_modal is False):
             return context_text_enc
         elif (self.use_text_modal is False) and (self.use_speech_modal is True):

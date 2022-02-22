@@ -50,6 +50,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         use_prosody_encoder: bool,
         use_peprosody_encoder: bool,
         use_melprosody_encoder: bool,
+        last_concat: bool,
         # variance predictor
         variance_predictor_filter_size: int,
         variance_predictor_kernel_size: int,
@@ -145,6 +146,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
             current_attention=current_attention,
             past_global_gru=past_global_gru,
             pau_split_mode=pau_split_mode > 0,
+            last_concat=last_concat,
         )
 
         # fixしない方
