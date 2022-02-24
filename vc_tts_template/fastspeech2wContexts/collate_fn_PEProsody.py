@@ -110,6 +110,7 @@ class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
         prosody_seg_p_emb_paths: Optional[List],
         use_hist_num: int,
         use_local_prosody_hist_idx: int,
+        use_situation_text: int,
     ):
         self.in_paths = in_paths
         self.out_mel_paths = out_mel_paths
@@ -125,6 +126,7 @@ class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
         self.prosody_seg_p_emb_paths = prosody_seg_p_emb_paths
         self.use_hist_num = use_hist_num
         self.use_local_prosody_hist_idx = use_local_prosody_hist_idx
+        self.use_situation_text = use_situation_text > 0
 
     def __getitem__(self, idx: int):
         """Get a pair of input and target
@@ -137,7 +139,8 @@ class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
         """
         current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions = get_embs(
             self.in_paths[idx].name.replace("-feats.npy", ""), self.text_emb_paths,
-            self.utt2id, self.id2utt, self.use_hist_num, seg_emb_paths=self.text_seg_emb_paths
+            self.utt2id, self.id2utt, self.use_hist_num, seg_emb_paths=self.text_seg_emb_paths,
+            start_index=1 if self.use_situation_text is False else 0,
         )
         (
             current_prosody_emb, current_prosody_emb_duration, current_prosody_emb_phonemes,
@@ -237,6 +240,7 @@ def fastspeech2wPEProsody_get_data_loaders(data_config: Dict, collate_fn: Callab
             prosody_seg_p_emb_paths,
             use_hist_num=data_config.use_hist_num,  # type:ignore
             use_local_prosody_hist_idx=data_config.use_local_prosody_hist_idx,  # type:ignore
+            use_situation_text=data_config.use_situation_text,  # type:ignore
         )
         data_loaders[phase] = data_utils.DataLoader(
             dataset,

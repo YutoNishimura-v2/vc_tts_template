@@ -235,6 +235,7 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
         data.dialogue_info=$dialogue_info \
         data.use_hist_num=$use_hist_num \
         data.use_local_prosody_hist_idx=$use_local_prosody_hist_idx \
+        data.use_situation_text=$use_situation_text \
         train.out_dir=$expdir/${acoustic_model} \
         train.log_dir=tensorboard/${expname}_${acoustic_model} \
         train.nepochs=$fastspeech2_train_nepochs \

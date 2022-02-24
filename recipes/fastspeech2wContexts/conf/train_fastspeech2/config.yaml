@@ -40,6 +40,7 @@ data:
   dialogue_info:
   use_hist_num:
   use_local_prosody_hist_idx:
+  use_situation_text:
 
   # data loader
   num_workers: 5

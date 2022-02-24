@@ -1516,3 +1516,17 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
         - jobID: 9391841
+    
+    #### situation textなしだとどうなるか見てみる
+    - LINE_wContextwPEProsody_128_JT_TMCCE_GRU
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - jobID: 
+    - LINE_wContextwPEProsody_129_JT_CMCCE_Attn
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - jobID: 
