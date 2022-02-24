@@ -332,6 +332,45 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
     fi
 fi
 
+if [ ${stage} -le 10 ] && [ ${stop_stage} -ge 10 ]; then
+    echo "stage 10: Calc dev loss by hist len"
+
+    xrun python get_dev_loss_by_history.py model=$acoustic_model tqdm=$tqdm \
+        cudnn.benchmark=$cudnn_benchmark cudnn.deterministic=$cudnn_deterministic \
+        data.train.utt_list=data/train.list \
+        data.train.in_dir=${local_dir}$dump_norm_dir/$train_set/in_fastspeech2/ \
+        data.train.out_dir=${local_dir}$dump_norm_dir/$train_set/out_fastspeech2/ \
+        data.dev.utt_list=data/dev.list \
+        data.dev.in_dir=${local_dir}$dump_norm_dir/$dev_set/in_fastspeech2/ \
+        data.dev.out_dir=${local_dir}$dump_norm_dir/$dev_set/out_fastspeech2/ \
+        data.batch_size=$fastspeech2_data_batch_size \
+        data.accent_info=$accent_info \
+        data.acoustic_model=$acoustic_model \
+        data.emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/text_emb \
+        data.prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/prosody_emb \
+        data.g_prosody_emb_dir=${local_dir}$dumpdir/${spk}_sr${sample_rate}/g_prosody_emb \
+        data.dialogue_info=$dialogue_info \
+        data.use_hist_num=$use_hist_num \
+        data.use_local_prosody_hist_idx=$use_local_prosody_hist_idx \
+        data.use_situation_text=$use_situation_text \
+        train.out_dir=$expdir/${acoustic_model} \
+        train.log_dir=tensorboard/${expname}_${acoustic_model} \
+        train.nepochs=$fastspeech2_train_nepochs \
+        train.sampling_rate=$sample_rate \
+        train.mel_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
+        train.vocoder_name=$vocoder_model \
+        train.vocoder_config=$vocoder_config \
+        train.vocoder_weight_path=$vocoder_weight_base_path/$vocoder_eval_checkpoint \
+        train.criterion.pitch_feature_level=$pitch_phoneme_averaging \
+        train.criterion.energy_feature_level=$energy_phoneme_averaging \
+        model.netG.pitch_feature_level=$pitch_phoneme_averaging \
+        model.netG.energy_feature_level=$energy_phoneme_averaging \
+        model.netG.n_mel_channel=$n_mel_channels \
+        model.netG.accent_info=$accent_info \
+        model.netG.mel_embedding_mode=$mel_mode \
+        model.netG.pau_split_mode=$pau_split
+fi
+
 if [ ${stage} -le 90 ] && [ ${stop_stage} -ge 90 ]; then
     echo "Tuning fastspeech2 by optuna"
     mkdir -p $expdir/${acoustic_model}
