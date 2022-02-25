@@ -1523,13 +1523,11 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
         - use_situation_text = 0
-        - jobID: 
     - LINE_wContextwPEProsody_129_JT_CMCCE_Attn
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
         - use_situation_text = 0
-        - jobID: 
 
     #### Current Melで条件づけるやつ
     - LINE_wContextwPEProsody_130_JT_TMCCE_GRU
@@ -1539,7 +1537,6 @@
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsodywCurrentMel
         - beta = 1.0
-        - jobID: 
     - LINE_wContextwPEProsody_131_JT_TMCCE_GRU
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
@@ -1547,7 +1544,6 @@
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsodywCurrentMel
         - beta = 0.1
-        - jobID: 
     - LINE_wContextwPEProsody_132_JT_TMCCE_GRU
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
@@ -1555,7 +1551,6 @@
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsodywCurrentMel
         - beta = 0.01
-        - jobID: 
     - LINE_wContextwPEProsody_133_JT_CMCCE_Attn
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
@@ -1563,7 +1558,6 @@
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsodywCurrentMel
         - beta = 1.0
-        - jobID: 
     - LINE_wContextwPEProsody_134_JT_CMCCE_Attn
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
@@ -1571,7 +1565,6 @@
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsodywCurrentMel
         - beta = 0.1
-        - jobID: 
     - LINE_wContextwPEProsody_135_JT_CMCCE_Attn
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
@@ -1579,4 +1572,3 @@
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsodywCurrentMel
         - beta = 0.01
-        - jobID: 
