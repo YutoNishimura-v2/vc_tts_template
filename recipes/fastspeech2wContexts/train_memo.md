@@ -1572,3 +1572,47 @@
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsodywCurrentMel
         - beta = 0.01
+    
+    ##### 追加でTMとCM
+    - LINE_wContextwPEProsody_136_JT_TMCCE_Attn
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 1.0
+    - LINE_wContextwPEProsody_137_JT_TMCCE_Attn
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+    - LINE_wContextwPEProsody_138_JT_TMCCE_Attn
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.01
+    - LINE_wContextwPEProsody_139_JT_CMCCE_GRU
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 1.0
+    - LINE_wContextwPEProsody_140_JT_CMCCE_GRU
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+    - LINE_wContextwPEProsody_141_JT_CMCCE_GRU
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.01
