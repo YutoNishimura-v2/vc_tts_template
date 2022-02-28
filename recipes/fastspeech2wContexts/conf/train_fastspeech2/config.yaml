@@ -89,7 +89,7 @@ train:
     # _target_: vc_tts_template.fastspeech2.loss.FastSpeech2Loss
     pitch_feature_level:
     energy_feature_level:
-    beta: 1.0
+    beta: 0.01
     # g_beta: 0.02
 
   pretrained:

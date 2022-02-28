@@ -8,10 +8,10 @@
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/fastspeech2VC/JSUT_NICT_LINE_4_sr22050_JSUT_NICT_LINE_4_202111162213.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_3_sr22050_LINE_emotionprediction_58_202201141005.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_76_202202091024.log run_at_abci.sh
-# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_7_sr22050_LINE_wContextwPEProsody_88_202202111951.log run_at_abci.sh
+# 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_136_202203010146.log run_at_abci.sh
 # 例: qsub_Ag1 -l h_rt='150:00:00' -o ~/logs/JSUT_NICT_LINE_wo_Teacher_wContextwPEProsody_1_sr22050_JSUT_NICT_LINE_1_202201181515.log run_at_abci.sh
 # 例: 8250289
-# 例: qrsh -g $ABCI_GROUP -l rt_AG.small=1 -l h_rt=10:00:00
+# 例: qrsh -g $ABCI_GROUP -l rt_AG.small=1 -l h_rt=6:00:00
 
 source /etc/profile.d/modules.sh
 module load gcc/9.3.0 python/3.8/3.8.7 cuda/11.1/11.1.1 cudnn/8.0/8.0.5
