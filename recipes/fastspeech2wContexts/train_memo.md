@@ -1528,6 +1528,7 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
         - use_situation_text = 0
+        - batch_size = 8
 
     #### Current Melで条件づけるやつ
     - LINE_wContextwPEProsody_130_JT_TMCCE_GRU
