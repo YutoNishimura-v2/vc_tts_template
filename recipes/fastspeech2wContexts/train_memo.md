@@ -1523,6 +1523,7 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
         - use_situation_text = 0
+        - batch_size = 8
     - LINE_wContextwPEProsody_129_JT_CMCCE_Attn
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
