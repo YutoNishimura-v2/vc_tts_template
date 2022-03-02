@@ -178,7 +178,7 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         else:
             h_prosody_emb = None
 
-        context_enc = self.context_encoder(
+        context_enc_outputs = self.context_encoder(
             c_txt_embs,
             c_txt_embs_lens,
             speakers,
@@ -190,6 +190,12 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
             h_prosody_emb,
             h_prosody_embs_len,  # [hist1, hist2, ...]. h_txt_emb_lensとは違って1 start.
         )
+        if type(context_enc_outputs) == tuple:
+            context_enc = context_enc_outputs[0]
+            attentions = context_enc_outputs[1:]
+        else:
+            context_enc = context_enc_outputs
+            attentions = None
 
         if c_prosody_embs_phonemes is None:
             output = output + context_enc.unsqueeze(1).expand(
@@ -204,7 +210,7 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         # 以下だけ変更
         prosody_prediction = self.next_predictor(context_enc)
 
-        return output, prosody_prediction
+        return output, prosody_prediction, attentions
 
     def forward(
         self,
@@ -247,7 +253,7 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         output = self.encoder_forward(
             texts, src_masks, max_src_len, speakers, emotions
         )
-        output, prosody_prediction = self.contexts_forward(
+        output, prosody_prediction, attentions = self.contexts_forward(
             output, max_src_len, c_txt_embs, c_txt_embs_lens,
             speakers, emotions,
             h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
@@ -290,6 +296,7 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
             src_lens,
             mel_lens,
             prosody_prediction,
+            attentions,
         )
 
 
@@ -337,7 +344,7 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
             _,
             _,
             predicted_prosody_embs,
-        ) = predictions
+        ) = predictions[:11]
         src_masks = ~src_masks
         mel_masks = ~mel_masks
         log_duration_targets = torch.log(duration_targets.float() + 1)

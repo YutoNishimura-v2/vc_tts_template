@@ -212,7 +212,7 @@ class ConversationalContextEncoder(nn.Module):
             if self.current_attention is True:
                 # Attention
                 if self.use_text_modal is True:
-                    context_text_enc = self.context_text_attention(
+                    context_text_enc, text_score = self.context_text_attention(
                         self.context_text_query_linear(current_text_enc),
                         self.context_text_value_linear(history_text_enc),
                         mask=t_history_masks,
@@ -221,7 +221,7 @@ class ConversationalContextEncoder(nn.Module):
                         torch.cat([current_text_enc.squeeze(1), context_text_enc], dim=-1)
                     )
                 if self.use_speech_modal is True:
-                    context_prosody_enc = self.context_prosody_attention(
+                    context_prosody_enc, prosody_score = self.context_prosody_attention(
                         self.context_prosody_query_linear(current_text_enc),
                         self.context_prosody_value_linear(history_prosody_enc),
                         mask=p_history_masks,
@@ -243,13 +243,13 @@ class ConversationalContextEncoder(nn.Module):
                     if self.use_text_modal is True:
                         history_text_enc = history_text_enc.masked_fill(t_history_masks.unsqueeze(-1), 0)
                         context_text_enc = torch.cat([current_text_enc, history_text_enc], dim=1)
-                        context_text_enc = self.context_text_attention(
+                        context_text_enc, text_score = self.context_text_attention(
                             self.context_text_linear(context_text_enc)
                         )
                     if self.use_speech_modal is True:
                         history_prosody_enc = history_prosody_enc.masked_fill(p_history_masks.unsqueeze(-1), 0)
                         context_prosody_enc = torch.cat([current_text_enc, history_prosody_enc], dim=1)
-                        context_prosody_enc = self.context_prosody_attention(
+                        context_prosody_enc, prosody_score = self.context_prosody_attention(
                             self.context_prosody_linear(context_prosody_enc)
                         )
         else:
@@ -265,7 +265,7 @@ class ConversationalContextEncoder(nn.Module):
             if self.current_attention is True:
                 # Attention
                 if self.use_text_modal is True:
-                    context_text_enc = self.context_text_attention(
+                    context_text_enc, text_score = self.context_text_attention(
                         self.context_text_query_linear(current_text_enc),
                         self.context_text_value_linear(context_text_enc),
                         mask=t_history_masks,
@@ -274,7 +274,7 @@ class ConversationalContextEncoder(nn.Module):
                         torch.cat([current_text_enc, context_text_enc], dim=-1)
                     )
                 if self.use_speech_modal is True:
-                    context_prosody_enc = self.context_prosody_attention(
+                    context_prosody_enc, prosody_score = self.context_prosody_attention(
                         self.context_prosody_query_linear(current_text_enc),
                         self.context_prosody_value_linear(context_prosody_enc),
                         mask=p_history_masks,
@@ -299,19 +299,34 @@ class ConversationalContextEncoder(nn.Module):
                     # SLAのやつ
                     assert RuntimeError("未対応")
 
-        if (self.use_text_modal is True) and (self.use_speech_modal is True):
-            if self.last_concat is True:
-                return self.last_concat_linear(
-                    torch.cat([
-                        context_text_enc, context_prosody_enc
-                    ], dim=-1)
-                )
-            else:
-                return context_text_enc + context_prosody_enc
-        elif (self.use_text_modal is True) and (self.use_speech_modal is False):
-            return context_text_enc
-        elif (self.use_text_modal is False) and (self.use_speech_modal is True):
-            return context_prosody_enc
+        if self.current_attention is False:
+            if (self.use_text_modal is True) and (self.use_speech_modal is True):
+                if self.last_concat is True:
+                    return self.last_concat_linear(
+                        torch.cat([
+                            context_text_enc, context_prosody_enc
+                        ], dim=-1)
+                    )
+                else:
+                    return context_text_enc + context_prosody_enc
+            elif (self.use_text_modal is True) and (self.use_speech_modal is False):
+                return context_text_enc
+            elif (self.use_text_modal is False) and (self.use_speech_modal is True):
+                return context_prosody_enc
+        else:
+            if (self.use_text_modal is True) and (self.use_speech_modal is True):
+                if self.last_concat is True:
+                    return self.last_concat_linear(
+                        torch.cat([
+                            context_text_enc, context_prosody_enc
+                        ], dim=-1)
+                    ), text_score, prosody_score
+                else:
+                    return context_text_enc + context_prosody_enc, text_score, prosody_score
+            elif (self.use_text_modal is True) and (self.use_speech_modal is False):
+                return context_text_enc, text_score, None
+            elif (self.use_text_modal is False) and (self.use_speech_modal is True):
+                return context_prosody_enc, None, prosody_score
 
 
 class SLA(nn.Module):
@@ -336,7 +351,7 @@ class SLA(nn.Module):
             attn = attn.masked_fill(aux_mask, 0)  # Remove all -inf along softmax.dim
         score = self.softmax(attn).transpose(-2, -1)  # [B, 1, T]
         fused_rep = torch.matmul(score, encoding).squeeze(1)  # [B, d]
-        return fused_rep
+        return fused_rep, score
 
 
 class SLA_wQuery(nn.Module):
@@ -368,6 +383,6 @@ class SLA_wQuery(nn.Module):
         fused_rep = torch.matmul(score, encoding)  # [B, x, d]
 
         if self.leave_dim_1 is True:
-            return fused_rep
+            return fused_rep, score
         else:
-            return fused_rep.squeeze(1)
+            return fused_rep.squeeze(1), score

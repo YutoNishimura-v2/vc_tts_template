@@ -2,6 +2,7 @@ import shutil
 import sys
 from pathlib import Path
 import os
+from typing import Dict, List
 
 import hydra
 import joblib
@@ -89,7 +90,8 @@ def my_app(config: DictConfig) -> None:
         current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions = get_embs(
             utt_id, text_emb_paths,
             utt2id, id2utt, use_hist_num,
-            seg_emb_paths=text_seg_emb_paths
+            seg_emb_paths=text_seg_emb_paths,
+            start_index=1 if config.use_situation_text == 0 else 0,
         )
         context_embeddings.append([current_txt_emb, history_txt_embs, hist_emb_len, history_speakers, history_emotions])
 
@@ -141,14 +143,37 @@ def my_app(config: DictConfig) -> None:
 
     # Run synthesis for each utt.
     _synthesis = synthesis_PEProsody if "wPEProsody" in acoustic_model_name else synthesis
+
+    attention_data: Dict[str, Dict[int, List[np.ndarray]]] = {}
+    attention_len_num: Dict[int, int] = {}
     for lab_file, context_embedding, prosody_embedding in optional_tqdm(config.tqdm, desc="Utterance")(
         zip(lab_files, context_embeddings, prosody_embeddings)
     ):
-        wav = _synthesis(  # type: ignore
+        wav, attentions = _synthesis(  # type: ignore
             device, lab_file, context_embedding, prosody_embedding,
             acoustic_config.netG.speakers, acoustic_config.netG.emotions,
             acoustic_model, acoustic_out_scaler, vocoder_model
         )
+        hist_prosody_emb_len = prosody_embedding[5]
+
+        if attentions is not None:
+            text_attn, speech_attn = attentions
+            if hist_prosody_emb_len not in attention_len_num.keys():
+                attention_len_num[hist_prosody_emb_len] = 1
+                if text_attn is not None:
+                    if "text" not in attention_data.keys():
+                        attention_data["text"] = {}
+                    attention_data["text"][hist_prosody_emb_len] = [text_attn.view(-1).cpu().numpy()]
+                if speech_attn is not None:
+                    if "speech" not in attention_data.keys():
+                        attention_data["speech"] = {}
+                    attention_data["speech"][hist_prosody_emb_len] = [speech_attn.view(-1).cpu().numpy()]
+            else:
+                attention_len_num[hist_prosody_emb_len] += 1
+                if text_attn is not None:
+                    attention_data["text"][hist_prosody_emb_len].append(text_attn.view(-1).cpu().numpy())
+                if speech_attn is not None:
+                    attention_data["speech"][hist_prosody_emb_len].append(speech_attn.view(-1).cpu().numpy())
 
         wav = np.clip(wav, -1.0, 1.0)
 
@@ -159,6 +184,25 @@ def my_app(config: DictConfig) -> None:
             rate=config.sample_rate,
             data=(wav * 32767.0).astype(np.int16),
         )
+
+    if len(attention_len_num) > 0:
+        output_data = []
+        for hist_len in sorted(list(attention_len_num.keys())):
+            output_data.append(f"hist_len: {hist_len}:\n")
+            if "text" in attention_data.keys():
+                output_data.append("\ttext:\n")
+                attention_mean = np.mean(np.array(attention_data["text"][hist_len]), axis=0)
+                attention_std = np.std(np.array(attention_data["text"][hist_len]), axis=0)
+                output_data.append(f"\t\tattention mean: {attention_mean}\n")
+                output_data.append(f"\t\tattention std: {attention_std}\n")
+            if "speech" in attention_data.keys():
+                output_data.append("\tspeech:\n")
+                attention_mean = np.mean(np.array(attention_data["speech"][hist_len]), axis=0)
+                attention_std = np.std(np.array(attention_data["speech"][hist_len]), axis=0)
+                output_data.append(f"\t\tattention mean: {attention_mean}\n")
+                output_data.append(f"\t\tattention std: {attention_std}\n")
+        with open(out_dir / "attention_info.txt", "w") as f:
+            f.writelines(output_data)
 
     # Run synthesis by context of synthesized speech
     if "wPEProsodywoPEPCE" not in acoustic_model_name:
@@ -210,6 +254,8 @@ def my_app(config: DictConfig) -> None:
             if utt_id in utt_ids:
                 os.remove(emb_path)
 
+        attention_data_real: Dict[str, Dict[int, List[np.ndarray]]] = {}
+        attention_len_num_real: Dict[int, int] = {}
         for dialogue_key in tqdm(dialogue_keys):
             if int(dialogue_key[1]) == 0:
                 # turn=0は状況説明
@@ -222,7 +268,8 @@ def my_app(config: DictConfig) -> None:
             context_embedding = get_embs(
                 utt_id, text_emb_paths,
                 utt2id, id2utt, use_hist_num,
-                seg_emb_paths=text_seg_emb_paths
+                seg_emb_paths=text_seg_emb_paths,
+                start_index=1 if config.use_situation_text == 0 else 0,
             )
             if "wProsody" in acoustic_model_name:
                 # NOTE: 対応したかったら，PEProsody同様にcopyしてあげる必要あり
@@ -252,7 +299,7 @@ def my_app(config: DictConfig) -> None:
             if (config.mel_mode == 0) and (config.SSL_name is None):
                 # NOTE: 対応させたいなら，下の_synthsisでpitchとかを返せるようにすればいい.
                 assert RuntimeError("未対応")
-            wav, synthesised_mel = _synthesis(  # type: ignore
+            wav, synthesised_mel, attentions = _synthesis(  # type: ignore
                 device, lab_file, context_embedding, prosody_embedding,
                 acoustic_config.netG.speakers, acoustic_config.netG.emotions,
                 acoustic_model, acoustic_out_scaler, vocoder_model,
@@ -264,6 +311,26 @@ def my_app(config: DictConfig) -> None:
                 rate=config.sample_rate,
                 data=(wav * 32767.0).astype(np.int16),
             )
+            if attentions is not None:
+                hist_prosody_emb_len = prosody_embedding[5]
+                text_attn, speech_attn = attentions
+                if hist_prosody_emb_len not in attention_len_num_real.keys():
+                    attention_len_num_real[hist_prosody_emb_len] = 1
+                    if text_attn is not None:
+                        if "text" not in attention_data_real.keys():
+                            attention_data_real["text"] = {}
+                        attention_data_real["text"][hist_prosody_emb_len] = [text_attn.view(-1).cpu().numpy()]
+                    if speech_attn is not None:
+                        if "speech" not in attention_data_real.keys():
+                            attention_data_real["speech"] = {}
+                        attention_data_real["speech"][hist_prosody_emb_len] = [speech_attn.view(-1).cpu().numpy()]
+                else:
+                    attention_len_num_real[hist_prosody_emb_len] += 1
+                    if text_attn is not None:
+                        attention_data_real["text"][hist_prosody_emb_len].append(text_attn.view(-1).cpu().numpy())
+                    if speech_attn is not None:
+                        attention_data_real["speech"][hist_prosody_emb_len].append(speech_attn.view(-1).cpu().numpy())
+
             # 3. 新しいembeddingの用意
             # 上書き保存という形でコピーしたprosody embがたまったdirに保存
             # seg_dに関しては推論時には使わないので正解のままにしておいてok
@@ -297,6 +364,25 @@ def my_app(config: DictConfig) -> None:
                     outputs.astype(np.float32),
                     allow_pickle=False,
                 )
+
+        if len(attention_len_num_real) > 0:
+            output_data = []
+            for hist_len in sorted(list(attention_len_num_real.keys())):
+                output_data.append(f"hist_len: {hist_len}:\n")
+                if "text" in attention_data_real.keys():
+                    output_data.append("\ttext:\n")
+                    attention_mean = np.mean(np.array(attention_data_real["text"][hist_len]), axis=0)
+                    attention_std = np.std(np.array(attention_data_real["text"][hist_len]), axis=0)
+                    output_data.append(f"\t\tattention mean: {attention_mean}\n")
+                    output_data.append(f"\t\tattention std: {attention_std}\n")
+                if "speech" in attention_data_real.keys():
+                    output_data.append("\tspeech:\n")
+                    attention_mean = np.mean(np.array(attention_data_real["speech"][hist_len]), axis=0)
+                    attention_std = np.std(np.array(attention_data_real["speech"][hist_len]), axis=0)
+                    output_data.append(f"\t\tattention mean: {attention_mean}\n")
+                    output_data.append(f"\t\tattention std: {attention_std}\n")
+            with open(out_wav_base / "attention_info_realdialogue.txt", "w") as f:
+                f.writelines(output_data)
 
     # add reconstruct wav output
     out_dir = out_dir / "reconstruct"

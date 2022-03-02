@@ -129,10 +129,11 @@ def synthesis_PEProsody(device, lab_file, context_embedding, prosody_embedding,
     )
 
     mel_post = output[1]
+    attentions = output[-1]  # fastspeech2wContextswPEProsody系のみ対応
     mels = [acoustic_out_scaler.inverse_transform(mel.cpu().data.numpy()) for mel in mel_post]  # type: ignore
     mels = torch.Tensor(np.array(mels)).to(device)
     wavs = vocoder_model(mels.transpose(1, 2)).squeeze(1).cpu().data.numpy()
 
     if need_mel is True:
-        return wavs[0], mel_post[0].cpu().data.numpy()
-    return wavs[0]
+        return wavs[0], mel_post[0].cpu().data.numpy(), attentions
+    return wavs[0], attentions

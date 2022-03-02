@@ -23,6 +23,7 @@ SSL_name:
 SSL_weight:
 SSL_sample_rate:
 mel_mode:
+use_situation_text:
 # リストの逆順で発話を処理する
 reverse: false
 

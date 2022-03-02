@@ -241,7 +241,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         else:
             h_prosody_emb = None
 
-        context_enc = self.context_encoder(
+        context_enc_outputs = self.context_encoder(
             c_txt_embs,
             c_txt_embs_lens,
             speakers,
@@ -254,6 +254,13 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
             h_prosody_embs_len,  # [hist1, hist2, ...]. h_txt_emb_lensとは違って1 start.
         )
 
+        if type(context_enc_outputs) == tuple:
+            context_enc = context_enc_outputs[0]
+            attentions = context_enc_outputs[1:]
+        else:
+            context_enc = context_enc_outputs
+            attentions = None
+
         if c_prosody_embs_phonemes is None:
             output = output + context_enc.unsqueeze(1).expand(
                 -1, max_src_len, -1
@@ -264,7 +271,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
             )
             output = output + context_enc
 
-        return output
+        return output, attentions
 
     def forward(
         self,
@@ -307,7 +314,7 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
         output = self.encoder_forward(
             texts, src_masks, max_src_len, speakers, emotions
         )
-        output = self.contexts_forward(
+        output, attentions = self.contexts_forward(
             output, max_src_len, c_txt_embs, c_txt_embs_lens,
             speakers, emotions,
             h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
@@ -349,4 +356,5 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
             mel_masks,
             src_lens,
             mel_lens,
+            attentions,
         )

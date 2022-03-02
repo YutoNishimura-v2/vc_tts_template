@@ -33,7 +33,7 @@ class FastSpeech2Loss(nn.Module):
             mel_masks,
             _,
             _,
-        ) = predictions
+        ) = predictions[:10]
         src_masks = ~src_masks
         mel_masks = ~mel_masks
         log_duration_targets = torch.log(duration_targets.float() + 1)

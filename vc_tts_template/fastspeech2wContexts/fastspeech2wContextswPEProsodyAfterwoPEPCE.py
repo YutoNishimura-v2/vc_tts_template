@@ -368,7 +368,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         else:
             h_prosody_emb = None
 
-        prediction = self.clone_context_encoder(
+        context_enc_outputs = self.clone_context_encoder(
             c_txt_embs,
             c_txt_embs_lens,
             speakers,
@@ -380,6 +380,12 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
             h_prosody_emb,
             h_prosody_embs_len,  # [hist1, hist2, ...]. h_txt_emb_lensとは違って1 start.
         )
+        if type(context_enc_outputs) == tuple:
+            prediction = context_enc_outputs[0]
+            attentions = context_enc_outputs[1:]
+        else:
+            prediction = context_enc_outputs
+            attentions = None
 
         if c_prosody_embs_phonemes is None:
             if is_inference is False:
@@ -402,7 +408,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
                 )
                 output = output + _prediction
 
-        return output, prediction, target
+        return output, prediction, target, attentions
 
     def forward(
         self,
@@ -458,7 +464,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
         output = self.encoder_forward(
             texts, src_masks, max_src_len, speakers, emotions
         )
-        output, prosody_emb_prediction, prosody_emb_target = self.contexts_forward(
+        output, prosody_emb_prediction, prosody_emb_target, attentions = self.contexts_forward(
             output, max_src_len, c_txt_embs, c_txt_embs_lens,
             speakers, emotions,
             h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
@@ -504,6 +510,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCE(FastSpeech2):
             mel_lens,
             prosody_emb_prediction,
             prosody_emb_target,
+            attentions,
         )
 
 
@@ -540,7 +547,7 @@ class FastSpeech2wContextswPEProsodyAfterwoPEPCEsLoss(nn.Module):
             _,
             prosody_emb_prediction,
             prosody_emb_target,
-        ) = predictions
+        ) = predictions[:12]
         src_masks = ~src_masks
         mel_masks = ~mel_masks
         log_duration_targets = torch.log(duration_targets.float() + 1)

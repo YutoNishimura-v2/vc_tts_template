@@ -313,6 +313,7 @@ if [ ${stage} -le 5 ] && [ ${stop_stage} -ge 5 ]; then
             SSL_weight=$SSL_weight \
             SSL_sample_rate=$SSL_sample_rate \
             mel_mode=$mel_mode \
+            use_situation_text=$use_situation_text \
             sample_rate=$sample_rate \
             acoustic.checkpoint=$expdir/${acoustic_model}/$acoustic_eval_checkpoint \
             acoustic.out_scaler_path=$dump_norm_dir/out_fastspeech2_mel_scaler.joblib \
