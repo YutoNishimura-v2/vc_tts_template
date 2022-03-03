@@ -2,7 +2,7 @@
 spk: "LINE_wContextwPEProsody_11"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_128_JT_TMCCE_GRU"
+tag: "LINE_wContextwPEProsody_129_JT_CMCCE_Attn"
 
 sample_rate: 22050
 
@@ -90,7 +90,7 @@ vocoder_weight_base_path: "../fastspeech2/exp/LINE_3_sr22050_LINE_6/hifigan"
 ### fastspeech2  ###
 # max_train_steps: 200000 → nepochs: 256 s.t. batch_size*group_size = 32, JSUT.
 fastspeech2_train_nepochs: 500
-fastspeech2_data_batch_size: 8
+fastspeech2_data_batch_size: 16
 
 ### hifigan ###
 hifigan_train_nepochs: 50

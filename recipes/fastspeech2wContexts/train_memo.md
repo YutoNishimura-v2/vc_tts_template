@@ -1523,13 +1523,12 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
         - use_situation_text = 0
-        - batch_size = 8
     - LINE_wContextwPEProsody_129_JT_CMCCE_Attn
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
         - use_situation_text = 0
-        - batch_size = 8
+        - jobID:
 
     #### Current Melで条件づけるやつ
     - LINE_wContextwPEProsody_130_JT_TMCCE_GRU
@@ -1618,3 +1617,12 @@
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsodywCurrentMel
         - beta = 0.01
+    
+    #### situation textなしだとどうなるか見てみる2
+    - LINE_wContextwPEProsody_142_JT_TMCCE_Attn
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsody
+        - jobID: 
