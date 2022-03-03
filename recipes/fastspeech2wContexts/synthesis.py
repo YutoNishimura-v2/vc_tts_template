@@ -74,6 +74,7 @@ def my_app(config: DictConfig) -> None:
     emb_seg_dir = Path(to_absolute_path(config.emb_dir)) / "segmented_text_emb"
     text_seg_emb_paths = list(emb_seg_dir.glob("*.npy")) if emb_seg_dir.exists() else None
     use_hist_num = config.use_hist_num
+    use_prosody_hist_num = config.use_prosody_hist_num if type(config.use_prosody_hist_num) is int else use_hist_num
     # read prosody embeddings
     prosody_emb_paths = list(Path(to_absolute_path(config.prosody_emb_dir)).glob("*.npy"))
     g_prosody_emb_paths = list(Path(to_absolute_path(config.g_prosody_emb_dir)).glob("*.npy"))
@@ -125,7 +126,7 @@ def my_app(config: DictConfig) -> None:
                 hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
             ) = get_peprosody_embs(
                 utt_id, prosody_emb_paths,
-                utt2id, id2utt, use_hist_num, start_index=1,
+                utt2id, id2utt, use_prosody_hist_num, start_index=1,
                 use_local_prosody_hist_idx=config.use_local_prosody_hist_idx,
                 seg_emb_paths=prosody_seg_emb_paths,
                 seg_d_emb_paths=prosody_seg_d_emb_paths, seg_p_emb_paths=prosody_seg_p_emb_paths,
@@ -281,7 +282,7 @@ def my_app(config: DictConfig) -> None:
                     hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
                 ) = get_peprosody_embs(
                     utt_id, synthesis_prosdoy_emb_list,
-                    utt2id, id2utt, use_hist_num, start_index=1,
+                    utt2id, id2utt, use_prosody_hist_num, start_index=1,
                     use_local_prosody_hist_idx=config.use_local_prosody_hist_idx,
                     seg_d_emb_paths=prosody_seg_d_emb_paths, seg_p_emb_paths=prosody_seg_p_emb_paths,
                     emb_dim=histry_dummy_dim,

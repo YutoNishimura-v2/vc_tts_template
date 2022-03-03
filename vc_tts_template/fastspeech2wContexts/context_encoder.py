@@ -170,11 +170,11 @@ class ConversationalContextEncoder(nn.Module):
 
         if self.use_text_modal is True:
             history_text_emb = self.text_emb_linear(h_txt_embs)
-            history_text_enc = torch.cat([history_text_emb, history_speaker], dim=-1)
+            history_text_enc = torch.cat([history_text_emb, history_speaker[:, :history_text_emb.size(1)]], dim=-1)
 
         if self.use_speech_modal is True:
             history_prosody_emb = self.prosody_emb_linear(h_prosody_emb)
-            history_prosody_enc = torch.cat([history_prosody_emb, history_speaker], dim=-1)
+            history_prosody_enc = torch.cat([history_prosody_emb, history_speaker[:, :history_prosody_emb.size(1)]], dim=-1)
 
         current_speaker = self.speaker_linear(self.speaker_embedding(current_speaker))
         current_text_enc = torch.cat([current_text_emb, current_speaker], dim=-1)
@@ -188,9 +188,9 @@ class ConversationalContextEncoder(nn.Module):
             current_emotion = self.emotion_linear(self.emotion_embedding(current_emotion))
 
             if self.use_text_modal is True:
-                history_text_enc = torch.cat([history_text_enc, history_emotion], dim=-1)
+                history_text_enc = torch.cat([history_text_enc, history_emotion[:, :history_text_enc.size(1)]], dim=-1)
             if self.use_speech_modal is True:
-                history_prosody_enc = torch.cat([history_prosody_enc, history_emotion], dim=-1)
+                history_prosody_enc = torch.cat([history_prosody_enc, history_emotion[:, :history_prosody_enc.size(1)]], dim=-1)
             current_text_enc = torch.cat([current_text_enc, current_emotion], dim=-1)
 
         if self.use_text_modal is True:

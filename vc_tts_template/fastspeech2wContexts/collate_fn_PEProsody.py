@@ -109,6 +109,7 @@ class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
         prosody_seg_d_emb_paths: Optional[List],
         prosody_seg_p_emb_paths: Optional[List],
         use_hist_num: int,
+        use_prosody_hist_num: int,
         use_local_prosody_hist_idx: int,
         use_situation_text: int,
     ):
@@ -125,6 +126,7 @@ class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
         self.prosody_seg_d_emb_paths = prosody_seg_d_emb_paths
         self.prosody_seg_p_emb_paths = prosody_seg_p_emb_paths
         self.use_hist_num = use_hist_num
+        self.use_prosody_hist_num = use_prosody_hist_num if type(use_prosody_hist_num) is int else use_hist_num
         self.use_local_prosody_hist_idx = use_local_prosody_hist_idx
         self.use_situation_text = use_situation_text > 0
 
@@ -148,7 +150,7 @@ class fastspeech2wPEProsody_Dataset(data_utils.Dataset):  # type: ignore
             hist_local_prosody_emb, hist_local_prosody_speaker, hist_local_prosody_emotion
         ) = get_peprosody_embs(
             self.in_paths[idx].name.replace("-feats.npy", ""), self.prosody_emb_paths,
-            self.utt2id, self.id2utt, self.use_hist_num, start_index=1,
+            self.utt2id, self.id2utt, self.use_prosody_hist_num, start_index=1,
             use_local_prosody_hist_idx=self.use_local_prosody_hist_idx,
             seg_emb_paths=self.prosody_seg_emb_paths,
             seg_d_emb_paths=self.prosody_seg_d_emb_paths,
@@ -239,6 +241,7 @@ def fastspeech2wPEProsody_get_data_loaders(data_config: Dict, collate_fn: Callab
             prosody_seg_d_emb_paths,
             prosody_seg_p_emb_paths,
             use_hist_num=data_config.use_hist_num,  # type:ignore
+            use_prosody_hist_num=data_config.use_prosody_hist_num,  # type:ignore
             use_local_prosody_hist_idx=data_config.use_local_prosody_hist_idx,  # type:ignore
             use_situation_text=data_config.use_situation_text,  # type:ignore
         )

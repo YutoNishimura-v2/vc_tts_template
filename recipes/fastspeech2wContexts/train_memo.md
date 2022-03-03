@@ -1528,7 +1528,7 @@
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
         - use_situation_text = 0
-        - jobID:
+        - jobID: 9453769
 
     #### Current Melで条件づけるやつ
     - LINE_wContextwPEProsody_130_JT_TMCCE_GRU
@@ -1625,4 +1625,26 @@
         - last_concat = True
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsody
-        - jobID: 
+        - jobID: 9453771
+
+    #### hist_len=1のCM+Attn+Meltarget
+    - LINE_wContextwPEProsody_143_JT_CMCCE_Attn_Meltarget_histlen_1
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - hist_len = 1
+        - jobID: 9453779
+    #### prosodyのみhist_len=1
+    - LINE_wContextwPEProsody_144_JT_CMCCE_Attn_Meltarget_prosodyhistlen_1
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - use_hist_num: 10
+        - use_prosody_hist_num: 1
+        - jobID: 9455145
