@@ -155,7 +155,9 @@ def my_app(config: DictConfig) -> None:
             acoustic_config.netG.speakers, acoustic_config.netG.emotions,
             acoustic_model, acoustic_out_scaler, vocoder_model
         )
-        hist_prosody_emb_len = prosody_embedding[5]
+        # TODO: prosody emb lenがcontext embと異なる場合，うまく計算できない．
+        # dictを別に用意してあげる必要があり．現状は片方が = 1 の時のみの利用を推奨
+        hist_prosody_emb_len = max(prosody_embedding[5], context_embedding[2])
 
         if attentions is not None:
             text_attn, speech_attn = attentions
@@ -313,7 +315,7 @@ def my_app(config: DictConfig) -> None:
                 data=(wav * 32767.0).astype(np.int16),
             )
             if attentions is not None:
-                hist_prosody_emb_len = prosody_embedding[5]
+                hist_prosody_emb_len = max(prosody_embedding[5], context_embedding[2])
                 text_attn, speech_attn = attentions
                 if hist_prosody_emb_len not in attention_len_num_real.keys():
                     attention_len_num_real[hist_prosody_emb_len] = 1
