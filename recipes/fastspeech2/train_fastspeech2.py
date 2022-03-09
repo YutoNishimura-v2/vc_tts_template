@@ -23,12 +23,13 @@ def fastspeech2_train_step(
     optimizer,
     lr_scheduler,
     train,
-    loss,
+    loss_func,
     batch,
     logger,
     scaler,
     grad_checker,
-    optimizer_2=None
+    optimizer_2=None,
+    lr_sch_2=None,
 ):
     """dev時にはpredしたp, eで計算してほしいので, オリジナルのtrain_stepに.
     """
@@ -38,10 +39,26 @@ def fastspeech2_train_step(
         with torch.cuda.amp.autocast():
             _loss = model(*batch, q_theta_training=True)
         scaler.scale(_loss).backward()
-        scaler.unscale_(optimizer_2)
-        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        scaler.unscale_(optimizer)
+        grad_norm = torch.nn.utils.clip_grad_norm_(
+            model.club_estimator.parameters(), 1.0
+        )
         scaler.step(optimizer_2)
         scaler.update()
+        if lr_sch_2 is not None:
+            lr_sch_2.step()
+
+        # optimizer_2.zero_grad()
+        # with torch.cuda.amp.autocast():
+        #     _loss = model(*batch, q_theta_training=True)
+        # scaler.scale(_loss).backward()
+        # scaler.step(optimizer_2)
+        # scaler.update()
+
+        # optimizer_2.zero_grad()
+        # _loss = model(*batch, q_theta_training=True)
+        # _loss.backward()
+        # optimizer_2.step()
 
     optimizer.zero_grad()
 
@@ -57,10 +74,11 @@ def fastspeech2_train_step(
                 d_targets=batch[-1],
             )
 
-        loss, loss_values = loss(batch, output)
+        loss, loss_values = loss_func(batch, output)
 
     # Update
     if train:
+        loss_func.next_step()
         scaler.scale(loss).backward()
         grad_checker.set_params(model.named_parameters())
         free_tensors_memory([loss])

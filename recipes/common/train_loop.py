@@ -77,8 +77,14 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
             eps=0.000000001,
             weight_decay=0.0,
         )
+        # lr_sch_2 = optim.lr_scheduler.LambdaLR(
+        #     opt_2,
+        #     lr_lambda = lambda epoch: 1 - 0.9 * epoch / loss.max_step
+        # )
+        lr_sch_2 = None
     else:
         opt_2 = None
+        lr_sch_2 = None
 
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs, last_epoch=last_epoch):
         for phase in data_loaders.keys():
@@ -109,6 +115,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                         scaler,
                         grad_checker,
                         opt_2,
+                        lr_sch_2,
                     )
                     if train:
                         for key, val in loss_values.items():

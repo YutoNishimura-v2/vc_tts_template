@@ -335,6 +335,45 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         )
 
 
+# class CLUBSample(nn.Module):  # Sampled version of the CLUB estimator
+#     def __init__(self, x_dim, y_dim, hidden_size):
+#         super(CLUBSample, self).__init__()
+#         self.p_mu = nn.Sequential(nn.Linear(x_dim, hidden_size//2),
+#                                   nn.ReLU(),
+#                                   nn.Linear(hidden_size//2, y_dim))
+
+#         self.p_var = nn.Sequential(nn.Linear(x_dim, hidden_size//2),
+#                                    nn.ReLU(),
+#                                    nn.Linear(hidden_size//2, y_dim),
+#                                    nn.ELU(inplace=True))
+
+#     def get_mu_var(self, x_samples):
+#         mu = self.p_mu(x_samples)
+#         var = self.p_var(x_samples) + 1.0
+#         return mu, var + 1e-7
+
+#     def loglikeli(self, x_samples, y_samples):
+#         mu, var = self.get_mu_var(x_samples)
+#         return (-(mu - y_samples)**2 / var - var.log()).sum(dim=1).mean(dim=0)
+
+#     def forward(self, x_samples, y_samples):
+#         # vCLUBの計算
+#         mu, var = self.get_mu_var(x_samples)
+
+#         sample_size = x_samples.shape[0]
+#         # random_index = torch.randint(sample_size, (sample_size,)).long()
+#         random_index = torch.randperm(sample_size).long()
+
+#         positive = - (mu - y_samples)**2 / var
+#         negative = - (mu - y_samples[random_index])**2 / var
+#         upper_bound = (positive.sum(dim=-1) - negative.sum(dim=-1)).mean()
+#         return upper_bound/2.
+
+#     def learning_loss(self, x_samples, y_samples):
+#         # q_θ の訓練用のloss出力
+#         return - self.loglikeli(x_samples, y_samples)
+
+
 class CLUBSample(nn.Module):  # Sampled version of the CLUB estimator
     def __init__(self, x_dim, y_dim, hidden_size):
         super(CLUBSample, self).__init__()
@@ -354,30 +393,28 @@ class CLUBSample(nn.Module):  # Sampled version of the CLUB estimator
 
     def loglikeli(self, x_samples, y_samples):
         mu, logvar = self.get_mu_logvar(x_samples)
-        return (-(mu - y_samples)**2 / logvar.exp()-logvar).sum(dim=1).mean(dim=0)
+        return (-(mu - y_samples)**2 /logvar.exp()-logvar).sum(dim=1).mean(dim=0)
 
     def forward(self, x_samples, y_samples):
-        # vCLUBの計算
         mu, logvar = self.get_mu_logvar(x_samples)
-
+        
         sample_size = x_samples.shape[0]
         # random_index = torch.randint(sample_size, (sample_size,)).long()
         random_index = torch.randperm(sample_size).long()
-
+        
         positive = - (mu - y_samples)**2 / logvar.exp()
         negative = - (mu - y_samples[random_index])**2 / logvar.exp()
-        upper_bound = (positive.sum(dim=-1) - negative.sum(dim=-1)).mean()
+        upper_bound = (positive.sum(dim = -1) - negative.sum(dim = -1)).mean()
         return upper_bound/2.
 
     def learning_loss(self, x_samples, y_samples):
-        # q_θ の訓練用のloss出力
         return - self.loglikeli(x_samples, y_samples)
 
 
 class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
     """ FastSpeech2 Loss """
 
-    def __init__(self, pitch_feature_level, energy_feature_level, beta, g_beta=None):
+    def __init__(self, pitch_feature_level, energy_feature_level, beta, mi_s=None, mi_e=None, max_step=None):
         super().__init__()
         self.pitch_feature_level = "phoneme_level" if pitch_feature_level > 0 else "frame_level"
         self.energy_feature_level = "phoneme_level" if energy_feature_level > 0 else "frame_level"
@@ -385,7 +422,10 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
         self.mse_loss = nn.MSELoss()
         self.mae_loss = nn.L1Loss()
         self.beta = beta
-        self.g_beta = g_beta
+        self.mi_s = mi_s
+        self.mi_e = mi_e
+        self.step = 0
+        self.max_step = max_step
 
     def forward(self, inputs, predictions):
         (
@@ -468,8 +508,10 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
         total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss + self.beta*prosody_emb_loss
 
         # mutual_infomationを計算する
-        if (self.g_beta is not None) and (mi is not None):
-            total_loss = total_loss + self.g_beta * mi
+        if (self.mi_s is not None) and (mi is not None):
+            # mi_beta = self.mi_s + (self.mi_e - self.mi_s) * self.step / self.max_step
+            mi_beta = self.mi_s
+            total_loss = total_loss + mi_beta * mi
             loss_values = {
                 "club_loss": mi.item(),
                 "prosody_emb_loss": prosody_emb_loss.item(),
@@ -492,3 +534,6 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
             }
 
         return total_loss, loss_values
+
+    def next_step(self):
+        self.step += 1
