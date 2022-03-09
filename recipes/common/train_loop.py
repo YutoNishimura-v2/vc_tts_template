@@ -1,6 +1,8 @@
 import torch
 from hydra.utils import to_absolute_path
 from tqdm import tqdm
+import torch.optim as optim
+
 from pathlib import Path
 from vc_tts_template.train_utils import (
     get_epochs_with_optional_tqdm,
@@ -67,6 +69,17 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
     scaler = torch.cuda.amp.GradScaler()
     grad_checker = check_grad_flow(logger=logger)
 
+    if hasattr(model, "club_estimator"):
+        opt_2 = optim.Adam(
+            model.club_estimator.parameters(),
+            lr=0.001,
+            betas=[0.9, 0.98],
+            eps=0.000000001,
+            weight_decay=0.0,
+        )
+    else:
+        opt_2 = None
+
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs, last_epoch=last_epoch):
         for phase in data_loaders.keys():
             train = phase.startswith("train")
@@ -95,6 +108,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                         logger,
                         scaler,
                         grad_checker,
+                        opt_2,
                     )
                     if train:
                         for key, val in loss_values.items():

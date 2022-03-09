@@ -1648,3 +1648,16 @@
         - use_hist_num: 10
         - use_prosody_hist_num: 1
         - jobID: 9455145
+    
+    #### mutial_infomationの導入
+    - LINE_wContextwPEProsody_145_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - g_beta = 0.01
+        - use_hist_num: 10
+        - jobID: 

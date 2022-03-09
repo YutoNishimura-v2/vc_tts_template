@@ -28,9 +28,21 @@ def fastspeech2_train_step(
     logger,
     scaler,
     grad_checker,
+    optimizer_2=None
 ):
     """dev時にはpredしたp, eで計算してほしいので, オリジナルのtrain_stepに.
     """
+    # まずはCLUBの最適化
+    if (train is True) and (optimizer_2 is not None):
+        optimizer_2.zero_grad()
+        with torch.cuda.amp.autocast():
+            _loss = model(*batch, q_theta_training=True)
+        scaler.scale(_loss).backward()
+        scaler.unscale_(optimizer_2)
+        grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        scaler.step(optimizer_2)
+        scaler.update()
+
     optimizer.zero_grad()
 
     # Run forwaard

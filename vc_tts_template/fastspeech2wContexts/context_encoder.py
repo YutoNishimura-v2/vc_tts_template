@@ -310,9 +310,9 @@ class ConversationalContextEncoder(nn.Module):
                         torch.cat([
                             context_text_enc, context_prosody_enc
                         ], dim=-1)
-                    )
+                    ), context_text_enc, context_prosody_enc
                 else:
-                    return context_text_enc + context_prosody_enc
+                    return context_text_enc + context_prosody_enc, context_text_enc, context_prosody_enc
             elif (self.use_text_modal is True) and (self.use_speech_modal is False):
                 return context_text_enc
             elif (self.use_text_modal is False) and (self.use_speech_modal is True):
@@ -324,9 +324,12 @@ class ConversationalContextEncoder(nn.Module):
                         torch.cat([
                             context_text_enc, context_prosody_enc
                         ], dim=-1)
-                    ), text_score, prosody_score
+                    ), text_score, prosody_score, context_text_enc, context_prosody_enc
                 else:
-                    return context_text_enc + context_prosody_enc, text_score, prosody_score
+                    return (
+                        context_text_enc + context_prosody_enc, text_score, prosody_score,
+                        context_text_enc, context_prosody_enc
+                    )
             elif (self.use_text_modal is True) and (self.use_speech_modal is False):
                 return context_text_enc, text_score, None
             elif (self.use_text_modal is False) and (self.use_speech_modal is True):

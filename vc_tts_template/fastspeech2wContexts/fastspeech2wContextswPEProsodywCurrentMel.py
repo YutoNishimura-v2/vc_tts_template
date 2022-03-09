@@ -136,6 +136,14 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         else:
             raise RuntimeError("未対応です")
 
+        self.current_attention = current_attention
+        if (use_context_encoder is True) and (use_melprosody_encoder is True):
+            self.club_estimator = CLUBSample(
+                encoder_hidden_dim, encoder_hidden_dim, encoder_hidden_dim * 2
+            )
+        else:
+            self.club_estimator = None  # type: ignore
+
     def contexts_forward(
         self,
         output,
@@ -191,11 +199,23 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
             h_prosody_embs_len,  # [hist1, hist2, ...]. h_txt_emb_lensとは違って1 start.
         )
         if type(context_enc_outputs) == tuple:
-            context_enc = context_enc_outputs[0]
-            attentions = context_enc_outputs[1:]
+            if self.current_attention is True:
+                if len(context_enc_outputs) == 3:
+                    context_enc = context_enc_outputs[0]
+                    attentions = context_enc_outputs[1:]
+                    context_embs = None
+                if len(context_enc_outputs) == 5:
+                    context_enc = context_enc_outputs[0]
+                    attentions = context_enc_outputs[1:3]
+                    context_embs = context_enc_outputs[3:]
+            else:
+                context_enc = context_enc_outputs[0]
+                attentions = None
+                context_embs = context_enc_outputs[1:]
         else:
             context_enc = context_enc_outputs
             attentions = None
+            context_embs = None
 
         if c_prosody_embs_phonemes is None:
             output = output + context_enc.unsqueeze(1).expand(
@@ -210,7 +230,7 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         # 以下だけ変更
         prosody_prediction = self.next_predictor(context_enc)
 
-        return output, prosody_prediction, attentions
+        return output, prosody_prediction, attentions, context_embs
 
     def forward(
         self,
@@ -246,6 +266,7 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         p_control=1.0,
         e_control=1.0,
         d_control=1.0,
+        q_theta_training=False,
     ):
         src_lens, max_src_len, src_masks, mel_lens, max_mel_len, mel_masks = self.init_forward(
             src_lens, max_src_len, mel_lens, max_mel_len
@@ -253,13 +274,26 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         output = self.encoder_forward(
             texts, src_masks, max_src_len, speakers, emotions
         )
-        output, prosody_prediction, attentions = self.contexts_forward(
+        output, prosody_prediction, attentions, context_embs = self.contexts_forward(
             output, max_src_len, c_txt_embs, c_txt_embs_lens,
             speakers, emotions,
             h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
             h_prosody_embs, h_prosody_embs_lens, h_prosody_embs_len,
             c_prosody_embs_phonemes,
         )
+        if (q_theta_training is True) and (self.club_estimator is not None):
+            t_emb, p_emb = context_embs
+            loss = self.club_estimator.learning_loss(
+                t_emb, p_emb
+            )
+            return loss
+        elif (q_theta_training is False) and (self.club_estimator is not None):
+            t_emb, p_emb = context_embs
+            mi = self.club_estimator(
+                t_emb, p_emb
+            )
+        else:
+            mi = None
         (
             output,
             p_predictions,
@@ -297,13 +331,53 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
             mel_lens,
             prosody_prediction,
             attentions,
+            mi,
         )
+
+
+class CLUBSample(nn.Module):  # Sampled version of the CLUB estimator
+    def __init__(self, x_dim, y_dim, hidden_size):
+        super(CLUBSample, self).__init__()
+        self.p_mu = nn.Sequential(nn.Linear(x_dim, hidden_size//2),
+                                  nn.ReLU(),
+                                  nn.Linear(hidden_size//2, y_dim))
+
+        self.p_logvar = nn.Sequential(nn.Linear(x_dim, hidden_size//2),
+                                      nn.ReLU(),
+                                      nn.Linear(hidden_size//2, y_dim),
+                                      nn.Tanh())
+
+    def get_mu_logvar(self, x_samples):
+        mu = self.p_mu(x_samples)
+        logvar = self.p_logvar(x_samples)
+        return mu, logvar
+
+    def loglikeli(self, x_samples, y_samples):
+        mu, logvar = self.get_mu_logvar(x_samples)
+        return (-(mu - y_samples)**2 / logvar.exp()-logvar).sum(dim=1).mean(dim=0)
+
+    def forward(self, x_samples, y_samples):
+        # vCLUBの計算
+        mu, logvar = self.get_mu_logvar(x_samples)
+
+        sample_size = x_samples.shape[0]
+        # random_index = torch.randint(sample_size, (sample_size,)).long()
+        random_index = torch.randperm(sample_size).long()
+
+        positive = - (mu - y_samples)**2 / logvar.exp()
+        negative = - (mu - y_samples[random_index])**2 / logvar.exp()
+        upper_bound = (positive.sum(dim=-1) - negative.sum(dim=-1)).mean()
+        return upper_bound/2.
+
+    def learning_loss(self, x_samples, y_samples):
+        # q_θ の訓練用のloss出力
+        return - self.loglikeli(x_samples, y_samples)
 
 
 class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
     """ FastSpeech2 Loss """
 
-    def __init__(self, pitch_feature_level, energy_feature_level, beta):
+    def __init__(self, pitch_feature_level, energy_feature_level, beta, g_beta=None):
         super().__init__()
         self.pitch_feature_level = "phoneme_level" if pitch_feature_level > 0 else "frame_level"
         self.energy_feature_level = "phoneme_level" if energy_feature_level > 0 else "frame_level"
@@ -311,6 +385,7 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
         self.mse_loss = nn.MSELoss()
         self.mae_loss = nn.L1Loss()
         self.beta = beta
+        self.g_beta = g_beta
 
     def forward(self, inputs, predictions):
         (
@@ -344,7 +419,9 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
             _,
             _,
             predicted_prosody_embs,
-        ) = predictions[:11]
+            _,
+            mi,
+        ) = predictions
         src_masks = ~src_masks
         mel_masks = ~mel_masks
         log_duration_targets = torch.log(duration_targets.float() + 1)
@@ -390,14 +467,28 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
 
         total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss + self.beta*prosody_emb_loss
 
-        loss_values = {
-            "prosody_emb_loss": prosody_emb_loss.item(),
-            "mel_loss": mel_loss.item(),
-            "postnet_mel_loss": postnet_mel_loss.item(),
-            "pitch_loss": pitch_loss.item(),
-            "energy_loss": energy_loss.item(),
-            "duration_loss": duration_loss.item(),
-            "total_loss": total_loss.item()
-        }
+        # mutual_infomationを計算する
+        if (self.g_beta is not None) and (mi is not None):
+            total_loss = total_loss + self.g_beta * mi
+            loss_values = {
+                "club_loss": mi.item(),
+                "prosody_emb_loss": prosody_emb_loss.item(),
+                "mel_loss": mel_loss.item(),
+                "postnet_mel_loss": postnet_mel_loss.item(),
+                "pitch_loss": pitch_loss.item(),
+                "energy_loss": energy_loss.item(),
+                "duration_loss": duration_loss.item(),
+                "total_loss": total_loss.item()
+            }
+        else:
+            loss_values = {
+                "prosody_emb_loss": prosody_emb_loss.item(),
+                "mel_loss": mel_loss.item(),
+                "postnet_mel_loss": postnet_mel_loss.item(),
+                "pitch_loss": pitch_loss.item(),
+                "energy_loss": energy_loss.item(),
+                "duration_loss": duration_loss.item(),
+                "total_loss": total_loss.item()
+            }
 
         return total_loss, loss_values
