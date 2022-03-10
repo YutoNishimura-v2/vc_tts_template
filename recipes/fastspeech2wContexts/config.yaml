@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_11"
+spk: "LINE_wContextwPEProsody_13"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_144_JT_CMCCE_Attn_Meltarget_prosodyhistlen_1"
+tag: "LINE_wContextwPEProsody_155_wav2vec2_Bagus"
 
 sample_rate: 22050
 
@@ -53,7 +53,7 @@ speakers:
 # for with Contexts
 BERT_weight: "colorfulscoop/sbert-base-ja"
 use_hist_num: 10
-use_prosody_hist_num: 1
+use_prosody_hist_num:
 use_situation_text: 0
 # for with Prosody
 # if 0, the latest one is used. if -1, data will not be loaded.
@@ -72,7 +72,7 @@ input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset
 input_textgrid_paths:
 emb_speakers:
 SSL_name: "wav2vec2"
-SSL_weight: "jonatasgrosman/wav2vec2-large-xlsr-53-japanese"
+SSL_weight: "Bagus/wav2vec2-xlsr-japanese-speech-emotion-recognition"
 SSL_sample_rate: 16000
 mel_mode: 0
 pau_split: 0
@@ -81,7 +81,7 @@ pau_split: 0
 #                TRAINING SETTING                         #
 ###########################################################
 
-acoustic_model: fastspeech2wContextswPEProsodywCurrentMel
+acoustic_model: fastspeech2wContextswPEProsody
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.
 # 具体的に利用する重みは,vocoder_eval_checkpointになります.

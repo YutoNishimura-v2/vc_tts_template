@@ -229,12 +229,16 @@ class FastSpeech2wContextswPEProsody(FastSpeech2):
                     history_len = h_prosody_embs.size(1)
                     if h_prosody_embs.size(-2) == 1:
                         # batch全てPADのデータはこれになる
-                        h_prosody_emb = h_prosody_embs.view(batch_size, history_len, -1)
-                    else:
-                        h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
-                        h_prosody_emb = self.peprosody_encoder(
-                            h_prosody_embs
-                        ).view(batch_size, history_len, -1)
+                        # これが最初に来ると，peprosody_encoderを通らないのでgrad = Noneになる
+                        # そのためのexpand
+                        h_prosody_embs = h_prosody_embs.expand(
+                            batch_size, history_len,
+                            self.sslprosody_layer_num, h_prosody_embs.size(-1)
+                        )
+                    h_prosody_embs = h_prosody_embs.view(-1, h_prosody_embs.size(-2), h_prosody_embs.size(-1))
+                    h_prosody_emb = self.peprosody_encoder(
+                        h_prosody_embs
+                    ).view(batch_size, history_len, -1)
                 else:
                     h_prosody_emb = h_prosody_embs.squeeze(-2)
 

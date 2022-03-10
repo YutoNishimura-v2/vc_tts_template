@@ -25,7 +25,7 @@ cd /groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template/reci
 export PYTHONPATH="/groups/4/gcb50354/migrated_from_SFA_GPFS/yuto_nishimura/vc_tts_template:$PYTHONPATH"  # node A
 
 # ./run.sh --stage 3 --stop-stage 3 --local_dir ${SGE_LOCALDIR}/
-# ./run.sh --stage 4 --stop-stage 4 --local_dir ${SGE_LOCALDIR}/
-./run.sh --stage 4 --stop-stage 4 --local_dir ${SGE_LOCALDIR}/ --overwrite 1
+./run.sh --stage 4 --stop-stage 4 --local_dir ${SGE_LOCALDIR}/
+# ./run.sh --stage 4 --stop-stage 4 --local_dir ${SGE_LOCALDIR}/ --overwrite 1
 # ./run.sh --stage 5 --stop-stage 5 --local_dir ${SGE_LOCALDIR}/
 deactivate

@@ -1738,6 +1738,24 @@
         - jobID: 9513312
 
     ### INTERSPEECH用の基本手法たち
+    #### SSL実験しなおし
+    - どれもSM+GRUで比較
+    - LINE_wContextwPEProsody_151_wavlm
+        - spk: LINE_wContextwPEProsody_8
+        - jobID: 9513557
+    - LINE_wContextwPEProsody_152_wav2vec2_facebook
+        - spk: LINE_wContextwPEProsody_10
+        - jobID: 9515029
+    - LINE_wContextwPEProsody_153_wav2vec2_jonatasgrosman
+        - spk: LINE_wContextwPEProsody_11
+        - jobID: 9515027
+    - LINE_wContextwPEProsody_154_wav2vec2_NTQAI
+        - spk: LINE_wContextwPEProsody_12
+        - jobID: 9515026
+    - LINE_wContextwPEProsody_155_wav2vec2_Bagus
+        - spk: LINE_wContextwPEProsody_13
+        - jobID: 9515030
+    #### vs Baseline
     - baseline: LINE_wContextwPEProsody_128_JT_TMCCE_GRU
     - 共通の設定
         - spk: LINE_wContextwPEProsody_11
@@ -1745,13 +1763,13 @@
         - last_concat = True
         - use_situation_text = 0
         - hist_len = 10
-    - LINE_wContextwPEProsody_151_Attn
+    - LINE_wContextwPEProsody_155_Attn
         - jobID: 
-    - LINE_wContextwPEProsody_152_seg
+    - LINE_wContextwPEProsody_156_seg
         - jobID: 
-    - LINE_wContextwPEProsody_153_SM_woSSL
+    - LINE_wContextwPEProsody_157_SM_woSSL
         - jobID: 
-    - LINE_wContextwPEProsody_154_SM_wSSL
+    - LINE_wContextwPEProsody_158_SM_wSSL
         - jobID: 
-    - LINE_wContextwPEProsody_155_Meltarget
+    - LINE_wContextwPEProsody_159_Meltarget
         - jobID: 
