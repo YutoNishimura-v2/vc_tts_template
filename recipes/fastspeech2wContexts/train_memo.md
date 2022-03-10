@@ -1648,3 +1648,110 @@
         - use_hist_num: 10
         - use_prosody_hist_num: 1
         - jobID: 9455145
+    
+    #### mutial_infomationの導入
+    - LINE_wContextwPEProsody_145_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.001
+        - mi_e: 0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - jobID: 9507845
+    - LINE_wContextwPEProsody_146_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.001
+        - mi_e: 0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerだけじわじわ増やしていく
+        - jobID: 9507846
+    - LINE_wContextwPEProsody_147_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.001
+        - mi_e: 0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - miの係数だけじわじわ増やしていく
+        - jobID: 9507848
+    - LINE_wContextwPEProsody_148_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.001
+        - mi_e: 0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - scheduling系は何もしない
+        - jobID: 9507849
+    - LINE_wContextwPEProsody_149_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.001
+        - mi_e: 0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - t_embとp_embの役割を逆にしてみる
+        - jobID: 9508337
+    - LINE_wContextwPEProsody_150_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: -0.001
+        - mi_e: -0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - 最大化のほうをやってみる
+        - jobID: 9513312
+
+    ### INTERSPEECH用の基本手法たち
+    - baseline: LINE_wContextwPEProsody_128_JT_TMCCE_GRU
+    - 共通の設定
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - hist_len = 10
+    - LINE_wContextwPEProsody_151_Attn
+        - jobID: 
+    - LINE_wContextwPEProsody_152_seg
+        - jobID: 
+    - LINE_wContextwPEProsody_153_SM_woSSL
+        - jobID: 
+    - LINE_wContextwPEProsody_154_SM_wSSL
+        - jobID: 
+    - LINE_wContextwPEProsody_155_Meltarget
+        - jobID: 
