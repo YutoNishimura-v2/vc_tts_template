@@ -1706,3 +1706,33 @@
         - use_hist_num: 10
         - scheduling系は何もしない
         - jobID: 9507849
+    - LINE_wContextwPEProsody_149_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.001
+        - mi_e: 0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - t_embとp_embの役割を逆にしてみる
+        - jobID: 9508337
+    - LINE_wContextwPEProsody_150_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: -0.001
+        - mi_e: -0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - 最大化のほうをやってみる
+        - jobID: 9513312

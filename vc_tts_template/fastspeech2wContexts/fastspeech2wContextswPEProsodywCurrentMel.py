@@ -283,12 +283,14 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         )
         if (q_theta_training is True) and (self.club_estimator is not None):
             t_emb, p_emb = context_embs
+            # p_emb, t_emb = context_embs
             loss = self.club_estimator.learning_loss(
                 t_emb, p_emb
             )
             return loss
         elif (q_theta_training is False) and (self.club_estimator is not None):
             t_emb, p_emb = context_embs
+            # p_emb, t_emb = context_embs
             mi = self.club_estimator(
                 t_emb, p_emb
             )
@@ -509,8 +511,8 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
 
         # mutual_infomationを計算する
         if (self.mi_s is not None) and (mi is not None):
-            # mi_beta = self.mi_s + (self.mi_e - self.mi_s) * self.step / self.max_step
-            mi_beta = self.mi_s
+            mi_beta = self.mi_s + (self.mi_e - self.mi_s) * self.step / self.max_step
+            # mi_beta = self.mi_s
             total_loss = total_loss + mi_beta * mi
             loss_values = {
                 "club_loss": mi.item(),
