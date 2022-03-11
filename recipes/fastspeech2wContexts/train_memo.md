@@ -1742,6 +1742,39 @@
         - lr_schedulerとmiの係数をじわじわ増やしていくやつ
         - 最大化のほうをやってみる
         - jobID: 9513312
+    - LINE_wContextwPEProsody_161_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.001
+        - mi_e: 0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - 先輩アドバイス: 全体の最適化の時はCLUBに勾配を渡さないことにする
+            - 具体的には，全体の訓練の直前でrequire_grad = Falseにしてしまう
+        - jobID: 9521382
+    - LINE_wContextwPEProsody_162_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.001
+        - mi_e: 0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - 先輩アドバイス: 全体の最適化の時はCLUBに勾配を渡さないことにする
+            - 具体的には，全体の訓練の直前でrequire_grad = Falseにしてしまう
+        - さらにアドバイス: miが負になったらもうCLUBの更新はやめた方がよさそう
+        - jobID: 9521955
 
     ### INTERSPEECH用の基本手法たち
     #### SSL実験しなおし
