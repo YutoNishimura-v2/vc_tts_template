@@ -213,7 +213,7 @@ def my_app(config: DictConfig) -> None:
         out_wav_base.mkdir(parents=True, exist_ok=True)
 
         # -1. SSL modelを利用するならここで準備しておく
-        if config.SSL_name is not None:
+        if config.SSL_name != "":
             if config.SSL_name == "WavLM":
                 assert config.SSL_sample_rate == 16000, "sampling rateは16000のみ有効です"
                 processor = Wav2Vec2FeatureExtractor.from_pretrained(config.SSL_weight)
@@ -299,7 +299,7 @@ def my_app(config: DictConfig) -> None:
 
             lab_file = in_dir / f"{utt_id.strip()}-feats.npy"
 
-            if (config.mel_mode == 0) and (config.SSL_name is None):
+            if (config.mel_mode == 0) and (config.SSL_name == ""):
                 # NOTE: 対応させたいなら，下の_synthsisでpitchとかを返せるようにすればいい.
                 assert RuntimeError("未対応")
             wav, synthesised_mel, attentions = _synthesis(  # type: ignore
@@ -345,7 +345,7 @@ def my_app(config: DictConfig) -> None:
                     synthesised_mel.astype(np.float32),
                     allow_pickle=False,
                 )
-            elif config.SSL_name is not None:
+            elif config.SSL_name != "":
                 _sr, x = wavfile.read(out_wav_base / f"{utt_id}.wav")
                 if x.dtype in [np.int16, np.int32]:
                     x = (x / np.iinfo(x.dtype).max).astype(np.float64)
