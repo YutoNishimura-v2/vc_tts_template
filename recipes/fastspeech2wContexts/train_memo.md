@@ -1766,8 +1766,8 @@
         - use_situation_text = 0
         - FastSpeech2wContextswPEProsodywCurrentMel
         - beta = 0.1
-        - mi_s: 0.001
-        - mi_e: 0.01
+        - mi_s: 0.0001
+        - mi_e: 0.001
         - max_step: 70000
         - use_hist_num: 10
         - lr_schedulerとmiの係数をじわじわ増やしていくやつ
@@ -1775,7 +1775,43 @@
             - 具体的には，全体の訓練の直前でrequire_grad = Falseにしてしまう
         - さらにアドバイス: miが負になったらもうCLUBの更新はやめた方がよさそう
             - epochごとのavg_lossで評価
-        - jobID: 9522111
+        - jobID: 9522500
+    - LINE_wContextwPEProsody_163_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.00001
+        - mi_e: 0.0001
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - 先輩アドバイス: 全体の最適化の時はCLUBに勾配を渡さないことにする
+            - 具体的には，全体の訓練の直前でrequire_grad = Falseにしてしまう
+        - さらにアドバイス: miが負になったらもうCLUBの更新はやめた方がよさそう
+            - epochごとのavg_lossで評価
+        - jobID: 9522506
+    - LINE_wContextwPEProsody_164_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.000001
+        - mi_e: 0.00001
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - 先輩アドバイス: 全体の最適化の時はCLUBに勾配を渡さないことにする
+            - 具体的には，全体の訓練の直前でrequire_grad = Falseにしてしまう
+        - さらにアドバイス: miが負になったらもうCLUBの更新はやめた方がよさそう
+            - epochごとのavg_lossで評価
+        - jobID: 9522508
 
     ### INTERSPEECH用の基本手法たち
     #### SSL実験しなおし

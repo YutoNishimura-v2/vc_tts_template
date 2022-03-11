@@ -161,6 +161,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                     ave_loss = val / (len(data_loaders[phase]) * group_size)
                     if (key == "club_loss") and (ave_loss < 0.0):
                         mi_minus_flg = 1
+                        opt_2.zero_grad()
                     elif (key == "club_loss") and (ave_loss >= 0.0):
                         mi_minus_flg = 0
                     writers[phase].add_scalar(f"loss/{key}", ave_loss, epoch)

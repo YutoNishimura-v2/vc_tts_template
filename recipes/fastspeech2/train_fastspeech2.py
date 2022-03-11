@@ -41,7 +41,7 @@ def fastspeech2_train_step(
         with torch.cuda.amp.autocast():
             _loss = model(*batch, q_theta_training=True)
         scaler.scale(_loss).backward()
-        scaler.unscale_(optimizer)
+        scaler.unscale_(optimizer_2)
         grad_norm = torch.nn.utils.clip_grad_norm_(
             model.club_estimator.parameters(), 1.0
         )
@@ -61,12 +61,21 @@ def fastspeech2_train_step(
         # _loss = model(*batch, q_theta_training=True)
         # _loss.backward()
         # optimizer_2.step()
-
-    optimizer.zero_grad()
+        # print()
+        # print("after_club_loss")
+        # print(_loss)
+        # for n, p in model.club_estimator.named_parameters():
+        #     print("\tname: ", n)
+        #     print("\tweight_value: ", p.mean())
+        #     print("\trequires_grad: ", p.requires_grad)
+        #     if p.requires_grad is True:
+        #         p = p.grad.abs().mean().cpu().numpy()
+        #         print("\tgrad_value", p)
 
     # requires grad を False へ
     for _, p in model.club_estimator.named_parameters():
         p.requires_grad = False
+    optimizer.zero_grad()
 
     # Run forwaard
     with torch.cuda.amp.autocast():
@@ -101,6 +110,16 @@ def fastspeech2_train_step(
         scaler.update()
         lr_scheduler.step()
     
+        # print("after_model_loss")
+        # print(loss_values["club_loss"])
+        # for n, p in model.club_estimator.named_parameters():
+        #     print("\tname: ", n)
+        #     print("\tweight_value: ", p.mean())
+        #     print("\trequires_grad: ", p.requires_grad)
+        #     if p.requires_grad is True:
+        #         p = p.grad.abs().mean().cpu().numpy()
+        #         print("\tgrad_value", p)
+
     return loss_values
 
 
