@@ -79,6 +79,12 @@
         - Wav2vec2.0を採用
             - Bagus/wav2vec2-xlsr-japanese-speech-emotion-recognition
         - これはutterance ver
+    - LINE_wContextwPEProsody_14
+        - out_LINE_woITAKOから作る. 
+        - textと同様に，音声の方も事前に用意したprosodyを利用することに
+        - Wav2vec2.0を採用
+            - jonatasgrosman/wav2vec2-large-xlsr-53-japanese
+        - これはsegment ver
 
 - exp
     - LINE_wContext_1
@@ -1757,19 +1763,19 @@
         - jobID: 9515030
     #### vs Baseline
     - baseline: LINE_wContextwPEProsody_128_JT_TMCCE_GRU
-    - 共通の設定
+    - 基本の共通の設定
         - spk: LINE_wContextwPEProsody_11
         - pretrain: fastspeech2/jsut_sr22050_JSUT_5
         - last_concat = True
         - use_situation_text = 0
         - hist_len = 10
-    - LINE_wContextwPEProsody_155_Attn
+    - LINE_wContextwPEProsody_156_Attn
         - jobID: 
-    - LINE_wContextwPEProsody_156_seg
+    - LINE_wContextwPEProsody_157_seg
         - jobID: 
-    - LINE_wContextwPEProsody_157_SM_woSSL
+    - LINE_wContextwPEProsody_158_SM_woSSL
         - jobID: 
-    - LINE_wContextwPEProsody_158_SM_wSSL
+    - LINE_wContextwPEProsody_159_SM_wSSL
         - jobID: 
-    - LINE_wContextwPEProsody_159_Meltarget
+    - LINE_wContextwPEProsody_160_Meltarget
         - jobID: 

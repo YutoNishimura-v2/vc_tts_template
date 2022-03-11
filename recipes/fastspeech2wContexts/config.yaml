@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_13"
+spk: "LINE_wContextwPEProsody_14"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_155_wav2vec2_Bagus"
+tag: "LINE_wContextwPEProsody_156_seg"
 
 sample_rate: 22050
 
@@ -72,10 +72,10 @@ input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset
 input_textgrid_paths:
 emb_speakers:
 SSL_name: "wav2vec2"
-SSL_weight: "Bagus/wav2vec2-xlsr-japanese-speech-emotion-recognition"
+SSL_weight: "jonatasgrosman/wav2vec2-large-xlsr-53-japanese"
 SSL_sample_rate: 16000
 mel_mode: 0
-pau_split: 0
+pau_split: 1
 
 ###########################################################
 #                TRAINING SETTING                         #
