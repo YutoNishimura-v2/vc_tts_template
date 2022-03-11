@@ -79,6 +79,12 @@
         - Wav2vec2.0を採用
             - Bagus/wav2vec2-xlsr-japanese-speech-emotion-recognition
         - これはutterance ver
+    - LINE_wContextwPEProsody_14
+        - out_LINE_woITAKOから作る. 
+        - textと同様に，音声の方も事前に用意したprosodyを利用することに
+        - Wav2vec2.0を採用
+            - jonatasgrosman/wav2vec2-large-xlsr-53-japanese
+        - これはsegment ver
 
 - exp
     - LINE_wContext_1
@@ -1736,3 +1742,58 @@
         - lr_schedulerとmiの係数をじわじわ増やしていくやつ
         - 最大化のほうをやってみる
         - jobID: 9513312
+    - LINE_wContextwPEProsody_161_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.001
+        - mi_e: 0.01
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - 先輩アドバイス: 全体の最適化の時はCLUBに勾配を渡さないことにする
+            - 具体的には，全体の訓練の直前でrequire_grad = Falseにしてしまう
+        - jobID: 9521382
+
+    ### INTERSPEECH用の基本手法たち
+    #### SSL実験しなおし
+    - どれもSM+GRUで比較
+    - LINE_wContextwPEProsody_151_wavlm
+        - spk: LINE_wContextwPEProsody_8
+        - jobID: 9513557
+    - LINE_wContextwPEProsody_152_wav2vec2_facebook
+        - spk: LINE_wContextwPEProsody_10
+        - jobID: 9515029
+    - LINE_wContextwPEProsody_153_wav2vec2_jonatasgrosman
+        - spk: LINE_wContextwPEProsody_11
+        - jobID: 9515027
+    - LINE_wContextwPEProsody_154_wav2vec2_NTQAI
+        - spk: LINE_wContextwPEProsody_12
+        - jobID: 9515026
+    - LINE_wContextwPEProsody_155_wav2vec2_Bagus
+        - spk: LINE_wContextwPEProsody_13
+        - jobID: 9515030
+    #### vs Baseline
+    - baseline: LINE_wContextwPEProsody_128_JT_TMCCE_GRU
+    - 基本の共通の設定
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - hist_len = 10
+    - LINE_wContextwPEProsody_156_Attn
+        - jobID: 9521033
+    - LINE_wContextwPEProsody_157_seg
+        - spk: LINE_wContextwPEProsody_14
+        - jobID: 9521254
+    - LINE_wContextwPEProsody_158_SM_woSSL
+        - spk: LINE_wContextwPEProsody_4
+        - jobID: 9521279
+    - LINE_wContextwPEProsody_159_SM_wSSL
+        - jobID: 9521285
+    - LINE_wContextwPEProsody_160_Meltarget
+        - jobID: 9521321

@@ -91,8 +91,8 @@ train:
     pitch_feature_level:
     energy_feature_level:
     beta: 0.1
-    mi_s: -0.001
-    mi_e: -0.01
+    mi_s: 0.001
+    mi_e: 0.01
     max_step: 70000
 
   pretrained:

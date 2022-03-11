@@ -206,16 +206,16 @@ if [ ${stage} -le 4 ] && [ ${stop_stage} -ge 4 ]; then
             zip -rq ${dumpdir}/${spk}_sr${sample_rate}/g_prosody_emb.zip ${dumpdir}/${spk}_sr${sample_rate}/g_prosody_emb/
         fi
         # unzip
-        unzip -q  -d ${local_dir} ${dump_norm_dir}/${train_set}/in_fastspeech2.zip
-        unzip -q  -d ${local_dir} ${dump_norm_dir}/${train_set}/out_fastspeech2.zip
-        unzip -q -d ${local_dir} ${dump_norm_dir}/${dev_set}/in_fastspeech2.zip
-        unzip -q -d ${local_dir} ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip
-        unzip -q -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/text_emb.zip
+        unzip -oq  -d ${local_dir} ${dump_norm_dir}/${train_set}/in_fastspeech2.zip
+        unzip -oq  -d ${local_dir} ${dump_norm_dir}/${train_set}/out_fastspeech2.zip
+        unzip -oq -d ${local_dir} ${dump_norm_dir}/${dev_set}/in_fastspeech2.zip
+        unzip -oq -d ${local_dir} ${dump_norm_dir}/${dev_set}/out_fastspeech2.zip
+        unzip -oq -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/text_emb.zip
         if [ -e ${dumpdir}/${spk}_sr${sample_rate}/prosody_emb.zip ]; then
-            unzip -q -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/prosody_emb.zip
+            unzip -oq -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/prosody_emb.zip
         fi
         if [ -e ${dumpdir}/${spk}_sr${sample_rate}/g_prosody_emb.zip ]; then
-            unzip -q -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/g_prosody_emb.zip
+            unzip -oq -d ${local_dir} ${dumpdir}/${spk}_sr${sample_rate}/g_prosody_emb.zip
         fi
     fi
     xrun python train_fastspeech2wContexts.py model=$acoustic_model tqdm=$tqdm \

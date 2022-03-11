@@ -62,6 +62,10 @@ def fastspeech2_train_step(
 
     optimizer.zero_grad()
 
+    # requires grad を False へ
+    for _, p in model.club_estimator.named_parameters():
+        p.requires_grad = False
+
     # Run forwaard
     with torch.cuda.amp.autocast():
         if train is True:
@@ -94,6 +98,9 @@ def fastspeech2_train_step(
         scaler.step(optimizer)
         scaler.update()
         lr_scheduler.step()
+    
+    for _, p in model.club_estimator.named_parameters():
+        p.requires_grad = True
 
     return loss_values
 
