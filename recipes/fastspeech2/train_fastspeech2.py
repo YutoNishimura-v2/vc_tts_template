@@ -17,8 +17,6 @@ from recipes.common.fit_scaler import MultiSpeakerStandardScaler  # noqa: F401
 
 warnings.simplefilter('ignore', UserWarning)
 
-mi_minus_flg = 0
-
 def fastspeech2_train_step(
     model,
     optimizer,
@@ -31,13 +29,14 @@ def fastspeech2_train_step(
     grad_checker,
     optimizer_2=None,
     lr_sch_2=None,
+    mi_minus_flg=0
 ):
     """dev時にはpredしたp, eで計算してほしいので, オリジナルのtrain_stepに.
     """
-    global mi_minus_flg
-
     # まずはCLUBの最適化
     if (train is True) and (optimizer_2 is not None) and (mi_minus_flg == 0):
+        for _, p in model.club_estimator.named_parameters():
+            p.requires_grad = True
         optimizer_2.zero_grad()
         with torch.cuda.amp.autocast():
             _loss = model(*batch, q_theta_training=True)
@@ -102,13 +101,6 @@ def fastspeech2_train_step(
         scaler.update()
         lr_scheduler.step()
     
-    if loss_values["club_loss"] < 0:
-        mi_minus_flg = 1
-
-    if mi_minus_flg == 0:
-        for _, p in model.club_estimator.named_parameters():
-            p.requires_grad = True
-
     return loss_values
 
 

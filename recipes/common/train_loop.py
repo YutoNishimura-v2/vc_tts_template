@@ -82,9 +82,11 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
             lr_lambda = lambda epoch: 1 - 0.9 * epoch / loss.max_step
         )
         # lr_sch_2 = None
+        mi_minus_flg = 0
     else:
         opt_2 = None
         lr_sch_2 = None
+        mi_minus_flg = 0
 
     for epoch in get_epochs_with_optional_tqdm(config.tqdm, nepochs, last_epoch=last_epoch):
         for phase in data_loaders.keys():
@@ -116,6 +118,7 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                         grad_checker,
                         opt_2,
                         lr_sch_2,
+                        mi_minus_flg,
                     )
                     if train:
                         for key, val in loss_values.items():
@@ -156,6 +159,10 @@ def train_loop(config, to_device, model, optimizer, lr_scheduler, loss, data_loa
                     continue
                 else:
                     ave_loss = val / (len(data_loaders[phase]) * group_size)
+                    if (key == "club_loss") and (ave_loss < 0.0):
+                        mi_minus_flg = 1
+                    elif (key == "club_loss") and (ave_loss >= 0.0):
+                        mi_minus_flg = 0
                     writers[phase].add_scalar(f"loss/{key}", ave_loss, epoch)
 
             ave_loss = running_losses[list(running_losses.keys())[-1]] / (len(data_loaders[phase]) * group_size)
