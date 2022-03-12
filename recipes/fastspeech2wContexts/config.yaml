@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_11"
+spk: "LINE_wContextwPEProsody_4"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_160_Meltarget"
+tag: "LINE_wContextwPEProsody_170_SM_woSSL_Meltarget_beta_0_01"
 
 sample_rate: 22050
 
@@ -70,17 +70,22 @@ pretrained_checkpoints:
 input_wav_paths: "../../../dataset/out_LINE_woITAKO/LINE/wav/22050,../../../dataset/out_LINE_MStudent/LINE_MStudent/wav/22050,../../../dataset/out_LINE_FStudent/LINE_FStudent/wav/22050"
 input_lab_paths: "../../../dataset/out_LINE_woITAKO/fullcontext,../../../dataset/out_LINE_MStudent/fullcontext,../../../dataset/out_LINE_FStudent/fullcontext"
 input_textgrid_paths:
-emb_speakers:
-SSL_name: "wav2vec2"
-SSL_weight: "jonatasgrosman/wav2vec2-large-xlsr-53-japanese"
-SSL_sample_rate: 16000
-mel_mode: 0
+# emb_speakers:
+# SSL_name: "wav2vec2"
+# SSL_weight: "jonatasgrosman/wav2vec2-large-xlsr-53-japanese"
+# SSL_sample_rate: 16000
+emb_speakers: "Teacher,MStudent,FStudent"
+SSL_name:
+SSL_weight:
+SSL_sample_rate:
+mel_mode: 1
 pau_split: 0
 
 ###########################################################
 #                TRAINING SETTING                         #
 ###########################################################
 
+# acoustic_model: fastspeech2wContextswPEProsody
 acoustic_model: fastspeech2wContextswPEProsodywCurrentMel
 vocoder_model: hifigan
 # acoustic_modelで利用したいvocoderのconfigやweightへのpathを指定してください.

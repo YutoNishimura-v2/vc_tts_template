@@ -1866,3 +1866,33 @@
         - jobID: 9521285
     - LINE_wContextwPEProsody_160_Meltarget
         - jobID: 9521321
+
+    #### vs SMたち
+    - LINE_wContextwPEProsody_166_SM_woSSL_seg
+        - spk: LINE_wContextwPEProsody_7
+        - jobID: 9523921
+    - LINE_wContextwPEProsody_167_SM_woSSL_Attn
+        - spk: LINE_wContextwPEProsody_4
+        - jobID: 9523923
+    - LINE_wContextwPEProsody_168_SM_woSSL_Meltarget_beta_1
+        - spk: LINE_wContextwPEProsody_4
+        - jobID: 9523926
+    - LINE_wContextwPEProsody_169_SM_woSSL_Meltarget_beta_0_1
+        - spk: LINE_wContextwPEProsody_4
+        - jobID: 9523928
+    - LINE_wContextwPEProsody_170_SM_woSSL_Meltarget_beta_0_01
+        - spk: LINE_wContextwPEProsody_4
+        - jobID: 9523931
+    - LINE_wContextwPEProsody_171_SM_wSSL_seg
+        - spk: LINE_wContextwPEProsody_14
+        - jobID: 9523868
+    - LINE_wContextwPEProsody_172_SM_wSSL_Attn
+        - jobID: 9523870
+    - LINE_wContextwPEProsody_173_SM_wSSL_Meltarget_beta_1
+        - jobID: 9523872
+    - LINE_wContextwPEProsody_174_SM_wSSL_Meltarget_beta_0_1
+        - jobID: 9523913
+    - LINE_wContextwPEProsody_175_SM_wSSL_Meltarget_beta_0_01
+        - jobID: 9523916
+
+

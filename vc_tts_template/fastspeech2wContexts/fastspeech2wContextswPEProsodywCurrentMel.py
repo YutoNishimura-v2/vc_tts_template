@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 
 from vc_tts_template.fastspeech2wContexts.fastspeech2wContextswPEProsody import FastSpeech2wContextswPEProsody
+from vc_tts_template.fastspeech2wContexts.prosody_model import PEProsodyEncoder
 
 
 class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
@@ -133,8 +134,26 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
                 nn.Linear(sslprosody_emb_dim, sslprosody_emb_dim),
                 nn.ReLU(),
             )
+            self.current_peprosody_encoder = None
         else:
-            raise RuntimeError("未対応です")
+            self.next_predictor = nn.Sequential(
+                nn.Linear(encoder_hidden_dim, peprosody_encoder_gru_dim),
+                nn.ReLU(),
+                nn.Linear(peprosody_encoder_gru_dim, peprosody_encoder_gru_dim),
+                nn.ReLU(),
+                nn.Linear(peprosody_encoder_gru_dim, peprosody_encoder_gru_dim),
+                nn.ReLU(),
+            )
+            self.current_peprosody_encoder = PEProsodyEncoder(
+                    peprosody_encoder_gru_dim,
+                    peprosody_encoder_gru_num_layer,
+                    pitch_embedding=None,
+                    energy_embedding=None,
+                    shere_embedding=shere_embedding,
+                    n_mel_channel=n_mel_channel,
+                    conv_kernel_size=peprosody_encoder_conv_kernel_size,
+                    conv_n_layers=peprosody_encoder_conv_n_layers,
+                )
 
     def contexts_forward(
         self,
@@ -151,6 +170,8 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         h_prosody_embs,
         h_prosody_embs_lens,
         h_prosody_embs_len,
+        c_prosody_embs,
+        c_prosody_embs_lens,
         c_prosody_embs_phonemes,
     ):
         if (self.use_peprosody_encoder or self.use_melprosody_encoder) is True:
@@ -210,7 +231,15 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         # 以下だけ変更
         prosody_prediction = self.next_predictor(context_enc)
 
-        return output, prosody_prediction, attentions
+        if self.current_peprosody_encoder is not None:
+            current_prosody_prediction = self.current_peprosody_encoder(
+                c_prosody_embs.unsqueeze(1),
+                c_prosody_embs_lens.unsqueeze(1),
+            )
+        else:
+            current_prosody_prediction = None
+
+        return output, prosody_prediction, current_prosody_prediction, attentions
 
     def forward(
         self,
@@ -253,11 +282,12 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         output = self.encoder_forward(
             texts, src_masks, max_src_len, speakers, emotions
         )
-        output, prosody_prediction, attentions = self.contexts_forward(
+        output, prosody_prediction, current_prosody_prediction, attentions = self.contexts_forward(
             output, max_src_len, c_txt_embs, c_txt_embs_lens,
             speakers, emotions,
             h_txt_embs, h_txt_emb_lens, h_speakers, h_emotions,
             h_prosody_embs, h_prosody_embs_lens, h_prosody_embs_len,
+            c_prosody_embs, c_prosody_embs_lens,
             c_prosody_embs_phonemes,
         )
         (
@@ -296,6 +326,7 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
             src_lens,
             mel_lens,
             prosody_prediction,
+            current_prosody_prediction,
             attentions,
         )
 
@@ -344,7 +375,8 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
             _,
             _,
             predicted_prosody_embs,
-        ) = predictions[:11]
+            current_prosody_prediction,
+        ) = predictions[:12]
         src_masks = ~src_masks
         mel_masks = ~mel_masks
         log_duration_targets = torch.log(duration_targets.float() + 1)
@@ -386,7 +418,10 @@ class FastSpeech2wContextswPEProsodywCurrentMelsLoss(nn.Module):
         energy_loss = self.mse_loss(energy_predictions, energy_targets)
         duration_loss = self.mse_loss(log_duration_predictions, log_duration_targets)
 
-        prosody_emb_loss = self.mse_loss(predicted_prosody_embs, target_prosody_embs)
+        if current_prosody_prediction is None:
+            prosody_emb_loss = self.mse_loss(predicted_prosody_embs, target_prosody_embs)
+        else:
+            prosody_emb_loss = self.mse_loss(predicted_prosody_embs, current_prosody_prediction)
 
         total_loss = mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss + self.beta*prosody_emb_loss
 
