@@ -35,8 +35,8 @@ def fastspeech2_train_step(
     """
     # まずはCLUBの最適化
     if (train is True) and (optimizer_2 is not None) and (mi_minus_flg == 0):
-        for _, p in model.club_estimator.named_parameters():
-            p.requires_grad = True
+        # for _, p in model.club_estimator.named_parameters():
+        #     p.requires_grad = True
         optimizer_2.zero_grad()
         with torch.cuda.amp.autocast():
             _loss = model(*batch, q_theta_training=True)
@@ -73,8 +73,8 @@ def fastspeech2_train_step(
         #         print("\tgrad_value", p)
 
     # requires grad を False へ
-    for _, p in model.club_estimator.named_parameters():
-        p.requires_grad = False
+    # for _, p in model.club_estimator.named_parameters():
+    #     p.requires_grad = False
     optimizer.zero_grad()
 
     # Run forwaard
