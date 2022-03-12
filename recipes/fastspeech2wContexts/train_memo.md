@@ -1812,6 +1812,21 @@
         - さらにアドバイス: miが負になったらもうCLUBの更新はやめた方がよさそう
             - epochごとのavg_lossで評価
         - jobID: 9522508
+    - LINE_wContextwPEProsody_165_JT_CMCCE_Attn_Meltarget_MI
+        - branch: only_for_mutual_infomation
+        - spk: LINE_wContextwPEProsody_11
+        - pretrain: fastspeech2/jsut_sr22050_JSUT_5
+        - last_concat = True
+        - use_situation_text = 0
+        - FastSpeech2wContextswPEProsodywCurrentMel
+        - beta = 0.1
+        - mi_s: 0.0001
+        - mi_e: 0.001
+        - max_step: 70000
+        - use_hist_num: 10
+        - lr_schedulerとmiの係数をじわじわ増やしていくやつ
+        - 負に行ったらヤバイけど，行かなければ大丈夫だと思うので，モデル全体の最適化の時もgrad = Trueにしてみる.
+        - jobID: 9523198
 
     ### INTERSPEECH用の基本手法たち
     #### SSL実験しなおし

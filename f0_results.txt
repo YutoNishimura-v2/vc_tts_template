@@ -1,0 +1,27 @@
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_128_JT_TMCCE_GRU/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.866129 += 0.671387
+ F0 RMSE [Hz]: 62.394659 += 22.731265
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_156_Attn/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.928872 += 0.741153
+ F0 RMSE [Hz]: 63.538418 += 24.071957
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_14_sr22050_LINE_wContextwPEProsody_157_seg/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.981015 += 0.707192
+ F0 RMSE [Hz]: 62.371188 += 22.345857
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_158_SM_woSSL/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 6.019855 += 0.733550
+ F0 RMSE [Hz]: 63.029110 += 23.346536
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_159_SM_wSSL/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.984857 += 0.869521
+ F0 RMSE [Hz]: 65.049415 += 23.426477
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_160_Meltarget/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.922307 += 0.807512
+ F0 RMSE [Hz]: 63.546452 += 23.831786
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_162_JT_CMCCE_Attn_Meltarget_MI/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.950730 += 0.880743
+ F0 RMSE [Hz]: 63.510434 += 23.730675
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_163_JT_CMCCE_Attn_Meltarget_MI/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 6.003339 += 0.777607
+ F0 RMSE [Hz]: 63.527483 += 23.650923
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_164_JT_CMCCE_Attn_Meltarget_MI/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.949833 += 0.775000
+ F0 RMSE [Hz]: 64.552800 += 25.488592
