@@ -218,6 +218,8 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
             context_enc = context_enc_outputs
             attentions = None
 
+        prosody_prediction = self.next_predictor(context_enc)
+
         if c_prosody_embs_phonemes is None:
             output = output + context_enc.unsqueeze(1).expand(
                 -1, max_src_len, -1
@@ -227,9 +229,6 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
                 context_enc, c_prosody_embs_phonemes, torch.max(c_prosody_embs_phonemes)
             )
             output = output + context_enc
-
-        # 以下だけ変更
-        prosody_prediction = self.next_predictor(context_enc)
 
         if (self.current_peprosody_encoder is not None) and (c_prosody_embs is not None):
             # synthesisの時は計算しない

@@ -25,10 +25,10 @@ netG:
   # mel_emb_dim: 256
   # mel_emb_kernel: 31
   # mel_emb_dropout: 0.5
-  peprosody_encoder_conv_kernel_size: 3
-  peprosody_encoder_conv_n_layers: 2
-  sslprosody_emb_dim:
-  sslprosody_layer_num:
+  peprosody_encoder_conv_kernel_size:
+  peprosody_encoder_conv_n_layers:
+  sslprosody_emb_dim: 1024
+  sslprosody_layer_num: 1
   use_context_encoder: True
   use_prosody_encoder: False
   use_peprosody_encoder: False

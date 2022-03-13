@@ -1,8 +1,8 @@
 # General settings.
-spk: "LINE_wContextwPEProsody_4"
+spk: "LINE_wContextwPEProsody_7"
 
 # exp tag(for managing experiments)
-tag: "LINE_wContextwPEProsody_170_SM_woSSL_Meltarget_beta_0_01"
+tag: "LINE_wContextwPEProsody_192_SM_woSSL_seg_Attn_Meltarget_beta_0_01"
 
 sample_rate: 22050
 
@@ -79,7 +79,7 @@ SSL_name:
 SSL_weight:
 SSL_sample_rate:
 mel_mode: 1
-pau_split: 0
+pau_split: 1
 
 ###########################################################
 #                TRAINING SETTING                         #

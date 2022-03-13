@@ -1895,4 +1895,64 @@
     - LINE_wContextwPEProsody_175_SM_wSSL_Meltarget_beta_0_01
         - jobID: 9523916
 
+    #### 2個載せ
+    - LINE_wContextwPEProsody_176_SM_woSSL_seg_Attn
+        - spk: LINE_wContextwPEProsody_7
+        - jobID: 9524991
+    - LINE_wContextwPEProsody_177_SM_woSSL_seg_Meltarget_beta_1
+        - spk: LINE_wContextwPEProsody_7
+        - jobID: 9525012
+    - LINE_wContextwPEProsody_178_SM_woSSL_seg_Meltarget_beta_0_1
+        - spk: LINE_wContextwPEProsody_7
+        - jobID: 9525015
+    - LINE_wContextwPEProsody_179_SM_woSSL_seg_Meltarget_beta_0_01
+        - spk: LINE_wContextwPEProsody_7
+        - jobID: 9525068
+    - LINE_wContextwPEProsody_180_SM_woSSL_Attn_Meltarget_beta_1
+        - spk: LINE_wContextwPEProsody_4
+        - jobID: 9525072
+    - LINE_wContextwPEProsody_181_SM_woSSL_Attn_Meltarget_beta_0_1
+        - spk: LINE_wContextwPEProsody_4
+        - jobID: 9525074
+    - LINE_wContextwPEProsody_182_SM_woSSL_Attn_Meltarget_beta_0_01
+        - spk: LINE_wContextwPEProsody_4
+        - jobID: 9525076
 
+    - LINE_wContextwPEProsody_183_SM_wSSL_seg_Attn
+        - spk: LINE_wContextwPEProsody_14
+        - jobID: 9525084
+    - LINE_wContextwPEProsody_184_SM_wSSL_seg_Meltarget_beta_1
+        - spk: LINE_wContextwPEProsody_14
+        - jobID: 9525172
+    - LINE_wContextwPEProsody_185_SM_wSSL_seg_Meltarget_beta_0_1
+        - spk: LINE_wContextwPEProsody_14
+        - jobID: 9525174
+    - LINE_wContextwPEProsody_186_SM_wSSL_seg_Meltarget_beta_0_01
+        - spk: LINE_wContextwPEProsody_14
+        - jobID: 9525257
+    - LINE_wContextwPEProsody_187_SM_wSSL_Attn_Meltarget_beta_1
+        - jobID: 9525332
+    - LINE_wContextwPEProsody_188_SM_wSSL_Attn_Meltarget_beta_0_1
+        - jobID: 9525333
+    - LINE_wContextwPEProsody_189_SM_wSSL_Attn_Meltarget_beta_0_01
+        - jobID: 9525336
+    #### 3個載せ
+    - LINE_wContextwPEProsody_190_SM_woSSL_seg_Attn_Meltarget_beta_1
+        - spk: LINE_wContextwPEProsody_7
+        - jobID: 9525351
+    - LINE_wContextwPEProsody_191_SM_woSSL_seg_Attn_Meltarget_beta_0_1
+        - spk: LINE_wContextwPEProsody_7
+        - jobID: 9525352
+    - LINE_wContextwPEProsody_192_SM_woSSL_seg_Attn_Meltarget_beta_0_01
+        - spk: LINE_wContextwPEProsody_7
+        - jobID: 9525354
+
+    - LINE_wContextwPEProsody_193_SM_wSSL_seg_Attn_Meltarget_beta_1
+        - spk: LINE_wContextwPEProsody_14
+        - jobID: 9525344
+    - LINE_wContextwPEProsody_194_SM_wSSL_seg_Attn_Meltarget_beta_0_1
+        - spk: LINE_wContextwPEProsody_14
+        - jobID: 9525346
+    - LINE_wContextwPEProsody_195_SM_wSSL_seg_Attn_Meltarget_beta_0_01
+        - spk: LINE_wContextwPEProsody_14
+        - jobID: 9525348
