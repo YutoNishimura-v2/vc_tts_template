@@ -166,17 +166,17 @@ def my_app(config: DictConfig) -> None:
                 if text_attn is not None:
                     if "text" not in attention_data.keys():
                         attention_data["text"] = {}
-                    attention_data["text"][hist_prosody_emb_len] = [text_attn.view(-1).cpu().numpy()]
+                    attention_data["text"][hist_prosody_emb_len] = [text_attn.contiguous().view(-1).cpu().numpy()]
                 if speech_attn is not None:
                     if "speech" not in attention_data.keys():
                         attention_data["speech"] = {}
-                    attention_data["speech"][hist_prosody_emb_len] = [speech_attn.view(-1).cpu().numpy()]
+                    attention_data["speech"][hist_prosody_emb_len] = [speech_attn.contiguous().view(-1).cpu().numpy()]
             else:
                 attention_len_num[hist_prosody_emb_len] += 1
                 if text_attn is not None:
-                    attention_data["text"][hist_prosody_emb_len].append(text_attn.view(-1).cpu().numpy())
+                    attention_data["text"][hist_prosody_emb_len].append(text_attn.contiguous().view(-1).cpu().numpy())
                 if speech_attn is not None:
-                    attention_data["speech"][hist_prosody_emb_len].append(speech_attn.view(-1).cpu().numpy())
+                    attention_data["speech"][hist_prosody_emb_len].append(speech_attn.contiguous().view(-1).cpu().numpy())
 
         wav = np.clip(wav, -1.0, 1.0)
 
@@ -322,17 +322,17 @@ def my_app(config: DictConfig) -> None:
                     if text_attn is not None:
                         if "text" not in attention_data_real.keys():
                             attention_data_real["text"] = {}
-                        attention_data_real["text"][hist_prosody_emb_len] = [text_attn.view(-1).cpu().numpy()]
+                        attention_data_real["text"][hist_prosody_emb_len] = [text_attn.contiguous().view(-1).cpu().numpy()]
                     if speech_attn is not None:
                         if "speech" not in attention_data_real.keys():
                             attention_data_real["speech"] = {}
-                        attention_data_real["speech"][hist_prosody_emb_len] = [speech_attn.view(-1).cpu().numpy()]
+                        attention_data_real["speech"][hist_prosody_emb_len] = [speech_attn.contiguous().view(-1).cpu().numpy()]
                 else:
                     attention_len_num_real[hist_prosody_emb_len] += 1
                     if text_attn is not None:
-                        attention_data_real["text"][hist_prosody_emb_len].append(text_attn.view(-1).cpu().numpy())
+                        attention_data_real["text"][hist_prosody_emb_len].append(text_attn.contiguous().view(-1).cpu().numpy())
                     if speech_attn is not None:
-                        attention_data_real["speech"][hist_prosody_emb_len].append(speech_attn.view(-1).cpu().numpy())
+                        attention_data_real["speech"][hist_prosody_emb_len].append(speech_attn.contiguous().view(-1).cpu().numpy())
 
             # 3. 新しいembeddingの用意
             # 上書き保存という形でコピーしたprosody embがたまったdirに保存
