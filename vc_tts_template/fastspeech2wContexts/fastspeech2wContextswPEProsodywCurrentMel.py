@@ -231,7 +231,8 @@ class FastSpeech2wContextswPEProsodywCurrentMel(FastSpeech2wContextswPEProsody):
         # 以下だけ変更
         prosody_prediction = self.next_predictor(context_enc)
 
-        if self.current_peprosody_encoder is not None:
+        if (self.current_peprosody_encoder is not None) and (c_prosody_embs is not None):
+            # synthesisの時は計算しない
             current_prosody_prediction = self.current_peprosody_encoder(
                 c_prosody_embs.unsqueeze(1),
                 c_prosody_embs_lens.unsqueeze(1),

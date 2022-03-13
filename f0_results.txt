@@ -1,27 +1,39 @@
 recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_128_JT_TMCCE_GRU/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
  MCD     [dB]: 5.866129 += 0.671387
  F0 RMSE [Hz]: 62.394659 += 22.731265
-recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_156_Attn/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
- MCD     [dB]: 5.928872 += 0.741153
- F0 RMSE [Hz]: 63.538418 += 24.071957
-recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_14_sr22050_LINE_wContextwPEProsody_157_seg/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
- MCD     [dB]: 5.981015 += 0.707192
- F0 RMSE [Hz]: 62.371188 += 22.345857
 recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_158_SM_woSSL/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
  MCD     [dB]: 6.019855 += 0.733550
  F0 RMSE [Hz]: 63.029110 += 23.346536
 recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_159_SM_wSSL/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
  MCD     [dB]: 5.984857 += 0.869521
  F0 RMSE [Hz]: 65.049415 += 23.426477
-recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_160_Meltarget/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
- MCD     [dB]: 5.922307 += 0.807512
- F0 RMSE [Hz]: 63.546452 += 23.831786
-recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_162_JT_CMCCE_Attn_Meltarget_MI/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
- MCD     [dB]: 5.950730 += 0.880743
- F0 RMSE [Hz]: 63.510434 += 23.730675
-recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_163_JT_CMCCE_Attn_Meltarget_MI/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
- MCD     [dB]: 6.003339 += 0.777607
- F0 RMSE [Hz]: 63.527483 += 23.650923
-recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_164_JT_CMCCE_Attn_Meltarget_MI/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
- MCD     [dB]: 5.949833 += 0.775000
- F0 RMSE [Hz]: 64.552800 += 25.488592
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_7_sr22050_LINE_wContextwPEProsody_166_SM_woSSL_seg/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 6.083357 += 0.845543
+ F0 RMSE [Hz]: 64.710659 += 24.929922
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_167_SM_woSSL_Attn/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.946834 += 0.814363
+ F0 RMSE [Hz]: 64.456626 += 26.114537
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_168_SM_woSSL_Meltarget_beta_1/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 6.040296 += 0.930491
+ F0 RMSE [Hz]: 65.092861 += 24.415922
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_169_SM_woSSL_Meltarget_beta_0_1/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.982701 += 0.738893
+ F0 RMSE [Hz]: 64.302622 += 23.567930
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_4_sr22050_LINE_wContextwPEProsody_170_SM_woSSL_Meltarget_beta_0_01/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.973225 += 0.736560
+ F0 RMSE [Hz]: 64.420828 += 23.610152
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_14_sr22050_LINE_wContextwPEProsody_171_SM_wSSL_seg/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.989117 += 0.680446
+ F0 RMSE [Hz]: 64.401146 += 23.038693
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_172_SM_wSSL_Attn/synthesis_fastspeech2wContextswPEProsody_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.947338 += 0.745126
+ F0 RMSE [Hz]: 63.443232 += 23.266725
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_173_SM_wSSL_Meltarget_beta_1/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.897439 += 0.673212
+ F0 RMSE [Hz]: 64.937496 += 23.597962
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_174_SM_wSSL_Meltarget_beta_0_1/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.928202 += 0.750284
+ F0 RMSE [Hz]: 64.766336 += 24.658880
+recipes/fastspeech2wContexts/exp/LINE_wContextwPEProsody_11_sr22050_LINE_wContextwPEProsody_175_SM_wSSL_Meltarget_beta_0_01/synthesis_fastspeech2wContextswPEProsodywCurrentMel_hifigan/eval/real_dialogue_synthesis
+ MCD     [dB]: 5.945047 += 0.689463
+ F0 RMSE [Hz]: 64.750347 += 24.068258
